@@ -1,0 +1,1 @@
+# Folder containing all the widgets of the mobile application

@@ -1,0 +1,1 @@
+# Folder contains all the constants of the mobile application

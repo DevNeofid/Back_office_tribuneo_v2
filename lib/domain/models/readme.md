@@ -1,0 +1,1 @@
+# Folder contains all models of the mobile application

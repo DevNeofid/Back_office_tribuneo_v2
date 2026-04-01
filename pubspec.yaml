@@ -1,0 +1,81 @@
+name: tribuneo_backoffice
+description: Tribuneo backoffice web application.
+
+version: 1.0.0+2
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # Back-office dependencies :
+  # For hive
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  # For images
+  flutter_svg: ^2.0.4
+  # For http requests
+  http: ^1.1.0
+  # For http requests
+  dio: ^5.7.0
+  # For fonts
+  google_fonts: ^8.0.2
+  # For encryption
+  encrypt: ^5.0.1
+  # For Json
+  convert: ^3.0.0
+  # For Graphs
+  graphic: ^2.2.0
+  # For date
+  intl: 0.20.2
+  provider: ^6.0.5
+  # For dropdownmenu
+  dropdown_button2: ^3.0.0
+  # For remove accent
+  diacritic: ^0.1.3
+  # For save files
+  file_saver: ^0.3.1
+  # For show PDF
+  pdf: ^3.10.0
+  # For show HTML
+  html: ^0.15.2
+  web: ^1.1.1
+
+  flutter_html: ^3.0.0-alpha.6
+  # For flutter security
+  envied: ^1.3.4
+  # For beautifull icons
+  cupertino_icons: ^1.0.6
+  # For construc table
+  data_table_2: ^2.5.12
+  # For file picker
+  file_picker: ^10.3.10
+  # For csv
+  csv: ^8.0.0
+  # For excel
+  excel: ^4.0.6
+
+  pointycastle: any
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  # For hive
+  hive_generator: ^2.0.0
+  build_runner: ^2.4.6
+  build_web_compilers: ^4.4.16
+  envied_generator: ^1.1.1
+
+# The following section is specific to Flutter packages.
+flutter:
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/png/
+    - assets/svg/
+    - assets/keys/

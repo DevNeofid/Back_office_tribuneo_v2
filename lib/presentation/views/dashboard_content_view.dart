@@ -1,0 +1,280 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:tribuneo_backoffice/config/size_config.dart';
+import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:tribuneo_backoffice/presentation/views/my_simgle_page.dart';
+
+class DashboardContentView extends StatefulWidget {
+  const DashboardContentView({super.key});
+
+  @override
+  State<DashboardContentView> createState() => _DashboardContentViewState();
+}
+
+class _DashboardContentViewState extends State<DashboardContentView> {
+  final Completer<void> signOutCompleter = Completer();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void callBackMenu(int indexContent) {
+    final mySimplePageState = MySimplePage.of(context);
+    mySimplePageState.callBackMenu(indexContent);
+  }
+
+  Future<void> _signOut() async {
+    final tokenBox = await Hive.openBox('tokenBox');
+    await tokenBox.delete('token');
+  }
+
+  void _signOutAndNavigateToLogin(BuildContext context) async {
+    await _signOut();
+    // ignore: use_build_context_synchronously
+    _navigateToLogin(context);
+  }
+
+  void _navigateToLogin(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (signOutCompleter.isCompleted) {
+      _navigateToLogin(context);
+    }
+    return SizedBox(
+      width: SizeConfig.screenWidth,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text.rich(
+                  TextSpan(
+                    text: 'Bienvenue sur votre espace de gestion',
+                    style: GoogleFonts.poppins(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w500,
+                      color: kGrey,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.only(
+                      top: 12, bottom: 0, left: 0, right: 0),
+                  child: SvgPicture.asset(
+                    'assets/svg/logo_tribuneo.svg',
+                    fit: BoxFit.contain,
+                    alignment: Alignment.topCenter,
+                    width: 140,
+                  ),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 60),
+          // insert image bandeaux_horizontal here
+          SvgPicture.asset(
+            'assets/svg/bandeau_horizontale.svg',
+            height: 120,
+            width: 150,
+          ),
+          const SizedBox(height: 70),
+          Wrap(
+            spacing: 20,
+            runSpacing: 20,
+            alignment: WrapAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                child: Container(
+                    height: 150,
+                    width: 180,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: kWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kGrey.withValues(alpha: 0.1),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: Icon(
+                            Icons.list_alt,
+                            color: kOrange,
+                            size: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Commandes',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: kGrey,
+                          ),
+                        ),
+                      ],
+                    )),
+                onTap: () {
+                  callBackMenu(2);
+                },
+              ),
+              GestureDetector(
+                child: Container(
+                    height: 150,
+                    width: 180,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: kWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kGrey.withValues(alpha: 0.1),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: Icon(
+                            Icons.storefront,
+                            color: kOrange,
+                            size: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Partenaires',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: kGrey,
+                          ),
+                        ),
+                      ],
+                    )),
+                onTap: () {
+                  callBackMenu(3);
+                },
+              ),
+              GestureDetector(
+                child: Container(
+                    height: 150,
+                    width: 180,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: kWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kGrey.withValues(alpha: 0.1),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: Icon(
+                            Icons.people,
+                            color: kOrange,
+                            size: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Clients',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: kGrey,
+                          ),
+                        ),
+                      ],
+                    )),
+                onTap: () {
+                  callBackMenu(1);
+                },
+              ),
+              GestureDetector(
+                child: Container(
+                    height: 150,
+                    width: 180,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: kWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kGrey.withValues(alpha: 0.1),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 25,
+                          width: 25,
+                          child: Icon(
+                            Icons.logout,
+                            color: kOrange,
+                            size: 25,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Deconnexion',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: kGrey,
+                          ),
+                        ),
+                      ],
+                    )),
+                onTap: () {
+                  _signOutAndNavigateToLogin(context);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
