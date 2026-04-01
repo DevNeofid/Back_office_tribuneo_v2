@@ -1,0 +1,1 @@
+# Folder contains all the repositories of the mobile application

@@ -1,0 +1,1 @@
+# Folder contains all the data of the themes of the mobile application

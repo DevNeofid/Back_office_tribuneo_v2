@@ -1,0 +1,1 @@
+# Folder contains all the use cases of the mobile application

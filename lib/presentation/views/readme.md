@@ -1,0 +1,1 @@
+# Folder containing all views of the mobile application

@@ -1,0 +1,1 @@
+# Folder containing all calls to the local database of the mobile application
