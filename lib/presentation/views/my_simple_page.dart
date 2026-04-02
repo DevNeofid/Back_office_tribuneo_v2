@@ -31,6 +31,8 @@ class MySimplePage extends StatefulWidget {
 }
 
 class MySimplePageState extends State<MySimplePage> {
+  static const double _sideMenuWidth = 120;
+
   String selectedMenu = 'dashboard';
   String contentTitle = 'Dashboard';
   late Widget content = const DashboardContentView();
@@ -248,7 +250,7 @@ class MySimplePageState extends State<MySimplePage> {
       key: _drawerKey,
       // drawer: drawer,
       drawer: SizedBox(
-        width: 100,
+        width: _sideMenuWidth,
         child: menu,
       ),
       appBar: !Responsive.isDesktop(context)
@@ -273,8 +275,8 @@ class MySimplePageState extends State<MySimplePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (Responsive.isDesktop(context))
-              Expanded(
-                flex: 1,
+              SizedBox(
+                width: _sideMenuWidth,
                 child: menu,
               ),
             if (loadedData)
@@ -727,6 +729,7 @@ class SideMenu extends StatefulWidget {
 
 class _SideMenuState extends State<SideMenu> {
   List<Widget> menuItems = [];
+  int? hoveredMenuIndex;
   // bool showRefundNotification = false;
 
   @override
@@ -765,6 +768,10 @@ class _SideMenuState extends State<SideMenu> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: widget.menuItemsInfos.length,
                 itemBuilder: (context, index) {
+                  final bool isSelected = widget.selectedMenu ==
+                      widget.menuItemsInfos[index]!['name'];
+                  final bool isHovered = hoveredMenuIndex == index;
+
                   return InkWell(
                     onTap: () {
                       if (kDebugMode) {
@@ -775,78 +782,93 @@ class _SideMenuState extends State<SideMenu> {
                     },
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
-                      child: SizedBox(
-                        height: 65,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      iconSize: 30,
-                                      padding: const EdgeInsets.only(
-                                          top: 10.0, bottom: 2.0),
-                                      icon: Stack(
-                                        children: [
-                                          Icon(
-                                            widget
-                                                .menuItemsInfos[index]!['icon'],
-                                            color: widget.selectedMenu ==
-                                                    widget.menuItemsInfos[
-                                                        index]!['name']
-                                                ? kBlue
-                                                : kLBlue,
-                                          ),
-                                          // Conditionnellement afficher un cercle rouge si les notifications doivent être montrées
-                                          if (widget.showRefundNotification &&
+                      onEnter: (_) => setState(() => hoveredMenuIndex = index),
+                      onExit: (_) => setState(() => hoveredMenuIndex = null),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOutCubic,
+                        opacity: isHovered ? 0.8 : 1,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOutCubic,
+                          height: 65,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? kLBlue.withValues(alpha: 0.20)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                        iconSize: 30,
+                                        padding: const EdgeInsets.only(
+                                            top: 10.0, bottom: 2.0),
+                                        icon: Stack(
+                                          children: [
+                                            Icon(
                                               widget.menuItemsInfos[index]![
-                                                      'name'] ==
-                                                  'refund')
-                                            Positioned(
-                                              right: 0,
-                                              top: 0,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(1),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                ),
-                                                constraints:
-                                                    const BoxConstraints(
-                                                  minWidth: 12,
-                                                  minHeight: 12,
+                                                  'icon'],
+                                              color: (isSelected || isHovered)
+                                                  ? kBlue
+                                                  : kLBlue,
+                                            ),
+                                            // Conditionnellement afficher un cercle rouge si les notifications doivent être montrées
+                                            if (widget.showRefundNotification &&
+                                                widget.menuItemsInfos[index]![
+                                                        'name'] ==
+                                                    'refund')
+                                              Positioned(
+                                                right: 0,
+                                                top: 0,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.all(1),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                    minWidth: 12,
+                                                    minHeight: 12,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                        ],
+                                          ],
+                                        ),
+                                        onPressed: null,
                                       ),
-                                      onPressed: null,
-                                    ),
-                                    Text(
-                                      widget.menuItemsInfos[index]!['short'],
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: (widget.selectedMenu ==
-                                                widget.menuItemsInfos[index]![
-                                                    'name'])
-                                            ? kBlue
-                                            : kLBlue,
+                                      Text(
+                                        widget.menuItemsInfos[index]!['short'],
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: (isSelected || isHovered)
+                                              ? kBlue
+                                              : kLBlue,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        softWrap: true,
                                       ),
-                                      textAlign: TextAlign.center,
-                                      softWrap: true,
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
