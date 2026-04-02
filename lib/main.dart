@@ -7,7 +7,7 @@ import 'package:tribuneo_backoffice/domain/models/user_model.dart';
 import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
 import 'package:tribuneo_backoffice/presentation/utils/common.dart';
 import 'package:tribuneo_backoffice/presentation/views/login_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/my_simgle_page.dart';
+import 'package:tribuneo_backoffice/presentation/views/my_simple_page.dart';
 import 'package:tribuneo_backoffice/domain/usecases/main_usecase.dart';
 
 void main() async {

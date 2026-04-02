@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tribuneo_backoffice/config/responsive.dart';
 import 'package:tribuneo_backoffice/presentation/utils/common.dart';
 import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
 import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
@@ -17,17 +16,17 @@ class NeoRow extends StatefulWidget {
   final String? initialNumber;
   final String? initialValue;
   final String? initialPersoMsg;
-  NeoRow({
-    Key? key,
-    RowModel? rowModel,
-    index,
-    fundNumberController,
-    fundValueController,
-    persoMsgController,
-    this.initialNumber = '',
-    this.initialValue = '',
-    this.initialPersoMsg = ''
-  }) : super(key: key);
+  NeoRow(
+      {Key? key,
+      RowModel? rowModel,
+      index,
+      fundNumberController,
+      fundValueController,
+      persoMsgController,
+      this.initialNumber = '',
+      this.initialValue = '',
+      this.initialPersoMsg = ''})
+      : super(key: key);
 
   @override
   State<NeoRow> createState() => NeoRowState();
@@ -64,88 +63,74 @@ class NeoRowState extends State<NeoRow> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 100,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-        
-          Row(
-            children: [
-              const Expanded(child: SizedBox()),
-              ValueListenableBuilder<bool>(
-                valueListenable: _showHint,
-                builder: (context, showHint, child) {
-                  return showHint
-                      ? const Text(
-                          "Le message personnalisé va remplacer la raison URSAF",
-                          style: TextStyle(color: Colors.red),
-                        )
-                      : const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment
+          .end, // Aligne le texte rouge à droite, au-dessus de son champ
+      children: [
+        ValueListenableBuilder<bool>(
+          valueListenable: _showHint,
+          builder: (context, showHint, child) {
+            return showHint
+                ? const Padding(
+                    padding: EdgeInsets.only(bottom: 6.0),
+                    child: Text(
+                      "Le message personnalisé va remplacer la raison URSAF",
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment
+              .start, // Important pour l'alignement avec les erreurs de validation
+          children: [
+            Expanded(
+              flex: 2,
+              child: NeoInput(
+                controller: widget.fundValueController,
+                hintText: 'Montant par chèque',
+                fillColor: kPWhite,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  return FormValidator.validateValueByFund(
+                      int.parse(value?.toString() ?? '0'));
                 },
               ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                flex: 2,
-                child: NeoInput(
-                  controller: widget.fundValueController,
-                  hintText: 'Montant par chèque',
-                  fillColor: kPWhite,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    return FormValidator.validateValueByFund(
-                        int.parse(value?.toString() ?? '0'));
-                  },
-                ),
+            ),
+            const SizedBox(width: 16), // Espacement fixe et raisonnable
+            Expanded(
+              flex: 2,
+              child: NeoInput(
+                controller: widget.fundNumberController,
+                hintText: 'Nombre de chèque',
+                keyboardType: TextInputType.number,
+                fillColor: kPWhite,
+                validator: (value) {
+                  return FormValidator.validateNumberOfFunds(
+                      int.parse(value?.toString() ?? '0'));
+                },
+                formatter: FilteringTextInputFormatter.digitsOnly,
               ),
-              !Responsive.isMobile(context)
-                  ? Expanded(
-                      flex: Responsive.isDesktop(context) ? 4 : 2,
-                      child: const SizedBox(height: 10),
-                    )
-                  : const SizedBox(height: 10),
-              Expanded(
-                flex: 2,
-                child: NeoInput(
-                  controller: widget.fundNumberController,
-                  hintText: 'Nombre de chèque',
-                  keyboardType: TextInputType.number,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateNumberOfFunds(
-                        int.parse(value?.toString() ?? '0'));
-                  },
-                  formatter: FilteringTextInputFormatter.digitsOnly,
-                ),
+            ),
+            const SizedBox(width: 16), // Espacement fixe et raisonnable
+            Expanded(
+              flex:
+                  3, // Donne un peu plus de place à ce champ qui a un texte plus long
+              child: NeoInput(
+                controller: widget.persoMsgController,
+                hintText: 'Message personnalisé',
+                keyboardType: TextInputType.text,
+                fillColor: kPWhite,
+                validator: (value) {
+                  return FormValidator.validateText(value?.toString() ?? '');
+                },
               ),
-              !Responsive.isMobile(context)
-                  ? Expanded(
-                      flex: Responsive.isDesktop(context) ? 4 : 2,
-                      child: const SizedBox(height: 10),
-                    )
-                  : const SizedBox(height: 10),
-              Expanded(
-                flex: 3,
-                child: NeoInput(
-                  controller: widget.persoMsgController,
-                  hintText: 'Message personnalisé',
-                  keyboardType: TextInputType.text,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateText(
-                        value?.toString() ?? '');
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

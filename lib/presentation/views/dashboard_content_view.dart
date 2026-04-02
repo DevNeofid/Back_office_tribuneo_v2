@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:tribuneo_backoffice/config/size_config.dart';
 import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/views/my_simgle_page.dart';
+import 'package:tribuneo_backoffice/presentation/views/my_simple_page.dart';
 
 class DashboardContentView extends StatefulWidget {
   const DashboardContentView({super.key});
@@ -17,6 +17,7 @@ class DashboardContentView extends StatefulWidget {
 
 class _DashboardContentViewState extends State<DashboardContentView> {
   final Completer<void> signOutCompleter = Completer();
+  int? _hoveredIndex;
 
   @override
   void initState() {
@@ -95,181 +96,221 @@ class _DashboardContentViewState extends State<DashboardContentView> {
             runSpacing: 20,
             alignment: WrapAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                child: Container(
-                    height: 150,
-                    width: 180,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kGrey.withValues(alpha: 0.1),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: Icon(
-                            Icons.list_alt,
-                            color: kOrange,
-                            size: 25,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                onEnter: (_) => setState(() => _hoveredIndex = 0),
+                onExit: (_) => setState(() => _hoveredIndex = null),
+                child: GestureDetector(
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOut,
+                      height: 150,
+                      width: 180,
+                      padding: const EdgeInsets.all(20),
+                      transform: Matrix4.identity()
+                        ..scale(_hoveredIndex == 0 ? 1.03 : 1.0),
+                      decoration: BoxDecoration(
+                        color: kWhite,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kGrey.withValues(
+                                alpha: _hoveredIndex == 0 ? 0.2 : 0.1),
+                            spreadRadius: _hoveredIndex == 0 ? 3 : 2,
+                            blurRadius: _hoveredIndex == 0 ? 14 : 10,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Commandes',
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: kGrey,
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Icon(
+                              Icons.list_alt,
+                              color: kOrange,
+                              size: 25,
+                            ),
                           ),
-                        ),
-                      ],
-                    )),
-                onTap: () {
-                  callBackMenu(2);
-                },
+                          const SizedBox(height: 5),
+                          Text(
+                            'Commandes',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: kGrey,
+                            ),
+                          ),
+                        ],
+                      )),
+                  onTap: () {
+                    callBackMenu(2);
+                  },
+                ),
               ),
-              GestureDetector(
-                child: Container(
-                    height: 150,
-                    width: 180,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kGrey.withValues(alpha: 0.1),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: Icon(
-                            Icons.storefront,
-                            color: kOrange,
-                            size: 25,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                onEnter: (_) => setState(() => _hoveredIndex = 1),
+                onExit: (_) => setState(() => _hoveredIndex = null),
+                child: GestureDetector(
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOut,
+                      height: 150,
+                      width: 180,
+                      padding: const EdgeInsets.all(20),
+                      transform: Matrix4.identity()
+                        ..scale(_hoveredIndex == 1 ? 1.03 : 1.0),
+                      decoration: BoxDecoration(
+                        color: kWhite,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kGrey.withValues(
+                                alpha: _hoveredIndex == 1 ? 0.2 : 0.1),
+                            spreadRadius: _hoveredIndex == 1 ? 3 : 2,
+                            blurRadius: _hoveredIndex == 1 ? 14 : 10,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Partenaires',
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: kGrey,
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Icon(
+                              Icons.storefront,
+                              color: kOrange,
+                              size: 25,
+                            ),
                           ),
-                        ),
-                      ],
-                    )),
-                onTap: () {
-                  callBackMenu(3);
-                },
+                          const SizedBox(height: 5),
+                          Text(
+                            'Partenaires',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: kGrey,
+                            ),
+                          ),
+                        ],
+                      )),
+                  onTap: () {
+                    callBackMenu(3);
+                  },
+                ),
               ),
-              GestureDetector(
-                child: Container(
-                    height: 150,
-                    width: 180,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kGrey.withValues(alpha: 0.1),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: Icon(
-                            Icons.people,
-                            color: kOrange,
-                            size: 25,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                onEnter: (_) => setState(() => _hoveredIndex = 2),
+                onExit: (_) => setState(() => _hoveredIndex = null),
+                child: GestureDetector(
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOut,
+                      height: 150,
+                      width: 180,
+                      padding: const EdgeInsets.all(20),
+                      transform: Matrix4.identity()
+                        ..scale(_hoveredIndex == 2 ? 1.03 : 1.0),
+                      decoration: BoxDecoration(
+                        color: kWhite,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kGrey.withValues(
+                                alpha: _hoveredIndex == 2 ? 0.2 : 0.1),
+                            spreadRadius: _hoveredIndex == 2 ? 3 : 2,
+                            blurRadius: _hoveredIndex == 2 ? 14 : 10,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Clients',
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: kGrey,
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Icon(
+                              Icons.people,
+                              color: kOrange,
+                              size: 25,
+                            ),
                           ),
-                        ),
-                      ],
-                    )),
-                onTap: () {
-                  callBackMenu(1);
-                },
+                          const SizedBox(height: 5),
+                          Text(
+                            'Clients',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: kGrey,
+                            ),
+                          ),
+                        ],
+                      )),
+                  onTap: () {
+                    callBackMenu(1);
+                  },
+                ),
               ),
-              GestureDetector(
-                child: Container(
-                    height: 150,
-                    width: 180,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: kWhite,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kGrey.withValues(alpha: 0.1),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 25,
-                          width: 25,
-                          child: Icon(
-                            Icons.logout,
-                            color: kOrange,
-                            size: 25,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                onEnter: (_) => setState(() => _hoveredIndex = 3),
+                onExit: (_) => setState(() => _hoveredIndex = null),
+                child: GestureDetector(
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOut,
+                      height: 150,
+                      width: 180,
+                      padding: const EdgeInsets.all(20),
+                      transform: Matrix4.identity()
+                        ..scale(_hoveredIndex == 3 ? 1.03 : 1.0),
+                      decoration: BoxDecoration(
+                        color: kWhite,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kGrey.withValues(
+                                alpha: _hoveredIndex == 3 ? 0.2 : 0.1),
+                            spreadRadius: _hoveredIndex == 3 ? 3 : 2,
+                            blurRadius: _hoveredIndex == 3 ? 14 : 10,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Deconnexion',
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: kGrey,
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Icon(
+                              Icons.logout,
+                              color: kOrange,
+                              size: 25,
+                            ),
                           ),
-                        ),
-                      ],
-                    )),
-                onTap: () {
-                  _signOutAndNavigateToLogin(context);
-                },
+                          const SizedBox(height: 5),
+                          Text(
+                            'Deconnexion',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: kGrey,
+                            ),
+                          ),
+                        ],
+                      )),
+                  onTap: () {
+                    _signOutAndNavigateToLogin(context);
+                  },
+                ),
               ),
             ],
           ),
