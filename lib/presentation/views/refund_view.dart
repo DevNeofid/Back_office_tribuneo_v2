@@ -1,6 +1,5 @@
-// ignore: avoid_web_libraries_in_flutter
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tribuneo_backoffice/config/size_config.dart';
 import 'package:tribuneo_backoffice/domain/models/refund_shop_model.dart';
@@ -10,7 +9,6 @@ import 'package:tribuneo_backoffice/presentation/utils/common.dart';
 import 'package:tribuneo_backoffice/presentation/utils/file_downloader.dart';
 import 'package:tribuneo_backoffice/presentation/widgets/date_formater.dart';
 import 'package:tribuneo_backoffice/presentation/widgets/loading.dart';
-// import 'package:tribuneo_backoffice/presentation/widgets/date_formater.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -88,8 +86,6 @@ class _RefoundShopViewState extends State<RefoundShopView> {
 
       FileDownloader.downloadLargeFile(listDynamic, fileName, 'application/zip',
           fileExtension: 'zip');
-
-      // Here call
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
           content:
@@ -132,73 +128,165 @@ class _RefoundShopViewState extends State<RefoundShopView> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 50),
-          ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(kOrange),
+    return SizedBox(
+      height: SizeConfig.screenHeight * 0.9,
+      width: double.infinity,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 50),
+            ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(kOrange),
+              ),
+              onPressed: () {
+                _refundShop();
+              },
+              child: const Text('Déclencher un remboursement'),
             ),
-            onPressed: () {
-              _refundShop();
-            },
-            child: const Text('Déclencher un remboursement'),
-          ),
-          const SizedBox(height: 50),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              //border: TableBorder(borderRadius: BorderRadius.circular(10)),
-              headingRowColor: WidgetStateColor.resolveWith((states) => kLBlue),
-              columns: const [
-                DataColumn(label: Center(child: Text('Nom'))),
-                DataColumn(label: Center(child: Text('Code'))),
-                DataColumn(
-                    label: Center(child: Text('Montant du remboursement'))),
-                DataColumn(label: Center(child: Text('Justificatif édité ?'))),
-                DataColumn(label: Center(child: Text('Date de demande'))),
-                DataColumn(label: Center(child: Text('Gestion'))),
-              ],
-              rows: _refund.asMap().entries.map((entry) {
-                final refund = entry.value;
-                final index = entry.key;
-                final isEvenRow = index % 2 == 0;
-                return DataRow(
-                  cells: [
-                    DataCell(Center(child: SelectableText(refund.name ?? ''))),
-                    DataCell(
-                        Center(child: SelectableText(refund.code.toString()))),
-                    DataCell(Center(
-                        child: SelectableText(refund.refundAmount.toString()))),
-                    DataCell(Center(
-                        child: SelectableText(
-                            refund.isEdited == null ? 'non' : 'oui'))),
-                    DataCell(Center(
-                        child: SelectableText(
-                            DateFormater().modifyDate(refund.createdDate!)))),
-                    DataCell(
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              _editProof(refund);
-                            },
-                            icon: const Icon(Icons.download),
-                          ),
-                        ],
-                      ),
+            const SizedBox(height: 50),
+            Builder(builder: (context) {
+              final bool isCompact = MediaQuery.of(context).size.width < 1500;
+              return Container(
+                decoration: BoxDecoration(
+                  color: kWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue.withValues(alpha: 0.07),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ],
-                  color: isEvenRow
-                      ? WidgetStateProperty.all(kWhite)
-                      : WidgetStateProperty.all(kPLGreyTable),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: isCompact ? 1000 : 1200,
+                      ),
+                      child: DataTable(
+                        columnSpacing: isCompact ? 16 : 22,
+                        horizontalMargin: isCompact ? 10 : 14,
+                        dividerThickness: 0.6,
+                        dataRowMinHeight: 50,
+                        dataRowMaxHeight: 56,
+                        headingRowHeight: 54,
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kWhite,
+                        ),
+                        dataTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: kBlueEnd,
+                        ),
+                        headingRowColor: WidgetStateProperty.all(kBlue),
+                        showCheckboxColumn: false,
+                        columns: const [
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Nom', textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child:
+                                    Text('Code', textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Montant du remboursement',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Justificatif édité ?',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Date de demande',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Gestion',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                        ],
+                        rows: _refund.asMap().entries.map((entry) {
+                          final refund = entry.value;
+                          final index = entry.key;
+                          final isEvenRow = index % 2 == 0;
+                          return DataRow(
+                            color: isEvenRow
+                                ? WidgetStateProperty.all(kWhite)
+                                : WidgetStateProperty.all(
+                                    kLBlue.withValues(alpha: 0.10)),
+                            cells: [
+                              DataCell(Center(
+                                  child: SelectableText(refund.name ?? ''))),
+                              DataCell(Center(
+                                  child:
+                                      SelectableText(refund.code.toString()))),
+                              DataCell(Center(
+                                  child: SelectableText(
+                                      refund.refundAmount.toString()))),
+                              DataCell(Center(
+                                  child: SelectableText(refund.isEdited == null
+                                      ? 'non'
+                                      : 'oui'))),
+                              DataCell(Center(
+                                  child: SelectableText(DateFormater()
+                                      .modifyDate(refund.createdDate!)))),
+                              DataCell(
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        _editProof(refund);
+                                      },
+                                      icon: const Icon(Icons.download),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 50),
+          ],
+        ),
       ),
     );
   }
