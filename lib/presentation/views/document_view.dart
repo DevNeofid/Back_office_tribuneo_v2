@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_web_libraries_in_flutter
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tribuneo_backoffice/config/size_config.dart';
 
@@ -62,7 +63,6 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
             .toList();
       });
       _allOrders = List.from(_orders);
-      // inspect(_allOrders);
     });
 
     setState(() {
@@ -89,7 +89,6 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
                 ))
             .toList();
       });
-      // inspect(_allFees);
       _allFees = List.from(_fees);
     });
   }
@@ -155,7 +154,6 @@ class _InvoicesContentState extends State<InvoicesContent> {
   final TextEditingController _searchOrderController = TextEditingController();
   List<InvoiceModel> _orders = [];
   List<InvoiceModel> _allOrders = [];
-  SampleItem? selectedMenu;
   String prefixe = 'invoice_purchase';
 
   @override
@@ -180,7 +178,6 @@ class _InvoicesContentState extends State<InvoicesContent> {
       dynamic response = await _documentUseCase
           .downloadFileInvoice(order.idOrder!, prefixe: prefixe);
       List<dynamic> listDynamic = response;
-      // Uint8List bytes = Uint8List.fromList(listDynamic.cast<int>());
 
       FileDownloader.downloadLargeFile(
           listDynamic, '${name}_$number', 'application/pdf',
@@ -218,8 +215,6 @@ class _InvoicesContentState extends State<InvoicesContent> {
 
   @override
   Widget build(BuildContext context) {
-    final invoiceDataSource = InvoiceDataSource(_orders, _downloadFile);
-    int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
     return Column(
       children: [
         const SizedBox(height: 50),
@@ -249,84 +244,126 @@ class _InvoicesContentState extends State<InvoicesContent> {
         ),
         const SizedBox(height: 50),
         Expanded(
-          child: PaginatedDataTable(
-            columns: const [
-              DataColumn(label: Center(child: Text('Numéro de facture'))),
-              DataColumn(label: Center(child: Text('Destinataire'))),
-              DataColumn(label: Center(child: Text('Code'))),
-              DataColumn(label: Center(child: Text('Occasion'))),
-              DataColumn(label: Center(child: Text('Montant total'))),
-              DataColumn(label: Center(child: Text('Date de création'))),
-              DataColumn(label: Center(child: Text('Actions')))
-            ],
-            source: invoiceDataSource,
-            rowsPerPage: rowsPerPage,
-            availableRowsPerPage: const [5, 10, 15],
-            onRowsPerPageChanged: (value) {
-              setState(() {
-                rowsPerPage = value!;
-              });
-            },
-            columnSpacing: 120,
-            showCheckboxColumn: false,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Builder(builder: (context) {
+              final bool isCompact = MediaQuery.of(context).size.width < 1500;
+              return Container(
+                decoration: BoxDecoration(
+                  color: kWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue.withValues(alpha: 0.07),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: isCompact ? 980 : 1180,
+                      ),
+                      child: DataTable(
+                        columnSpacing: isCompact ? 16 : 22,
+                        horizontalMargin: isCompact ? 10 : 14,
+                        dividerThickness: 0.6,
+                        dataRowMinHeight: 50,
+                        dataRowMaxHeight: 56,
+                        headingRowHeight: 54,
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kWhite,
+                        ),
+                        dataTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: kBlueEnd,
+                        ),
+                        headingRowColor: WidgetStateProperty.all(kBlue),
+                        columns: const [
+                          DataColumn(
+                              label: Center(child: Text('Numéro de facture'))),
+                          DataColumn(
+                              label: Center(child: Text('Destinataire'))),
+                          DataColumn(label: Center(child: Text('Code'))),
+                          DataColumn(label: Center(child: Text('Occasion'))),
+                          DataColumn(
+                              label: Center(child: Text('Montant total'))),
+                          DataColumn(
+                              label: Center(child: Text('Date de création'))),
+                          DataColumn(label: Center(child: Text('Actions')))
+                        ],
+                        rows: _orders.asMap().entries.map((entry) {
+                          final invoice = entry.value;
+                          final index = entry.key;
+                          final isEvenRow = index % 2 == 0;
+                          return DataRow(
+                            color: isEvenRow
+                                ? WidgetStateProperty.all(kWhite)
+                                : WidgetStateProperty.all(
+                                    kLBlue.withValues(alpha: 0.10)),
+                            cells: [
+                              DataCell(Center(
+                                  child: SelectableText(
+                                      invoice.invoiceNumber ?? ''))),
+                              DataCell(
+                                  SelectableText(invoice.entityName ?? '')),
+                              DataCell(
+                                  SelectableText(invoice.entityCode ?? '')),
+                              DataCell(Center(
+                                  child: SelectableText(
+                                      invoice.giftReason ?? ''))),
+                              DataCell(
+                                Center(
+                                  child: SelectableText(
+                                    invoice.totalAmountInvoice != null
+                                        ? invoice.totalAmountInvoice!
+                                            .toStringAsFixed(2)
+                                        : '',
+                                  ),
+                                ),
+                              ),
+                              DataCell(Center(
+                                  child: Text(DateFormater().modifyDate(
+                                          invoice.createdDate!.date!) ??
+                                      ''))),
+                              DataCell(Center(
+                                child: PopupMenuButton<SampleItem>(
+                                  icon: const Icon(Icons.more_vert),
+                                  onSelected: (SampleItem item) {
+                                    if (item == SampleItem.itemOne) {
+                                      _downloadFile(invoice);
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry<SampleItem>>[
+                                    const PopupMenuItem<SampleItem>(
+                                      value: SampleItem.itemOne,
+                                      child: Text('Télécharger'),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                            ],
+                          );
+                        }).toList(),
+                        showCheckboxColumn: false,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
         ),
       ],
     );
   }
-}
-
-class InvoiceDataSource extends DataTableSource {
-  final List<InvoiceModel> invoices;
-  final void Function(InvoiceModel)
-      onDownload; // Fonction pour gérer le téléchargement
-  InvoiceDataSource(this.invoices, this.onDownload);
-
-  @override
-  DataRow getRow(int index) {
-    final invoice = invoices[index];
-    return DataRow.byIndex(index: index, cells: [
-      DataCell(Center(child: SelectableText(invoice.invoiceNumber ?? ''))),
-      DataCell(SelectableText(invoice.entityName ?? '')),
-      DataCell(SelectableText(invoice.entityCode ?? '')),
-      DataCell(Center(child: SelectableText(invoice.giftReason ?? ''))),
-      DataCell(
-        Center(
-          child: SelectableText(
-            invoice.totalAmountInvoice != null
-                ? invoice.totalAmountInvoice!.toStringAsFixed(2)
-                : '',
-          ),
-        ),
-      ),
-      DataCell(Center(
-          child: Text(
-              DateFormater().modifyDate(invoice.createdDate!.date!) ?? ''))),
-      DataCell(Center(
-        child: PopupMenuButton<SampleItem>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (SampleItem item) {
-            if (item == SampleItem.itemOne) {
-              onDownload(invoice); // Appel de la fonction de téléchargement
-            }
-          },
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
-            const PopupMenuItem<SampleItem>(
-              value: SampleItem.itemOne,
-              child: Text('Télécharger'),
-            ),
-          ],
-        ),
-      )),
-    ]);
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => invoices.length;
-  @override
-  int get selectedRowCount => 0;
 }
 
 class FeesContent extends StatefulWidget {
@@ -342,7 +379,6 @@ class _FeesContentState extends State<FeesContent> {
   final TextEditingController _searchFeeController = TextEditingController();
   List<InvoiceModel> _fees = [];
   List<InvoiceModel> _allFees = [];
-  SampleItem? selectedMenu;
   String prefixe = 'proof_of_receipt';
 
   @override
@@ -433,85 +469,130 @@ class _FeesContentState extends State<FeesContent> {
         ),
         const SizedBox(height: 50),
         Expanded(
-          child: PaginatedDataTable(
-            columns: const [
-              DataColumn(label: Center(child: Text('Numéro de transaction'))),
-              DataColumn(label: Center(child: Text('Destinataire'))),
-              DataColumn(label: Center(child: Text('Code'))),
-              DataColumn(label: Center(child: Text('Montant total'))),
-              DataColumn(label: Center(child: Text('Montant total à payer'))),
-              DataColumn(label: Center(child: Text('Date de création'))),
-              DataColumn(label: Center(child: Text('Actions')))
-            ],
-            source:
-                FeesDataSource(_fees, _downloadFile), // Passer la fonction ici
-            rowsPerPage: PaginatedDataTable.defaultRowsPerPage,
-            availableRowsPerPage: const [5, 10, 15],
-            columnSpacing: 120,
-            showCheckboxColumn: false,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Builder(builder: (context) {
+              final bool isCompact = MediaQuery.of(context).size.width < 1500;
+              return Container(
+                decoration: BoxDecoration(
+                  color: kWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue.withValues(alpha: 0.07),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: isCompact ? 980 : 1180,
+                      ),
+                      child: DataTable(
+                        columnSpacing: isCompact ? 16 : 22,
+                        horizontalMargin: isCompact ? 10 : 14,
+                        dividerThickness: 0.6,
+                        dataRowMinHeight: 50,
+                        dataRowMaxHeight: 56,
+                        headingRowHeight: 54,
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kWhite,
+                        ),
+                        dataTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: kBlueEnd,
+                        ),
+                        headingRowColor: WidgetStateProperty.all(kBlue),
+                        columns: const [
+                          DataColumn(
+                              label:
+                                  Center(child: Text('Numéro de transaction'))),
+                          DataColumn(
+                              label: Center(child: Text('Destinataire'))),
+                          DataColumn(label: Center(child: Text('Code'))),
+                          DataColumn(
+                              label: Center(child: Text('Montant total'))),
+                          DataColumn(
+                              label:
+                                  Center(child: Text('Montant total à payer'))),
+                          DataColumn(
+                              label: Center(child: Text('Date de création'))),
+                          DataColumn(label: Center(child: Text('Actions')))
+                        ],
+                        rows: _fees.asMap().entries.map((entry) {
+                          final fee = entry.value;
+                          final index = entry.key;
+                          final isEvenRow = index % 2 == 0;
+                          return DataRow(
+                            color: isEvenRow
+                                ? WidgetStateProperty.all(kWhite)
+                                : WidgetStateProperty.all(
+                                    kLBlue.withValues(alpha: 0.10)),
+                            cells: [
+                              DataCell(Center(
+                                  child: SelectableText(
+                                      fee.transactionNumber ?? ''))),
+                              DataCell(SelectableText(fee.entityName ?? '')),
+                              DataCell(SelectableText(fee.entityCode ?? '')),
+                              DataCell(
+                                Center(
+                                  child: SelectableText(
+                                    fee.feesInclVat != null
+                                        ? fee.feesInclVat!.toStringAsFixed(2)
+                                        : '',
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Center(
+                                  child: SelectableText(
+                                    fee.totalPayable != null
+                                        ? fee.totalPayable!.toStringAsFixed(2)
+                                        : '',
+                                  ),
+                                ),
+                              ),
+                              DataCell(Center(
+                                  child: Text(DateFormater()
+                                          .modifyDate(fee.createdDate!.date!) ??
+                                      ''))),
+                              DataCell(Center(
+                                child: PopupMenuButton<SampleItem>(
+                                  icon: const Icon(Icons.more_vert),
+                                  onSelected: (SampleItem item) {
+                                    if (item == SampleItem.itemOne) {
+                                      _downloadFile(fee);
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry<SampleItem>>[
+                                    const PopupMenuItem<SampleItem>(
+                                      value: SampleItem.itemOne,
+                                      child: Text('Télécharger'),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                            ],
+                          );
+                        }).toList(),
+                        showCheckboxColumn: false,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
         ),
       ],
     );
   }
-}
-
-class FeesDataSource extends DataTableSource {
-  final List<InvoiceModel> fees;
-  final void Function(InvoiceModel)
-      onDownload; // Ajout de la fonction de téléchargement
-
-  FeesDataSource(this.fees, this.onDownload);
-
-  @override
-  DataRow getRow(int index) {
-    final fee = fees[index];
-    return DataRow.byIndex(index: index, cells: [
-      DataCell(Center(child: SelectableText(fee.transactionNumber ?? ''))),
-      DataCell(SelectableText(fee.entityName ?? '')),
-      DataCell(SelectableText(fee.entityCode ?? '')),
-      DataCell(
-        Center(
-          child: SelectableText(
-            fee.feesInclVat != null ? fee.feesInclVat!.toStringAsFixed(2) : '',
-          ),
-        ),
-      ),
-      DataCell(
-        Center(
-          child: SelectableText(
-            fee.totalPayable != null
-                ? fee.totalPayable!.toStringAsFixed(2)
-                : '',
-          ),
-        ),
-      ),
-      DataCell(Center(
-          child:
-              Text(DateFormater().modifyDate(fee.createdDate!.date!) ?? ''))),
-      DataCell(Center(
-        child: PopupMenuButton<SampleItem>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (SampleItem item) {
-            if (item == SampleItem.itemOne) {
-              onDownload(fee); // Appel de la fonction de téléchargement
-            }
-          },
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
-            const PopupMenuItem<SampleItem>(
-              value: SampleItem.itemOne,
-              child: Text('Télécharger'),
-            ),
-          ],
-        ),
-      )),
-    ]);
-  }
-
-  @override
-  bool get isRowCountApproximate => false;
-  @override
-  int get rowCount => fees.length;
-  @override
-  int get selectedRowCount => 0;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tribuneo_backoffice/config/size_config.dart';
 import 'package:tribuneo_backoffice/domain/usecases/partner_usecase.dart';
 import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
@@ -39,13 +40,13 @@ class SectorActivityViewState extends State<SectorActivityView> {
         _newSectorController.clear();
 
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Le secteur d’activité a ajouté '),
-          backgroundColor: Colors.green, // Optional: to change background color
+          content: Text('Le secteur d’activité a été ajouté'),
+          backgroundColor: Colors.green,
         ));
       } catch (e) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de l’ajout du secteur d’activité'),
-          backgroundColor: Colors.red, // Optional: to change background color
+          backgroundColor: Colors.red,
         ));
       }
     }
@@ -58,12 +59,12 @@ class SectorActivityViewState extends State<SectorActivityView> {
         await refreshSector();
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Le secteur d’activité a été supprimé avec succès'),
-          backgroundColor: Colors.green, // Optional: to change background color
+          backgroundColor: Colors.green,
         ));
       } catch (e) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de la suppression du secteur d’activité'),
-          backgroundColor: Colors.red, // Optional: to change background color
+          backgroundColor: Colors.red,
         ));
       }
     }
@@ -76,22 +77,27 @@ class SectorActivityViewState extends State<SectorActivityView> {
       context: navigatorKey.currentState!.context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-              "Attention, il est possible que le secteur d'activité soit associé à des partenaires. Voulez-vous vraiment le supprimer ?"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14.0),
+          ),
+          title: Text(
+            "Attention, il est possible que ce secteur d'activité soit associé à des partenaires. Voulez-vous vraiment le supprimer ?",
+            style: GoogleFonts.poppins(fontSize: 16),
+          ),
           actions: <Widget>[
             TextButton(
-              child: const Text(
+              child: Text(
                 'Annuler',
-                style: TextStyle(
-                    color: kRed, fontWeight: FontWeight.bold, fontSize: 16),
+                style: GoogleFonts.poppins(
+                    color: kRed, fontWeight: FontWeight.bold, fontSize: 15),
               ),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
-              child: const Text(
+              child: Text(
                 'Confirmer',
-                style: TextStyle(
-                    color: kBlue, fontWeight: FontWeight.bold, fontSize: 16),
+                style: GoogleFonts.poppins(
+                    color: kBlue, fontWeight: FontWeight.bold, fontSize: 15),
               ),
               onPressed: () {
                 confirm = true;
@@ -108,115 +114,162 @@ class SectorActivityViewState extends State<SectorActivityView> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
+    final bool isCompact = MediaQuery.of(context).size.width < 1000;
+
     return Form(
       key: _formKey,
-      child: Stack(
-        children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.9,
-            height: SizeConfig.screenHeight * 0.80,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    height: SizeConfig.screenHeight * 0.62,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: kLBlue,
-                        width: 1.2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          const Color.fromARGB(255, 248, 248, 248)
-                              .withValues(alpha: 0.8),
-                          Colors.white,
-                          Colors.white,
-                          const Color.fromARGB(255, 248, 248, 248)
-                              .withValues(alpha: 0.8),
-                        ],
-                        stops: const [
-                          0.0,
-                          0.04,
-                          0.96,
-                          1.0,
-                        ],
+      child: SizedBox(
+        height: SizeConfig.screenHeight * 0.9,
+        width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isCompact ? 600 : 800),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _newSectorController,
+                        style: GoogleFonts.poppins(fontSize: 14),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: kWhite,
+                          labelText: "Nouveau secteur d'activité",
+                          labelStyle: GoogleFonts.poppins(color: kBlue),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: kBlue, width: 2),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.grey.shade300, width: 1),
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 16),
+                        ),
                       ),
                     ),
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          children: _sectors.map((sector) {
-                            return Column(
+                    const SizedBox(width: 16.0),
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kOrange,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                        ),
+                        onPressed: _addNewSector,
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: Text(
+                          'Ajouter',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isCompact ? 600 : 800),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: kWhite,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kBlue.withValues(alpha: 0.07),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          color: kBlue,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 24),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Nom du secteur',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: kWhite,
+                                ),
+                              ),
+                              Text(
+                                'Actions',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: kWhite,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ..._sectors.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final sector = entry.value;
+                          final isEvenRow = index % 2 == 0;
+
+                          return Container(
+                            color: isEvenRow
+                                ? kWhite
+                                : kLBlue.withValues(alpha: 0.10),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                ListTile(
-                                  title: SelectableText(sector.name!),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.delete,
-                                            color: Colors.red),
-                                        onPressed: () {
-                                          _deleteSector(sector.id!);
-                                        },
-                                      ),
-                                    ],
+                                Expanded(
+                                  child: SelectableText(
+                                    sector.name ?? '',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      color: kBlueEnd,
+                                    ),
                                   ),
                                 ),
-                                const Divider(),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: Colors.redAccent),
+                                  tooltip: 'Supprimer',
+                                  onPressed: () {
+                                    _deleteSector(sector.id!);
+                                  },
+                                ),
                               ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.screenHeight * 0.01),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.only(left: 5.0, right: 40.0),
-                            child: TextField(
-                              controller: _newSectorController,
-                              decoration: const InputDecoration(
-                                labelText: "Nouveau secteur d'activité",
-                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8.0),
-                        ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor:
-                                WidgetStateProperty.all<Color>(kOrange),
-                          ),
-                          onPressed: _addNewSector,
-                          child: const Text('Ajouter'),
-                        ),
+                          );
+                        }),
                       ],
                     ),
                   ),
-                  //const SizedBox(height: 40.0),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 50),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
