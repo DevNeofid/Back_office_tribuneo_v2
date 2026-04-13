@@ -231,7 +231,7 @@ class _RefoundShopViewState extends State<RefoundShopView> {
                           DataColumn(
                             label: Expanded(
                               child: Center(
-                                child: Text('Gestion',
+                                child: Text('Actions',
                                     textAlign: TextAlign.center),
                               ),
                             ),
