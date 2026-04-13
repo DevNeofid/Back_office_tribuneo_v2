@@ -215,21 +215,13 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                                       .modifyDate(e.createdDate!)))),
                               DataCell(
                                 Center(
-                                  child: PopupMenuButton<SampleItem>(
-                                    icon: const Icon(Icons.more_vert),
-                                    initialValue: selectedMenu,
-                                    onSelected: (SampleItem item) {
-                                      if (item == SampleItem.itemOne) {
-                                        _downloadFile(e);
-                                      }
+                                  child: IconButton(
+                                    icon: const Icon(Icons.download),
+                                    color: kBlue,
+                                    tooltip: 'Télécharger',
+                                    onPressed: () {
+                                      _downloadFile(e);
                                     },
-                                    itemBuilder: (BuildContext context) =>
-                                        <PopupMenuEntry<SampleItem>>[
-                                      const PopupMenuItem<SampleItem>(
-                                        value: SampleItem.itemOne,
-                                        child: Text('Télécharger'),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),

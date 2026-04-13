@@ -382,23 +382,18 @@ class _InvoicesContentState extends State<InvoicesContent> {
                               child: Text(DateFormater()
                                       .modifyDate(invoice.createdDate!.date!) ??
                                   ''))),
-                          DataCell(Center(
-                            child: PopupMenuButton<SampleItem>(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (SampleItem item) {
-                                if (item == SampleItem.itemOne) {
+                          DataCell(
+                            Center(
+                              child: IconButton(
+                                icon: const Icon(Icons.download),
+                                color: kBlue,
+                                tooltip: 'Télécharger',
+                                onPressed: () {
                                   _downloadFile(invoice);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry<SampleItem>>[
-                                const PopupMenuItem<SampleItem>(
-                                  value: SampleItem.itemOne,
-                                  child: Text('Télécharger'),
-                                ),
-                              ],
+                                },
+                              ),
                             ),
-                          )),
+                          ),
                         ],
                       );
                     }).toList(),
@@ -650,23 +645,18 @@ class _FeesContentState extends State<FeesContent> {
                               child: Text(DateFormater()
                                       .modifyDate(fee.createdDate!.date!) ??
                                   ''))),
-                          DataCell(Center(
-                            child: PopupMenuButton<SampleItem>(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (SampleItem item) {
-                                if (item == SampleItem.itemOne) {
+                          DataCell(
+                            Center(
+                              child: IconButton(
+                                icon: const Icon(Icons.download),
+                                color: kBlue,
+                                tooltip: 'Télécharger',
+                                onPressed: () {
                                   _downloadFile(fee);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry<SampleItem>>[
-                                const PopupMenuItem<SampleItem>(
-                                  value: SampleItem.itemOne,
-                                  child: Text('Télécharger'),
-                                ),
-                              ],
+                                },
+                              ),
                             ),
-                          )),
+                          ),
                         ],
                       );
                     }).toList(),
