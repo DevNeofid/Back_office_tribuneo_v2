@@ -1,6 +1,5 @@
-// ignore: avoid_web_libraries_in_flutter
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:tribuneo_backoffice/config/size_config.dart';
 import 'dart:developer';
@@ -113,72 +112,139 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 50),
-          ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(kOrange),
+    return SizedBox(
+      height: SizeConfig.screenHeight * 0.9,
+      width: double.infinity,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 50),
+            ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(kOrange),
+              ),
+              onPressed: () {
+                _createAccountingEntries();
+              },
+              child: const Text('Déclencher les écritures comptables'),
             ),
-            onPressed: () {
-              _createAccountingEntries();
-            },
-            child: const Text('Déclencher les écritures comptables'),
-          ),
-          const SizedBox(height: 50),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              //border: TableBorder(borderRadius: BorderRadius.circular(10)),
-              headingRowColor: WidgetStateColor.resolveWith((states) => kLBlue),
-              columns: const [
-                DataColumn(
-                    label: Center(child: SelectableText('Nom du fichier'))),
-                DataColumn(
-                    label: Center(child: SelectableText('Date de création'))),
-                DataColumn(label: Center(child: SelectableText('Actions'))),
-              ],
-              rows: _accountingEntries.asMap().entries.map((entry) {
-                final e = entry.value;
-                final index = entry.key;
-                final isEvenRow = index % 2 == 0;
-                return DataRow(
-                  cells: [
-                    DataCell(Center(child: SelectableText(e.filename ?? ''))),
-                    DataCell(Center(
-                        child: SelectableText(
-                            DateFormater().modifyDate(e.createdDate!)))),
-                    DataCell(
-                      Center(
-                        child: PopupMenuButton<SampleItem>(
-                          icon: const Icon(Icons.more_vert),
-                          initialValue: selectedMenu,
-                          // Callback that sets the selected popup menu item.
-                          onSelected: (SampleItem item) {
-                            if (item == SampleItem.itemOne) {
-                              _downloadFile(e);
-                            }
-                          },
-                          itemBuilder: (BuildContext context) =>
-                              <PopupMenuEntry<SampleItem>>[
-                            const PopupMenuItem<SampleItem>(
-                              value: SampleItem.itemOne,
-                              child: Text('Télécharger'),
-                            ),
-                          ],
-                        ),
-                      ),
+            const SizedBox(height: 50),
+            Builder(builder: (context) {
+              final bool isCompact = MediaQuery.of(context).size.width < 1500;
+              return Container(
+                decoration: BoxDecoration(
+                  color: kWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kBlue.withValues(alpha: 0.07),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
                   ],
-                  color: isEvenRow
-                      ? WidgetStateProperty.all(kWhite)
-                      : WidgetStateProperty.all(kPLGreyTable),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: isCompact ? 600 : 800,
+                      ),
+                      child: DataTable(
+                        columnSpacing: isCompact ? 16 : 22,
+                        horizontalMargin: isCompact ? 10 : 14,
+                        dividerThickness: 0.6,
+                        dataRowMinHeight: 50,
+                        dataRowMaxHeight: 56,
+                        headingRowHeight: 54,
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kWhite,
+                        ),
+                        dataTextStyle: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: kBlueEnd,
+                        ),
+                        headingRowColor: WidgetStateProperty.all(kBlue),
+                        showCheckboxColumn: false,
+                        columns: const [
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Nom du fichier',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Date de création',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Actions',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                        ],
+                        rows: _accountingEntries.asMap().entries.map((entry) {
+                          final e = entry.value;
+                          final index = entry.key;
+                          final isEvenRow = index % 2 == 0;
+                          return DataRow(
+                            color: isEvenRow
+                                ? WidgetStateProperty.all(kWhite)
+                                : WidgetStateProperty.all(
+                                    kLBlue.withValues(alpha: 0.10)),
+                            cells: [
+                              DataCell(Center(
+                                  child: SelectableText(e.filename ?? ''))),
+                              DataCell(Center(
+                                  child: SelectableText(DateFormater()
+                                      .modifyDate(e.createdDate!)))),
+                              DataCell(
+                                Center(
+                                  child: PopupMenuButton<SampleItem>(
+                                    icon: const Icon(Icons.more_vert),
+                                    initialValue: selectedMenu,
+                                    onSelected: (SampleItem item) {
+                                      if (item == SampleItem.itemOne) {
+                                        _downloadFile(e);
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<SampleItem>>[
+                                      const PopupMenuItem<SampleItem>(
+                                        value: SampleItem.itemOne,
+                                        child: Text('Télécharger'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 50),
+          ],
+        ),
       ),
     );
   }
