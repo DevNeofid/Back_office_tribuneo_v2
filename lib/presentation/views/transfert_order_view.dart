@@ -132,14 +132,45 @@ class _TranferOrderViewState extends State<TranferOrderView> {
                         showCheckboxColumn: false,
                         columns: const [
                           DataColumn(
-                              label: Center(child: Text('Nom du fichier'))),
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Nom du fichier',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
                           DataColumn(
-                              label: Center(child: Text('Montant conservé'))),
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Montant conservé',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
                           DataColumn(
-                              label: Center(child: Text('Montant remboursé'))),
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Montant remboursé',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
                           DataColumn(
-                              label: Center(child: Text('Date de création'))),
-                          DataColumn(label: Center(child: Text('Actions'))),
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Date de création',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
+                          DataColumn(
+                            label: Expanded(
+                              child: Center(
+                                child: Text('Actions',
+                                    textAlign: TextAlign.center),
+                              ),
+                            ),
+                          ),
                         ],
                         rows: _transferOrder.asMap().entries.map((entry) {
                           final order = entry.value;
