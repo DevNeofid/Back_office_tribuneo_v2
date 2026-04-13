@@ -98,42 +98,53 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
     SizeConfig().init(context);
     return SizedBox(
       height: SizeConfig.screenHeight * 0.9,
+      width: double.infinity,
       child: Scaffold(
-        body: Column(
-          children: [
-            Row(
-              children: [
-                NeoButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedButtonIndex = 0;
-                    });
-                  },
-                  text: 'Factures',
-                  backgroundColor:
-                      _selectedButtonIndex == 0 ? kBlue : Colors.grey,
-                ),
-                SizedBox(width: SizeConfig.screenWidth * 0.01),
-                NeoButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedButtonIndex = 1;
-                    });
-                  },
-                  text: 'Frais de gestion',
-                  backgroundColor:
-                      _selectedButtonIndex == 1 ? kBlue : Colors.grey,
-                ),
-              ],
-            ),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: kBlue))
+        body: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  NeoButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedButtonIndex = 0;
+                      });
+                    },
+                    text: 'Factures',
+                    backgroundColor:
+                        _selectedButtonIndex == 0 ? kBlue : Colors.grey,
+                  ),
+                  SizedBox(width: SizeConfig.screenWidth * 0.01),
+                  NeoButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedButtonIndex = 1;
+                      });
+                    },
+                    text: 'Frais de gestion',
+                    backgroundColor:
+                        _selectedButtonIndex == 1 ? kBlue : Colors.grey,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _isLoading
+                  ? const Center(
+                      child: Padding(
+                      padding: EdgeInsets.all(50.0),
+                      child: CircularProgressIndicator(color: kBlue),
+                    ))
                   : _selectedButtonIndex == 0
                       ? InvoicesContent(_orders, _allOrders)
                       : FeesContent(_fees, _allFees),
-            ),
-          ],
+              const SizedBox(height: 50),
+            ],
+          ),
         ),
       ),
     );
@@ -217,7 +228,7 @@ class _InvoicesContentState extends State<InvoicesContent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 50),
+        const SizedBox(height: 30),
         SizedBox(
           width: SizeConfig.screenWidth * 0.3,
           child: TextField(
@@ -243,124 +254,161 @@ class _InvoicesContentState extends State<InvoicesContent> {
           ),
         ),
         const SizedBox(height: 50),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Builder(builder: (context) {
-              final bool isCompact = MediaQuery.of(context).size.width < 1500;
-              return Container(
-                decoration: BoxDecoration(
-                  color: kWhite,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: kBlue.withValues(alpha: 0.07),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+        Builder(builder: (context) {
+          final bool isCompact = MediaQuery.of(context).size.width < 1500;
+          return Container(
+            decoration: BoxDecoration(
+              color: kWhite,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: kBlue.withValues(alpha: 0.07),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: isCompact ? 980 : 1180,
-                      ),
-                      child: DataTable(
-                        columnSpacing: isCompact ? 16 : 22,
-                        horizontalMargin: isCompact ? 10 : 14,
-                        dividerThickness: 0.6,
-                        dataRowMinHeight: 50,
-                        dataRowMaxHeight: 56,
-                        headingRowHeight: 54,
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kWhite,
-                        ),
-                        dataTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: kBlueEnd,
-                        ),
-                        headingRowColor: WidgetStateProperty.all(kBlue),
-                        columns: const [
-                          DataColumn(
-                              label: Center(child: Text('Numéro de facture'))),
-                          DataColumn(
-                              label: Center(child: Text('Destinataire'))),
-                          DataColumn(label: Center(child: Text('Code'))),
-                          DataColumn(label: Center(child: Text('Occasion'))),
-                          DataColumn(
-                              label: Center(child: Text('Montant total'))),
-                          DataColumn(
-                              label: Center(child: Text('Date de création'))),
-                          DataColumn(label: Center(child: Text('Actions')))
-                        ],
-                        rows: _orders.asMap().entries.map((entry) {
-                          final invoice = entry.value;
-                          final index = entry.key;
-                          final isEvenRow = index % 2 == 0;
-                          return DataRow(
-                            color: isEvenRow
-                                ? WidgetStateProperty.all(kWhite)
-                                : WidgetStateProperty.all(
-                                    kLBlue.withValues(alpha: 0.10)),
-                            cells: [
-                              DataCell(Center(
-                                  child: SelectableText(
-                                      invoice.invoiceNumber ?? ''))),
-                              DataCell(
-                                  SelectableText(invoice.entityName ?? '')),
-                              DataCell(
-                                  SelectableText(invoice.entityCode ?? '')),
-                              DataCell(Center(
-                                  child: SelectableText(
-                                      invoice.giftReason ?? ''))),
-                              DataCell(
-                                Center(
-                                  child: SelectableText(
-                                    invoice.totalAmountInvoice != null
-                                        ? invoice.totalAmountInvoice!
-                                            .toStringAsFixed(2)
-                                        : '',
-                                  ),
-                                ),
-                              ),
-                              DataCell(Center(
-                                  child: Text(DateFormater().modifyDate(
-                                          invoice.createdDate!.date!) ??
-                                      ''))),
-                              DataCell(Center(
-                                child: PopupMenuButton<SampleItem>(
-                                  icon: const Icon(Icons.more_vert),
-                                  onSelected: (SampleItem item) {
-                                    if (item == SampleItem.itemOne) {
-                                      _downloadFile(invoice);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry<SampleItem>>[
-                                    const PopupMenuItem<SampleItem>(
-                                      value: SampleItem.itemOne,
-                                      child: Text('Télécharger'),
-                                    ),
-                                  ],
-                                ),
-                              )),
-                            ],
-                          );
-                        }).toList(),
-                        showCheckboxColumn: false,
-                      ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: isCompact ? 980 : 1180,
+                  ),
+                  child: DataTable(
+                    columnSpacing: isCompact ? 16 : 22,
+                    horizontalMargin: isCompact ? 10 : 14,
+                    dividerThickness: 0.6,
+                    dataRowMinHeight: 50,
+                    dataRowMaxHeight: 56,
+                    headingRowHeight: 54,
+                    headingTextStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: kWhite,
                     ),
+                    dataTextStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: kBlueEnd,
+                    ),
+                    headingRowColor: WidgetStateProperty.all(kBlue),
+                    columns: const [
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Numéro de facture',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Destinataire',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Code', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child:
+                                Text('Occasion', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Montant total',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Date de création',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Actions', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ],
+                    rows: _orders.asMap().entries.map((entry) {
+                      final invoice = entry.value;
+                      final index = entry.key;
+                      final isEvenRow = index % 2 == 0;
+                      return DataRow(
+                        color: isEvenRow
+                            ? WidgetStateProperty.all(kWhite)
+                            : WidgetStateProperty.all(
+                                kLBlue.withValues(alpha: 0.10)),
+                        cells: [
+                          DataCell(Center(
+                              child:
+                                  SelectableText(invoice.invoiceNumber ?? ''))),
+                          DataCell(Center(
+                              child: SelectableText(invoice.entityName ?? ''))),
+                          DataCell(Center(
+                              child: SelectableText(invoice.entityCode ?? ''))),
+                          DataCell(Center(
+                              child: SelectableText(invoice.giftReason ?? ''))),
+                          DataCell(
+                            Center(
+                              child: SelectableText(
+                                invoice.totalAmountInvoice != null
+                                    ? invoice.totalAmountInvoice!
+                                        .toStringAsFixed(2)
+                                    : '',
+                              ),
+                            ),
+                          ),
+                          DataCell(Center(
+                              child: Text(DateFormater()
+                                      .modifyDate(invoice.createdDate!.date!) ??
+                                  ''))),
+                          DataCell(Center(
+                            child: PopupMenuButton<SampleItem>(
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (SampleItem item) {
+                                if (item == SampleItem.itemOne) {
+                                  _downloadFile(invoice);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry<SampleItem>>[
+                                const PopupMenuItem<SampleItem>(
+                                  value: SampleItem.itemOne,
+                                  child: Text('Télécharger'),
+                                ),
+                              ],
+                            ),
+                          )),
+                        ],
+                      );
+                    }).toList(),
+                    showCheckboxColumn: false,
                   ),
                 ),
-              );
-            }),
-          ),
-        ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -442,7 +490,7 @@ class _FeesContentState extends State<FeesContent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 50),
+        const SizedBox(height: 30),
         SizedBox(
           width: SizeConfig.screenWidth * 0.3,
           child: TextField(
@@ -468,130 +516,167 @@ class _FeesContentState extends State<FeesContent> {
           ),
         ),
         const SizedBox(height: 50),
-        Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Builder(builder: (context) {
-              final bool isCompact = MediaQuery.of(context).size.width < 1500;
-              return Container(
-                decoration: BoxDecoration(
-                  color: kWhite,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: kBlue.withValues(alpha: 0.07),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+        Builder(builder: (context) {
+          final bool isCompact = MediaQuery.of(context).size.width < 1500;
+          return Container(
+            decoration: BoxDecoration(
+              color: kWhite,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: kBlue.withValues(alpha: 0.07),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: isCompact ? 980 : 1180,
-                      ),
-                      child: DataTable(
-                        columnSpacing: isCompact ? 16 : 22,
-                        horizontalMargin: isCompact ? 10 : 14,
-                        dividerThickness: 0.6,
-                        dataRowMinHeight: 50,
-                        dataRowMaxHeight: 56,
-                        headingRowHeight: 54,
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kWhite,
-                        ),
-                        dataTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: kBlueEnd,
-                        ),
-                        headingRowColor: WidgetStateProperty.all(kBlue),
-                        columns: const [
-                          DataColumn(
-                              label:
-                                  Center(child: Text('Numéro de transaction'))),
-                          DataColumn(
-                              label: Center(child: Text('Destinataire'))),
-                          DataColumn(label: Center(child: Text('Code'))),
-                          DataColumn(
-                              label: Center(child: Text('Montant total'))),
-                          DataColumn(
-                              label:
-                                  Center(child: Text('Montant total à payer'))),
-                          DataColumn(
-                              label: Center(child: Text('Date de création'))),
-                          DataColumn(label: Center(child: Text('Actions')))
-                        ],
-                        rows: _fees.asMap().entries.map((entry) {
-                          final fee = entry.value;
-                          final index = entry.key;
-                          final isEvenRow = index % 2 == 0;
-                          return DataRow(
-                            color: isEvenRow
-                                ? WidgetStateProperty.all(kWhite)
-                                : WidgetStateProperty.all(
-                                    kLBlue.withValues(alpha: 0.10)),
-                            cells: [
-                              DataCell(Center(
-                                  child: SelectableText(
-                                      fee.transactionNumber ?? ''))),
-                              DataCell(SelectableText(fee.entityName ?? '')),
-                              DataCell(SelectableText(fee.entityCode ?? '')),
-                              DataCell(
-                                Center(
-                                  child: SelectableText(
-                                    fee.feesInclVat != null
-                                        ? fee.feesInclVat!.toStringAsFixed(2)
-                                        : '',
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                Center(
-                                  child: SelectableText(
-                                    fee.totalPayable != null
-                                        ? fee.totalPayable!.toStringAsFixed(2)
-                                        : '',
-                                  ),
-                                ),
-                              ),
-                              DataCell(Center(
-                                  child: Text(DateFormater()
-                                          .modifyDate(fee.createdDate!.date!) ??
-                                      ''))),
-                              DataCell(Center(
-                                child: PopupMenuButton<SampleItem>(
-                                  icon: const Icon(Icons.more_vert),
-                                  onSelected: (SampleItem item) {
-                                    if (item == SampleItem.itemOne) {
-                                      _downloadFile(fee);
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry<SampleItem>>[
-                                    const PopupMenuItem<SampleItem>(
-                                      value: SampleItem.itemOne,
-                                      child: Text('Télécharger'),
-                                    ),
-                                  ],
-                                ),
-                              )),
-                            ],
-                          );
-                        }).toList(),
-                        showCheckboxColumn: false,
-                      ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: isCompact ? 980 : 1180,
+                  ),
+                  child: DataTable(
+                    columnSpacing: isCompact ? 16 : 22,
+                    horizontalMargin: isCompact ? 10 : 14,
+                    dividerThickness: 0.6,
+                    dataRowMinHeight: 50,
+                    dataRowMaxHeight: 56,
+                    headingRowHeight: 54,
+                    headingTextStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: kWhite,
                     ),
+                    dataTextStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: kBlueEnd,
+                    ),
+                    headingRowColor: WidgetStateProperty.all(kBlue),
+                    columns: const [
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Numéro de transaction',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Destinataire',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Code', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Montant total',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Montant total à payer',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Date de création',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
+                            child: Text('Actions', textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ],
+                    rows: _fees.asMap().entries.map((entry) {
+                      final fee = entry.value;
+                      final index = entry.key;
+                      final isEvenRow = index % 2 == 0;
+                      return DataRow(
+                        color: isEvenRow
+                            ? WidgetStateProperty.all(kWhite)
+                            : WidgetStateProperty.all(
+                                kLBlue.withValues(alpha: 0.10)),
+                        cells: [
+                          DataCell(Center(
+                              child:
+                                  SelectableText(fee.transactionNumber ?? ''))),
+                          DataCell(Center(
+                              child: SelectableText(fee.entityName ?? ''))),
+                          DataCell(Center(
+                              child: SelectableText(fee.entityCode ?? ''))),
+                          DataCell(
+                            Center(
+                              child: SelectableText(
+                                fee.feesInclVat != null
+                                    ? fee.feesInclVat!.toStringAsFixed(2)
+                                    : '',
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            Center(
+                              child: SelectableText(
+                                fee.totalPayable != null
+                                    ? fee.totalPayable!.toStringAsFixed(2)
+                                    : '',
+                              ),
+                            ),
+                          ),
+                          DataCell(Center(
+                              child: Text(DateFormater()
+                                      .modifyDate(fee.createdDate!.date!) ??
+                                  ''))),
+                          DataCell(Center(
+                            child: PopupMenuButton<SampleItem>(
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (SampleItem item) {
+                                if (item == SampleItem.itemOne) {
+                                  _downloadFile(fee);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry<SampleItem>>[
+                                const PopupMenuItem<SampleItem>(
+                                  value: SampleItem.itemOne,
+                                  child: Text('Télécharger'),
+                                ),
+                              ],
+                            ),
+                          )),
+                        ],
+                      );
+                    }).toList(),
+                    showCheckboxColumn: false,
                   ),
                 ),
-              );
-            }),
-          ),
-        ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
