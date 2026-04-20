@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:tribuneo_backoffice/config/responsive.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/models/bank_informations_model.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/bank_informations_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/config/responsive.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_informations_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/bank_informations_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class BankInformationsForm extends StatefulWidget {
   final EntityModel entity;
@@ -243,7 +243,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                                           child: NeoInput(
                                             controller: officeCode,
                                             keyboardType: const TextInputType
-                                                    .numberWithOptions(
+                                                .numberWithOptions(
                                                 decimal: true),
                                             hintText: 'Code guichet',
                                             fillColor: kPWhite,
@@ -269,7 +269,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                                           child: NeoInput(
                                             controller: accountNumber,
                                             keyboardType: const TextInputType
-                                                    .numberWithOptions(
+                                                .numberWithOptions(
                                                 decimal: true),
                                             hintText: 'Numéro de compte',
                                             fillColor: kPWhite,

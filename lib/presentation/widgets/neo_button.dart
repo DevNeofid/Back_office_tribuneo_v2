@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 
 class NeoButton extends StatelessWidget {
   final String text;

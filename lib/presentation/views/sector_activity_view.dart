@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/usecases/partner_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/domain/models/sector_model.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/domain/models/sector_model.dart';
 
 class SectorActivityView extends StatefulWidget {
   const SectorActivityView({Key? key}) : super(key: key);

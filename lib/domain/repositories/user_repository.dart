@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/user_model.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/user_model.dart';
 
 class UserRepository {
   UserModel? userModel;
 
-  RemoteDataSource remoteDataSource = RemoteDataSource();
+  ApiClient remoteDataSource = ApiClient();
 
   Future<UserModel?> login(String login, String password) async {
     try {
@@ -20,10 +20,6 @@ class UserRepository {
         'mobile': mobile,
         'password': password,
       });
-
-      // print("### DEBUG ### -> mobile: $mobile");
-      // print("### DEBUG ### -> password: $password");
-      // print("### DEBUG ### -> data: $data");
 
       dynamic response = await remoteDataSource.post(
         route,

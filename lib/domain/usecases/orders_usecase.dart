@@ -1,7 +1,7 @@
-import 'package:tribuneo_backoffice/domain/models/order_model.dart';
-import 'package:tribuneo_backoffice/domain/models/payment_model.dart';
-import 'package:tribuneo_backoffice/domain/models/urssaf_model.dart';
-import 'package:tribuneo_backoffice/domain/repositories/orders_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/orders_repository.dart';
 
 class OrderUseCase {
   final OrderRepository orderRepository = OrderRepository();
@@ -19,7 +19,7 @@ class OrderUseCase {
     return await orderRepository.updateOrder(order);
   }
 
-  Future<List<OrderRecModel>> getOrders() async {
+  Future<List<OrderModel>> getOrders() async {
     return await orderRepository.getOrders();
   }
 

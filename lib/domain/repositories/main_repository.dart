@@ -1,39 +1,19 @@
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 
-class MainRepository {
-  final RemoteDataSource _remoteData = RemoteDataSource();
-  LocalDataHelper localDataHelper = LocalDataHelper();
-  String suffixe = 'auth_check';
-  // Function for adding a new order
-  Future<void> syncData() async {
+class MainRepository extends BaseRepository {
+  String suffixe = 'auth/token';
 
-    // const String ordersSuffixe = 'order';
-    // const String entitySuffixe = 'entity';
-
-    // Map<String, String> qsP = {
-    //   'entity_type': 'partner',
-    // };
-    // Map<String, String> qsC = {
-    //   'entity_type': 'customer',
-    // };
-  }
-
-  Future<bool> authCheck(String token) async {
-    final response = await _remoteData.get(suffixe, token: token);
-    try{
+  Future<bool> checkToken() async {
+    try {
+      var response = await apiClient.post(suffixe, null);
       if (response.statusCode == 200) {
         return true;
       } else {
-        final tokenBox = await Hive.openBox('tokenBox');
-        await tokenBox.delete('token');
+        await storageFunction.clearUser();
         return false;
       }
-    }
-    catch(e){
-      final tokenBox = await Hive.openBox('tokenBox');
-      await tokenBox.delete('token');
+    } catch (e) {
+      await storageFunction.clearUser();
       return false;
     }
   }

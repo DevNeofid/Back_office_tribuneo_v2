@@ -1,4 +1,4 @@
-import 'package:tribuneo_backoffice/domain/repositories/voucher_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/voucher_repository.dart';
 
 class VoucherUseCase {
   final VoucherRepository repository = VoucherRepository();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 
 class NeoInput extends StatelessWidget {
   final TextEditingController controller;
@@ -43,19 +43,18 @@ class NeoInput extends StatelessWidget {
       validator: validator,
       inputFormatters: (formatter != null) ? [formatter!] : null,
       decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: GoogleFonts.poppins(
-          fontSize: hintFontSize,
-          fontWeight: hintFontWeight,
-          color: textColor,
-        ),
-        labelText: hintText,
-        floatingLabelStyle: const TextStyle(color: kBlue),
-        fillColor: fillColor,
-        filled: true,
-        isDense: true,
-        border: border
-      ),
+          hintText: hintText,
+          hintStyle: GoogleFonts.poppins(
+            fontSize: hintFontSize,
+            fontWeight: hintFontWeight,
+            color: textColor,
+          ),
+          labelText: hintText,
+          floatingLabelStyle: const TextStyle(color: kBlue),
+          fillColor: fillColor,
+          filled: true,
+          isDense: true,
+          border: border),
     );
   }
 }

@@ -1,32 +1,38 @@
-import 'dart:convert';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
+import 'package:flutter/foundation.dart';
 
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/accounting_entries_model.dart';
+class AccountingEntriesRepository extends BaseRepository {
+  final ApiClient _remoteData = ApiClient();
 
-class AccountingEntriesRepository {
-  final RemoteDataSource _remoteData = RemoteDataSource();
-
-  final String suffixe = 'accounting_entries';
+  final String suffixe = 'accounting';
 
   Future createAccountingEntries() async {
-    String suffixe = 'accounting_entries_gen';
+    String suffixe = 'accounting/entries/gen';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe, bytesType: true);
+      dynamic response = await _remoteData.get(suffixe,
+          overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       }
     } catch (e) {
-      // return Result.error(errorMessage: e.toString());
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       return null;
     }
   }
 
   Future<List<AccountingEntriesModel>> getAccountingEntries() async {
     List<AccountingEntriesModel> accountingEntries = [];
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe);
+      dynamic response =
+          await _remoteData.get('${suffixe}/entries', overrideTenant: tenant);
       if (response.statusCode == 200) {
-        response = jsonDecode(response.data);
+        response = response.data['data']['items'];
         for (var transferOrder in response) {
           accountingEntries.add(AccountingEntriesModel.fromJson(transferOrder));
         }
@@ -34,21 +40,28 @@ class AccountingEntriesRepository {
         accountingEntries = [];
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       accountingEntries = [];
     }
     return accountingEntries;
   }
 
   Future downloadFile(int id) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.get(suffixe, id: id, bytesType: true);
+      dynamic response = await _remoteData.get('${suffixe}/entry/$id',
+          overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {
         return null;
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       return null;
     }
   }

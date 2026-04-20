@@ -1,4 +1,4 @@
-name: tribuneo_backoffice
+name: back_office_tribuneo_v2
 description: Tribuneo backoffice web application.
 
 version: 1.0.0+2
@@ -12,9 +12,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   # Back-office dependencies :
-  # For hive
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
   # For images
   flutter_svg: ^2.0.4
   # For http requests
@@ -59,13 +56,12 @@ dependencies:
   excel: ^4.0.6
 
   pointycastle: any
+  flutter_secure_storage: ^10.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  # For hive
-  hive_generator: ^2.0.0
   build_runner: ^2.4.6
   build_web_compilers: ^4.4.16
   envied_generator: ^1.1.1

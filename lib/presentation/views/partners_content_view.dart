@@ -1,25 +1,20 @@
-// ignore_for_file: non_constant_identifier_names
-// ignore_for_file: avoid_web_libraries_in_flutter
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/partner_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/utils/file_downloader.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/addresses/address_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/addresses/update_address_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/bank_informations/bank_information_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/bank_informations/update_bank_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/partners/partner_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/partners/sector_activity_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/partners/update_partner_info_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/update_address_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/bank_information_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/update_bank_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/partner_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/sector_activity_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/update_partner_info_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
 enum QrBoxItem { itemOne, itemTwo, itemThree }
 
@@ -37,7 +32,6 @@ class PartnersContentView extends StatefulWidget {
 class PartnersContentViewState extends State<PartnersContentView>
     with TickerProviderStateMixin {
   late final TabController tabController;
-  LocalDataHelper localDataHelper = LocalDataHelper();
   final PartnerUseCase _partnerUseCase = PartnerUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   TextEditingController searchController = TextEditingController();
@@ -549,10 +543,6 @@ class PartnersContentViewState extends State<PartnersContentView>
                   shrinkWrap: true,
                   itemCount: _partners.length,
                   itemBuilder: (BuildContext context, int index) {
-                    if (kDebugMode) {
-                      print(
-                          '###DEBUG### ${_partners[index].id} ${DateTime.now()}');
-                    }
                     if (_partners[index]
                         .name!
                         .toLowerCase()

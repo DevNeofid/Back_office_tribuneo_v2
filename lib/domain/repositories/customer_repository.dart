@@ -1,14 +1,13 @@
 import 'dart:convert';
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 
-class CustomerRepository {
-  final RemoteDataSource _remoteData = RemoteDataSource();
-  LocalDataHelper localDataHelper = LocalDataHelper();
+class CustomerRepository extends BaseRepository {
+  final ApiClient _remoteData = ApiClient();
 
   final String suffixe = 'entity';
 
@@ -20,34 +19,36 @@ class CustomerRepository {
     Map<int, dynamic> result = {};
     Map<String, List<EntityModel>> mapEntities = {};
     List<EntityModel> allCustomers = [];
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe, queryParams: {
-        'entity_type': 'customer',
-        'full_infos': 'true',
-        'sorted_by_letter': 'true'
-      });
+      dynamic response = await _remoteData.get(suffixe,
+          queryParams: {
+            'entity_type': 'customer',
+            'full_infos': 'true',
+            'sorted_by_letter': 'true'
+          },
+          overrideTenant: tenant);
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          //print('###DEBUG### date after response: ${DateTime.now()}');
+          print('###DEBUG### date after response: ${DateTime.now()}');
         }
-        List<dynamic> responseBody = jsonDecode(response.data);
-        for (var data in responseBody) {
-          List<EntityModel> customers = [];
-          data.forEach((key, value) {
-            for (var customer in value) {
-              EntityModel p = EntityModel.fromJson(customer);
-              customers.add(p);
-              mapEntities[key] = customers;
-              allCustomers.add(p);
-            }
-          });
-        }
+        Map<String, dynamic> itemsMap = response.data['data']['items'];
+
+        itemsMap.forEach((letterKey, customersList) {
+          List<EntityModel> letterCustomers = [];
+          for (var customerJson in customersList) {
+            EntityModel p = EntityModel.fromJson(customerJson);
+            letterCustomers.add(p);
+            allCustomers.add(p);
+          }
+
+          mapEntities[letterKey] = letterCustomers;
+        });
       } else {
         if (kDebugMode) {
           print('Error getting customers: ${response.statusCode}');
         }
       }
-
       result.addAll(
         {
           allCustomersKey: allCustomers,
@@ -55,6 +56,9 @@ class CustomerRepository {
         },
       );
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error in getCustomers: $e');
+      }
       result = {};
     }
     return result;
@@ -74,7 +78,7 @@ class CustomerRepository {
   Future updateCustomer(EntityModel customer) async {
     String data = jsonEncode(customer.toJson());
     try {
-      return await _remoteData.put(suffixe, id: customer.id, data);
+      return await _remoteData.put('$suffixe/${customer.id}/update', data);
     } catch (e) {
       // Handle exceptions or log errors as appropriate
       return http.Response(
@@ -83,10 +87,10 @@ class CustomerRepository {
   }
 
   Future deleteCustomer(int id, String type) async {
-    const String suffixeD = 'entity_delete';
     String data = jsonEncode({'type': type});
     try {
-      return await _remoteData.softDelete(suffixeD, id, data: data);
+      return await _remoteData.softDelete('entity/${id}/delete', id,
+          data: data);
     } catch (e) {
       // Handle exceptions or log errors as appropriate
       return http.Response(
@@ -100,9 +104,9 @@ class CustomerRepository {
     try {
       return await _remoteData.post(suffixe, data);
     } catch (e) {
-      // Handle exceptions or log errors as appropriate
-      return http.Response(
-          'Error: $e', 500); // Return a response with a 500 status code
+      if (kDebugMode) {
+        print('###DEBUG### Error adding entity type: $e');
+      }
     }
   }
 }

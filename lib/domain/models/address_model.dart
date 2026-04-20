@@ -1,29 +1,15 @@
-import 'package:hive/hive.dart';
-
-//part 'adapters/Address_model.g.dart';
-
-@HiveType(typeId: 5)
-class AddressModel extends HiveObject {
-  @HiveField(0)
+class AddressModel {
   int? id;
-  @HiveField(1)
   String? street;
-  @HiveField(2)
   String? zip;
-  @HiveField(3)
   String? city;
-  @HiveField(4)
   String? country;
-  @HiveField(5)
   num? lat;
-  @HiveField(6)
   num? lng;
-  @HiveField(7)
   int? idUser;
-  @HiveField(8)
   int? idEntity;
 
-  AddressModel(
+  AddressModel({
     this.id,
     this.street,
     this.zip,
@@ -33,7 +19,7 @@ class AddressModel extends HiveObject {
     this.lng,
     this.idUser,
     this.idEntity,
-  );
+  });
 
   AddressModel.fromJson(Map<String, dynamic> json) {
     // print("### DEBUG ### -> id ${json['id']}");

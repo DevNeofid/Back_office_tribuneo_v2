@@ -1,31 +1,34 @@
-import 'dart:convert';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/invoice_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
+import 'package:flutter/foundation.dart';
 
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/invoice_model.dart';
+class DocumentRepository extends BaseRepository {
+  final ApiClient _remoteData = ApiClient();
 
-class DocumentRepository {
-  LocalDataHelper localDataHelper = LocalDataHelper();
-  final RemoteDataSource _remoteData = RemoteDataSource();
-
-  final String suffixe = 'invoice';
+  final String suffixe = 'accounting/invoice';
 
   Future<List<InvoiceModel>> getInvoices(String type) async {
     List<InvoiceModel> invoices = [];
-    Map<String, String> qs = {
+    String tenant = await getTenantForCurrentNetwork();
+    Map<String, String> params = {
       'type': type,
     };
     try {
-      dynamic response = await _remoteData.get(suffixe, queryParams: qs);
+      dynamic response = await _remoteData.get(suffixe,
+          queryParams: params, overrideTenant: tenant);
       if (response.statusCode == 200) {
-        response = jsonDecode(response.data);
-        for (var invoice in response) {
+        List<dynamic> invoicesList = response.data['data'];
+        for (var invoice in invoicesList) {
           invoices.add(InvoiceModel.fromJson(invoice));
         }
       } else {
         invoices = [];
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       invoices = [];
     }
     return invoices;

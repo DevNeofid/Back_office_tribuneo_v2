@@ -7,21 +7,20 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/models/order_model.dart';
-import 'package:tribuneo_backoffice/domain/models/urssaf_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/customer_usecase.dart';
-import 'package:tribuneo_backoffice/domain/usecases/orders_usecase.dart';
-import 'package:tribuneo_backoffice/domain/usecases/partner_usecase.dart';
-import 'package:tribuneo_backoffice/env/env.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_row.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class OrderForm extends StatefulWidget {
   final int idEntity;
@@ -63,7 +62,7 @@ class _OrderFormState extends State<OrderForm> {
   UrssafModel? _selectedUrssafEvent;
   int? entityId;
   String? giftFrom;
-  OrderRecModel modifyItem = OrderRecModel();
+  OrderModel modifyItem = OrderModel();
   late ValueNotifier<bool> _showHint;
   String alternativeBy = '';
   bool showImportView = false;
@@ -96,7 +95,7 @@ class _OrderFormState extends State<OrderForm> {
     _selectedCustomerValue = ValueNotifier<String?>(dropdownValue);
     addData();
     getUrssaf().then((v) => {
-          if (Env.kNetworkName == "VDPC")
+          if (globalNetworkName == "VDPC")
             {_selectedUrssafEvent = _urssafEvent.first}
         });
 
@@ -123,8 +122,25 @@ class _OrderFormState extends State<OrderForm> {
     int fundQuantity = 0;
     selectedFile = showImportView ? selectedFile : null;
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    _formKey.currentState!.save();
+
+    if (!showImportView && _selectedUrssafEvent == null) {
+      snackbarKey.currentState?.showSnackBar(const SnackBar(
+        content: Text('Veuillez sélectionner l\'occasion (URSSAF)'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+
+    if (dropdownValue == null && widget.idEntity == -1) {
+      snackbarKey.currentState?.showSnackBar(const SnackBar(
+        content: Text('Veuillez sélectionner une entité ("Offert par")'),
+        backgroundColor: Colors.red,
+      ));
+      return;
     }
 
     if (widget.idEntity != -1) {
@@ -185,7 +201,7 @@ class _OrderFormState extends State<OrderForm> {
 
     if (showImportView) fileBase64 = base64Encode(selectedFile!.bytes!);
 
-    OrderSendModel o = OrderSendModel(
+    OrderSendModel order = OrderSendModel(
       giftFrom: giftFrom,
       idUrssaf: giftId,
       giftReason: giftReason,
@@ -199,10 +215,10 @@ class _OrderFormState extends State<OrderForm> {
 
     try {
       if (showImportView) {
-        await _orderUseCase.addOrder(o, fileName: fileName, file: fileBase64);
+        await _orderUseCase.addOrder(order,
+            fileName: fileName, file: fileBase64);
       } else {
-        await _orderUseCase.addOrder(o);
-        ;
+        await _orderUseCase.addOrder(order);
       }
       navigatorKey.currentState?.pop();
       snackbarKey.currentState?.showSnackBar(const SnackBar(
@@ -210,6 +226,7 @@ class _OrderFormState extends State<OrderForm> {
         backgroundColor: Colors.green,
       ));
     } catch (e) {
+      if (kDebugMode) print("Erreur API: $e");
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Erreur lors de l’ajout de la commande'),
         backgroundColor: Colors.red,
@@ -708,6 +725,7 @@ class _OrderFormState extends State<OrderForm> {
                 Expanded(
                   flex: 1,
                   child: DropdownButtonFormField<UrssafModel>(
+                    initialValue: _selectedUrssafEvent,
                     items: _urssafEvent
                         .map((event) => DropdownMenuItem<UrssafModel>(
                               value: event,
@@ -716,10 +734,9 @@ class _OrderFormState extends State<OrderForm> {
                         .toList(),
                     onChanged: (value) {
                       setState(() {
-                        _selectedUrssafEvent = value!;
+                        _selectedUrssafEvent = value;
                       });
                     },
-                    initialValue: _selectedUrssafEvent,
                     decoration: InputDecoration(
                       labelText: "Pour l'occasion de",
                       labelStyle: const TextStyle(color: Colors.grey),

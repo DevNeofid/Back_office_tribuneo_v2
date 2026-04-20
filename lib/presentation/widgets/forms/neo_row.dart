@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
 
 class RowModel {
   int? number;

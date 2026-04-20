@@ -1,5 +1,4 @@
-
-class OrderRecModel {
+class OrderModel {
   int? id;
   String? orderNumber;
   String? giftFrom;
@@ -9,51 +8,68 @@ class OrderRecModel {
   num? totalAmount;
   int? paid;
   int? idEntity;
-  List<OrderRecItems>? orderItems;
+  List<OrderItems>? orderItems;
   FundDate? fundExpiryDate;
   FundDate? createdDate;
   FundDate? updatedDate;
 
-  OrderRecModel(
-      {this.id,
-      this.orderNumber,
-      this.giftFrom,
-      this.giftReason,
-      this.idUrssaf,
-      this.fundQuantity,
-      this.totalAmount,
-      this.paid,
-      this.idEntity,
-      this.orderItems,
-      this.fundExpiryDate,
-      this.createdDate,
-      this.updatedDate});
+  OrderModel({
+    this.id,
+    this.orderNumber,
+    this.giftFrom,
+    this.giftReason,
+    this.idUrssaf,
+    this.fundQuantity,
+    this.totalAmount,
+    this.paid,
+    this.idEntity,
+    this.orderItems,
+    this.fundExpiryDate,
+    this.createdDate,
+    this.updatedDate,
+  });
 
-  OrderRecModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    orderNumber = json['order_number'];
-    giftFrom = json['gift_from'];
-    giftReason = json['gift_reason'];
-    idUrssaf = json['id_urssaf_event'];
-    fundQuantity = json['fund_quantity'];
-    totalAmount = json['total_amount'];
-    paid = json['amount_paid'] ?? 0;
-    idEntity = json['id_entity'];
-    if (json['order_items'] != null) {
-      orderItems = <OrderRecItems>[];
-      json['order_items'].forEach((v) {
-        orderItems!.add(OrderRecItems.fromJson(v));
-      });
+  OrderModel.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        orderNumber = json['order_number'],
+        giftFrom = json['gift_from'],
+        giftReason = json['gift_reason'],
+        idUrssaf = json['id_urssaf_event'],
+        fundQuantity = json['fund_quantity'],
+        totalAmount = json['total_amount'],
+        paid = json['amount_paid'] ?? 0,
+        idEntity = json['id_entity'],
+        orderItems = _parseOrderItems(json['order_items']),
+        fundExpiryDate = _parseFundDate(json['fund_expiry_date']),
+        createdDate = _parseFundDate(json['created_date']),
+        updatedDate = _parseFundDate(json['updated_date']);
+
+  static FundDate? _parseFundDate(dynamic value) {
+    if (value == null) {
+      return null;
     }
-    fundExpiryDate = json['fund_expiry_date'] != null
-        ? FundDate.fromJson(json['fund_expiry_date'])
-        : null;
-    createdDate = json['created_date'] != null
-        ? FundDate.fromJson(json['created_date'])
-        : null;
-    updatedDate = json['updated_date'] != null
-        ? FundDate.fromJson(json['updated_date'])
-        : null;
+    if (value is Map<String, dynamic>) {
+      return FundDate.fromJson(value);
+    }
+    if (value is Map) {
+      return FundDate.fromJson(Map<String, dynamic>.from(value));
+    }
+    if (value is String) {
+      return FundDate(date: value);
+    }
+    return null;
+  }
+
+  static List<OrderItems>? _parseOrderItems(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+    if (value is List) {
+      return value
+          .map((v) => OrderItems.fromJson(v as Map<String, dynamic>))
+          .toList();
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -67,6 +83,7 @@ class OrderRecModel {
     data['total_amount'] = totalAmount;
     data['amount_paid'] = paid;
     data['id_entity'] = idEntity;
+
     if (orderItems != null) {
       data['order_items'] = orderItems!.map((v) => v.toJson()).toList();
     }
@@ -83,16 +100,16 @@ class OrderRecModel {
   }
 }
 
-class OrderRecItems {
+class OrderItems {
   int? id;
   int? quantity;
   num? amount;
   String? persoMsg;
   int? idOrder;
 
-  OrderRecItems({this.id, this.quantity, this.amount, this.idOrder});
+  OrderItems({this.id, this.quantity, this.amount, this.idOrder});
 
-  OrderRecItems.fromJson(Map<String, dynamic> json) {
+  OrderItems.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     quantity = json['quantity'];
     amount = json['amount'];

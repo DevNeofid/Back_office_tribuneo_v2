@@ -1,10 +1,7 @@
-
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 
 class VoucherRepository {
-  LocalDataHelper localDataHelper = LocalDataHelper();
-  final RemoteDataSource _remoteData = RemoteDataSource();
+  final ApiClient _remoteData = ApiClient();
 
   final String suffixe = 'voucher';
 

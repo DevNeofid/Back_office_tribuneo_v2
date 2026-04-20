@@ -1,14 +1,11 @@
 import 'dart:convert';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/address_model.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/address_model.dart';
 
 class AddressRepository {
-  final RemoteDataSource _remoteData = RemoteDataSource();
-  LocalDataHelper localDataHelper = LocalDataHelper();
+  final ApiClient _remoteData = ApiClient();
   final String suffixe = 'address';
 
-  // Function to add a new customer
   Future addAddress(AddressModel address) async {
     String data = jsonEncode(address.toJson());
     await _remoteData.post(suffixe, data);

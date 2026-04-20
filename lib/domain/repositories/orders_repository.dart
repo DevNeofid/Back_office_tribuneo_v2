@@ -1,30 +1,37 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
+import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
 
-import 'package:tribuneo_backoffice/config/neo_encrypt.dart';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/order_model.dart';
-import 'package:tribuneo_backoffice/domain/models/payment_model.dart';
-import 'package:tribuneo_backoffice/domain/models/urssaf_model.dart';
-
-class OrderRepository {
-  LocalDataHelper localDataHelper = LocalDataHelper();
-  final RemoteDataSource _remoteData = RemoteDataSource();
+class OrderRepository extends BaseRepository {
+  final ApiClient _remoteData = ApiClient();
   NeoEncrypt encrypt = NeoEncrypt();
 
   String suffixeO = 'order';
   final String suffixeQ = 'qrcgen';
 
-  Future<List<OrderRecModel>> getOrders() async {
-    List<OrderRecModel> orders = [];
+  Future<List<OrderModel>> getOrders() async {
+    String tenant = await getTenantForCurrentNetwork();
+    List<OrderModel> orders = [];
     try {
-      dynamic response = await _remoteData.get(suffixeO);
+      dynamic response =
+          await _remoteData.get(suffixeO, overrideTenant: tenant);
       if (response.statusCode == 200) {
-        response = jsonDecode(response.data);
-        for (var order in response) {
-          orders.add(OrderRecModel.fromJson(order));
+        final Map<String, dynamic> responseBody = response.data;
+
+        if (responseBody.containsKey('data') &&
+            responseBody['data'] is Map &&
+            responseBody['data'].containsKey('items')) {
+          final List<dynamic> itemsList = responseBody['data']['items'];
+
+          for (var order in itemsList) {
+            orders.add(OrderModel.fromJson(order as Map<String, dynamic>));
+          }
         }
       } else {
         orders = [];
@@ -42,7 +49,7 @@ class OrderRepository {
   Future addOrders(OrderSendModel order,
       {String? fileName, dynamic file}) async {
     if (file != null) {
-      suffixeO = "${suffixeO}_file";
+      suffixeO = "${suffixeO}/file";
     }
 
     OrderSendModel? res;
@@ -75,6 +82,9 @@ class OrderRepository {
           res = null;
         }
       } catch (e) {
+        if (kDebugMode) {
+          print('###DEBUG### Error: $e');
+        }
         res = null;
       }
     }
@@ -91,19 +101,25 @@ class OrderRepository {
         res = OrderSendModel.fromJson(request);
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       res = null;
     }
     return res;
   }
 
   Future deleteOrder(int id) async {
-    String suffixe = 'order_delete';
+    String suffixe = 'order/delete';
     try {
       dynamic request = await _remoteData.softDelete(suffixe, id);
       if (request.statusCode == 200) {
         return true;
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
       return false;
     }
   }
@@ -239,11 +255,9 @@ class OrderRepository {
   }
 
   Future createSummary(int idOrder) async {
-    String suffixe = 'order';
-    String urlAdd = 'summary';
     try {
-      dynamic response = await _remoteData.get(suffixe,
-          id: idOrder, urlAdd: urlAdd, bytesType: true);
+      dynamic response =
+          await _remoteData.get('order/$idOrder/summary', bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {

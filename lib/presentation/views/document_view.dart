@@ -1,19 +1,16 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
 
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/models/invoice_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/document_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/utils/file_downloader.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/date_formater.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/loading.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/domain/models/invoice_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/document_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -25,7 +22,6 @@ class DocumentsContentView extends StatefulWidget {
 }
 
 class _DocumentsContentViewState extends State<DocumentsContentView> {
-  LocalDataHelper localDataHelper = LocalDataHelper();
   final DocumentUseCase _documentUseCase = DocumentUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
 
@@ -53,8 +49,6 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
                   id: e.id,
                   invoiceNumber: e.invoiceNumber,
                   entityName: e.entityName,
-                  entityCode: e.entityCode,
-                  giftReason: e.giftReason,
                   totalAmountInvoice: e.totalAmountInvoice,
                   createdDate: e.createdDate,
                   idOrder: e.idOrder,
@@ -78,14 +72,11 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
         _fees = value
             .map((e) => InvoiceModel(
                   id: e.id,
+                  transactionNumber: e.transactionNumber,
                   invoiceNumber: e.invoiceNumber,
                   entityName: e.entityName,
-                  entityCode: e.entityCode,
-                  feesInclVat: e.feesInclVat,
-                  totalPayable: e.totalPayable,
+                  totalAmountInvoice: e.totalAmountInvoice,
                   createdDate: e.createdDate,
-                  idTransaction: e.idTransaction,
-                  transactionNumber: e.transactionNumber,
                 ))
             .toList();
       });
@@ -213,8 +204,6 @@ class _InvoicesContentState extends State<InvoicesContent> {
                     .contains(query.toLowerCase()) ??
                 false) ||
             (order.entityName?.toLowerCase().contains(query.toLowerCase()) ??
-                false) ||
-            (order.giftReason?.toLowerCase().contains(query.toLowerCase()) ??
                 false);
       }).toList();
 
@@ -241,7 +230,7 @@ class _InvoicesContentState extends State<InvoicesContent> {
               labelText: "Rechercher",
               labelStyle: TextStyle(color: kBlue),
               iconColor: kBlue,
-              hintText: "Rechercher par numéro de commande, offert par, etc.",
+              hintText: "Rechercher par numéro de facture ou nom",
               hintStyle: TextStyle(color: Colors.grey),
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(
@@ -305,30 +294,14 @@ class _InvoicesContentState extends State<InvoicesContent> {
                       DataColumn(
                         label: Expanded(
                           child: Center(
-                            child: Text('Destinataire',
-                                textAlign: TextAlign.center),
+                            child: Text('Nom', textAlign: TextAlign.center),
                           ),
                         ),
                       ),
                       DataColumn(
                         label: Expanded(
                           child: Center(
-                            child: Text('Code', textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(
-                            child:
-                                Text('Occasion', textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(
-                            child: Text('Montant total',
+                            child: Text('Montant total (€)',
                                 textAlign: TextAlign.center),
                           ),
                         ),
@@ -364,23 +337,19 @@ class _InvoicesContentState extends State<InvoicesContent> {
                                   SelectableText(invoice.invoiceNumber ?? ''))),
                           DataCell(Center(
                               child: SelectableText(invoice.entityName ?? ''))),
-                          DataCell(Center(
-                              child: SelectableText(invoice.entityCode ?? ''))),
-                          DataCell(Center(
-                              child: SelectableText(invoice.giftReason ?? ''))),
                           DataCell(
                             Center(
                               child: SelectableText(
                                 invoice.totalAmountInvoice != null
                                     ? invoice.totalAmountInvoice!
                                         .toStringAsFixed(2)
-                                    : '',
+                                    : '0.00',
                               ),
                             ),
                           ),
                           DataCell(Center(
                               child: Text(DateFormater()
-                                      .modifyDate(invoice.createdDate!.date!) ??
+                                      .modifyDate(invoice.createdDate ?? '') ??
                                   ''))),
                           DataCell(
                             Center(
@@ -440,11 +409,14 @@ class _FeesContentState extends State<FeesContent> {
       },
     );
     try {
-      String? name = fee.entityCode;
-      name = name!.replaceAll(' ', '_');
-      String? number = fee.totalPayable.toString();
+      String? name = fee
+          .entityName; // Changed from entityCode based on your latest columns
+      name = name?.replaceAll(' ', '_') ?? 'Frais';
+      String? number = fee.totalAmountInvoice?.toString() ?? '';
+
+      // Assure-toi d'utiliser le bon ID ou numéro ici selon ton API
       dynamic response = await _documentUseCase
-          .downloadFileFees(fee.transactionNumber!, prefixe: prefixe);
+          .downloadFileFees(fee.transactionNumber ?? '', prefixe: prefixe);
       List<dynamic> listDynamic = response;
 
       FileDownloader.downloadLargeFile(
@@ -465,13 +437,13 @@ class _FeesContentState extends State<FeesContent> {
       });
     } else {
       List<InvoiceModel> filteredFees = _allFees.where((fees) {
-        return (fees.invoiceNumber
+        return (fees.transactionNumber
                     ?.toLowerCase()
                     .contains(query.toLowerCase()) ??
                 false) ||
-            (fees.entityName?.toLowerCase().contains(query.toLowerCase()) ??
+            (fees.invoiceNumber?.toLowerCase().contains(query.toLowerCase()) ??
                 false) ||
-            (fees.giftReason?.toLowerCase().contains(query.toLowerCase()) ??
+            (fees.entityName?.toLowerCase().contains(query.toLowerCase()) ??
                 false);
       }).toList();
 
@@ -498,7 +470,7 @@ class _FeesContentState extends State<FeesContent> {
               labelText: "Rechercher",
               labelStyle: TextStyle(color: kBlue),
               iconColor: kBlue,
-              hintText: "Rechercher par numéro de commande, offert par, etc.",
+              hintText: "Rechercher par transaction, facture ou destinataire",
               hintStyle: TextStyle(color: Colors.grey),
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(
@@ -562,6 +534,14 @@ class _FeesContentState extends State<FeesContent> {
                       DataColumn(
                         label: Expanded(
                           child: Center(
+                            child: Text('Numéro de facture',
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Expanded(
+                          child: Center(
                             child: Text('Destinataire',
                                 textAlign: TextAlign.center),
                           ),
@@ -570,22 +550,7 @@ class _FeesContentState extends State<FeesContent> {
                       DataColumn(
                         label: Expanded(
                           child: Center(
-                            child: Text('Code', textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(
-                            child: Text('Montant total',
-                                textAlign: TextAlign.center),
-                          ),
-                        ),
-                      ),
-                      DataColumn(
-                        label: Expanded(
-                          child: Center(
-                            child: Text('Montant total à payer',
+                            child: Text('Montant total (€)',
                                 textAlign: TextAlign.center),
                           ),
                         ),
@@ -620,30 +585,21 @@ class _FeesContentState extends State<FeesContent> {
                               child:
                                   SelectableText(fee.transactionNumber ?? ''))),
                           DataCell(Center(
-                              child: SelectableText(fee.entityName ?? ''))),
+                              child: SelectableText(fee.invoiceNumber ?? ''))),
                           DataCell(Center(
-                              child: SelectableText(fee.entityCode ?? ''))),
+                              child: SelectableText(fee.entityName ?? ''))),
                           DataCell(
                             Center(
                               child: SelectableText(
-                                fee.feesInclVat != null
-                                    ? fee.feesInclVat!.toStringAsFixed(2)
-                                    : '',
-                              ),
-                            ),
-                          ),
-                          DataCell(
-                            Center(
-                              child: SelectableText(
-                                fee.totalPayable != null
-                                    ? fee.totalPayable!.toStringAsFixed(2)
-                                    : '',
+                                fee.totalAmountInvoice != null
+                                    ? fee.totalAmountInvoice!.toStringAsFixed(2)
+                                    : '0.00',
                               ),
                             ),
                           ),
                           DataCell(Center(
                               child: Text(DateFormater()
-                                      .modifyDate(fee.createdDate!.date!) ??
+                                      .modifyDate(fee.createdDate ?? '') ??
                                   ''))),
                           DataCell(
                             Center(

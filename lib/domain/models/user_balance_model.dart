@@ -8,7 +8,9 @@ class UserBalanceModel {
   UserBalanceModel.fromJson(Map<String, dynamic> json) {
     mobile = json['mobile'];
     initials = json['initials'];
-    amount = json['amount'];
+    amount = json['amount'] != null
+        ? double.tryParse(json['amount'].toString())
+        : 0.0;
   }
 
   Map<String, dynamic> toJson() {

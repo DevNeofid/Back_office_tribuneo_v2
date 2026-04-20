@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/usecases/voucher_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/voucher_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 
 class VoucherView extends StatefulWidget {
   const VoucherView({super.key});

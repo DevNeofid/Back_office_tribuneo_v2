@@ -2,22 +2,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:tribuneo_backoffice/config/responsive.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/usecases/transfer_order_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/views/accounting_entries.dart';
-import 'package:tribuneo_backoffice/presentation/views/customers_content_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/dashboard_content_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/document_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/orders_content_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/partners_content_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/refund_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/sector_activity_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/stats_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/transfert_order_view.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/header_widget.dart';
+import 'package:back_office_tribuneo_v2/config/responsive.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/accounting_entries.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/customers_content_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/dashboard_content_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/document_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/orders_content_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/partners_content_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/refund_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/sector_activity_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/stats_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/transfert_order_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/header_widget.dart';
 
 class MySimplePage extends StatefulWidget {
   const MySimplePage({super.key});
@@ -39,19 +39,17 @@ class MySimplePageState extends State<MySimplePage> {
 
   final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
-  LocalDataHelper localDataHelper = LocalDataHelper();
+  final StorageFunction _storageFunction = StorageFunction();
   bool loadedData = false;
   bool showRefundNotification = false;
 
   dataRecovery() async {
-    await localDataHelper.getByKey('last_viewed', 1).then((lastView) => {
+    await _storageFunction.readLastViewedMenu().then((lastView) => {
           if (lastView != null &&
               (lastView.toString() != selectedMenu ||
                   lastView.toString() == 'dashboard'))
             {
               selectedMenu = lastView.toString(),
-              // for each search the same name of selectedMenu in the list of menu
-              // and get the title and the content
               for (int i = 0; i < menuItems.length; i++)
                 {
                   if (menuItems[i]!['name'] == selectedMenu)
@@ -66,7 +64,7 @@ class MySimplePageState extends State<MySimplePage> {
             }
           else
             {
-              localDataHelper.addKey('last_viewed', 'dashboard', 1),
+              _storageFunction.saveLastViewedMenu('dashboard'),
               setState(() {
                 loadedData = true;
               })
@@ -110,20 +108,6 @@ class MySimplePageState extends State<MySimplePage> {
       "content": const SectorActivityView(),
       "icon": Icons.construction,
     },
-    // 5: {
-    //   "name": "Coupons",
-    //   "title": "Coupons",
-    //   "short": "Coupons",
-    //   "content": const VoucherView(),
-    //   "icon": Icons.qr_code,
-    // },
-    // 5: {
-    //   "name": "Campaigns",
-    //   "title": "Campagnes",
-    //   "short": "Campagnes",
-    //   "content": const DocumentsContentView(),
-    //   "icon": Icons.campaign,
-    // },
     5: {
       "name": "document",
       "title": "Documents",
@@ -159,20 +143,6 @@ class MySimplePageState extends State<MySimplePage> {
       "content": const StatsContentView(),
       "icon": Icons.bar_chart,
     },
-    // 10: {
-    //   "name": "notification",
-    //   "title": "Campagne de notification",
-    //   "short": "Notifications",
-    //   "content": const ComingSoonView(),
-    //   "icon": Icons.notification_add,
-    // },
-    // 11: {
-    //   "name": "settings",
-    //   "title": "Paramètres",
-    //   "short": "Paramètres",
-    //   "content": const ComingSoonView(),
-    //   "icon": Icons.settings,
-    // }
   };
 
   Future<void> checkForNewRefunds() async {
@@ -192,7 +162,8 @@ class MySimplePageState extends State<MySimplePage> {
           "###DEBUG### CALL BACK MENU clickedMenu = ${menuItems[indexContent]!['name']}");
       print("###DEBUG###");
     }
-    localDataHelper.addKey('last_viewed', menuItems[indexContent]!['name'], 1);
+    _storageFunction
+        .saveLastViewedMenu(menuItems[indexContent]!['name'].toString());
     setState(() {
       selectedMenu = menuItems[indexContent]!['name'];
       content = menuItems[indexContent]!['content'];
@@ -226,29 +197,11 @@ class MySimplePageState extends State<MySimplePage> {
   /* Test Graph - End */
   @override
   Widget build(BuildContext context) {
-    /* Test Graph - Start */
-
-    // ignore: unused_local_variable
-    const dataByYears = [
-      {"type": "Total injecté", "year": 2019, "value": 236500},
-      {"type": "Total consommé", "year": 2019, "value": 175000},
-      {"type": "Total injecté", "year": 2020, "value": 425000},
-      {"type": "Total consommé", "year": 2020, "value": 360890},
-      {"type": "Total injecté", "year": 2021, "value": 460000},
-      {"type": "Total consommé", "year": 2021, "value": 395750},
-      {"type": "Total injecté", "year": 2022, "value": 510000},
-      {"type": "Total consommé", "year": 2022, "value": 425000},
-    ];
-
-    // if (kDebugMode) {
-    //   print("###DEBUG### MySimplePage->build : selectedMenu = $selectedMenu");
-    // }
     buildMenu();
     SizeConfig().init(context);
 
     return Scaffold(
       key: _drawerKey,
-      // drawer: drawer,
       drawer: SizedBox(
         width: _sideMenuWidth,
         child: menu,
@@ -319,36 +272,6 @@ class MySimplePageState extends State<MySimplePage> {
                           vertical: 20, horizontal: 20),
                       child: Column(
                         children: [
-                          // Container(
-                          //   constraints: const BoxConstraints(
-                          //       minWidth: 220,
-                          //       minHeight: 220,
-                          //       maxWidth: 400,
-                          //       maxHeight: 400),
-                          //   decoration: const BoxDecoration(
-                          //     color: kTransparent,
-                          //     // borderRadius: BorderRadius.all(
-                          //     //   Radius.circular(20),
-                          //     // ),
-                          //   ),
-                          //   child: Chart(
-                          //     data: data,
-                          //     variables: {
-                          //       'category': Variable(
-                          //         accessor: (Map map) =>
-                          //             map['category'] as String,
-                          //       ),
-                          //       'sales': Variable(
-                          //         accessor: (Map map) => map['sales'] as num,
-                          //       ),
-                          //     },
-                          //     elements: [IntervalElement()],
-                          //     axes: [
-                          //       Defaults.horizontalAxis,
-                          //       Defaults.verticalAxis,
-                          //     ],
-                          //   ),
-                          // ),
                           Container(
                             constraints: const BoxConstraints(
                                 minWidth: 220,
@@ -357,82 +280,7 @@ class MySimplePageState extends State<MySimplePage> {
                                 maxHeight: 300),
                             decoration: const BoxDecoration(
                               color: kTransparent,
-                              // borderRadius: BorderRadius.all(
-                              //   Radius.circular(20),
-                              // ),
                             ),
-                            // child: Chart(
-                            //   padding: (_) =>
-                            //       const EdgeInsets.fromLTRB(40, 5, 10, 40),
-                            //   data: dataByYears,
-                            //   variables: {
-                            //     'year': Variable(
-                            //       accessor: (Map map) => map['year'].toString(),
-                            //     ),
-                            //     'type': Variable(
-                            //       accessor: (Map map) => map['type'] as String,
-                            //     ),
-                            //     'value': Variable(
-                            //       accessor: (Map map) => map['value'] as num,
-                            //     ),
-                            //   },
-                            //   elements: [
-                            //     IntervalElement(
-                            //       position: Varset('year') *
-                            //           Varset('value') /
-                            //           Varset('type'),
-                            //       color: ColorAttr(
-                            //           variable: 'type', values: graphColors),
-                            //       size: SizeAttr(value: 10),
-                            //       modifiers: [DodgeModifier(ratio: 0.16)],
-                            //     )
-                            //   ],
-                            //   axes: [
-                            //     Defaults.horizontalAxis..tickLine = TickLine(),
-                            //     Defaults.verticalAxis,
-                            //   ],
-                            //   selections: {
-                            //     'tap': PointSelection(
-                            //       variable: 'value',
-                            //     )
-                            //   },
-                            //   tooltip: TooltipGuide(multiTuples: true),
-                            //   crosshair: CrosshairGuide(),
-                            //   annotations: [
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kOrange,
-                            //       anchor: (size) => const Offset(50, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total injecté',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(60, 290),
-                            //     ),
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kBlue,
-                            //       anchor: (size) => const Offset(200, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total consommé',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(210, 290),
-                            //     ),
-                            //   ],
-                            // ),
                           ),
                           Container(
                             constraints: const BoxConstraints(
@@ -442,82 +290,7 @@ class MySimplePageState extends State<MySimplePage> {
                                 maxHeight: 300),
                             decoration: const BoxDecoration(
                               color: kTransparent,
-                              // borderRadius: BorderRadius.all(
-                              //   Radius.circular(20),
-                              // ),
                             ),
-                            // child: Chart(
-                            //   padding: (_) =>
-                            //       const EdgeInsets.fromLTRB(40, 5, 10, 40),
-                            //   data: dataByYears,
-                            //   variables: {
-                            //     'year': Variable(
-                            //       accessor: (Map map) => map['year'].toString(),
-                            //     ),
-                            //     'type': Variable(
-                            //       accessor: (Map map) => map['type'] as String,
-                            //     ),
-                            //     'value': Variable(
-                            //       accessor: (Map map) => map['value'] as num,
-                            //     ),
-                            //   },
-                            //   elements: [
-                            //     IntervalElement(
-                            //       position: Varset('year') *
-                            //           Varset('value') /
-                            //           Varset('type'),
-                            //       color: ColorAttr(
-                            //           variable: 'type', values: graphColors),
-                            //       size: SizeAttr(value: 10),
-                            //       modifiers: [DodgeModifier(ratio: 0.16)],
-                            //     )
-                            //   ],
-                            //   axes: [
-                            //     Defaults.horizontalAxis..tickLine = TickLine(),
-                            //     Defaults.verticalAxis,
-                            //   ],
-                            //   selections: {
-                            //     'tap': PointSelection(
-                            //       variable: 'value',
-                            //     )
-                            //   },
-                            //   tooltip: TooltipGuide(multiTuples: true),
-                            //   crosshair: CrosshairGuide(),
-                            //   annotations: [
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kOrange,
-                            //       anchor: (size) => const Offset(50, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total injecté',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(60, 290),
-                            //     ),
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kBlue,
-                            //       anchor: (size) => const Offset(200, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total consommé',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(210, 290),
-                            //     ),
-                            //   ],
-                            // ),
                           ),
                           Container(
                             constraints: const BoxConstraints(
@@ -527,82 +300,7 @@ class MySimplePageState extends State<MySimplePage> {
                                 maxHeight: 300),
                             decoration: const BoxDecoration(
                               color: kTransparent,
-                              // borderRadius: BorderRadius.all(
-                              //   Radius.circular(20),
-                              // ),
                             ),
-                            // child: Chart(
-                            //   padding: (_) =>
-                            //       const EdgeInsets.fromLTRB(40, 5, 10, 40),
-                            //   data: dataByYears,
-                            //   variables: {
-                            //     'year': Variable(
-                            //       accessor: (Map map) => map['year'].toString(),
-                            //     ),
-                            //     'type': Variable(
-                            //       accessor: (Map map) => map['type'] as String,
-                            //     ),
-                            //     'value': Variable(
-                            //       accessor: (Map map) => map['value'] as num,
-                            //     ),
-                            //   },
-                            //   elements: [
-                            //     IntervalElement(
-                            //       position: Varset('year') *
-                            //           Varset('value') /
-                            //           Varset('type'),
-                            //       color: ColorAttr(
-                            //           variable: 'type', values: graphColors),
-                            //       size: SizeAttr(value: 10),
-                            //       modifiers: [DodgeModifier(ratio: 0.16)],
-                            //     )
-                            //   ],
-                            //   axes: [
-                            //     Defaults.horizontalAxis..tickLine = TickLine(),
-                            //     Defaults.verticalAxis,
-                            //   ],
-                            //   selections: {
-                            //     'tap': PointSelection(
-                            //       variable: 'value',
-                            //     )
-                            //   },
-                            //   tooltip: TooltipGuide(multiTuples: true),
-                            //   crosshair: CrosshairGuide(),
-                            //   annotations: [
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kOrange,
-                            //       anchor: (size) => const Offset(50, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total injecté',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(60, 290),
-                            //     ),
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kBlue,
-                            //       anchor: (size) => const Offset(200, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total consommé',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(210, 290),
-                            //     ),
-                            //   ],
-                            // ),
                           ),
                           Container(
                             constraints: const BoxConstraints(
@@ -612,82 +310,7 @@ class MySimplePageState extends State<MySimplePage> {
                                 maxHeight: 300),
                             decoration: const BoxDecoration(
                               color: kTransparent,
-                              // borderRadius: BorderRadius.all(
-                              //   Radius.circular(20),
-                              // ),
                             ),
-                            // child: Chart(
-                            //   padding: (_) =>
-                            //       const EdgeInsets.fromLTRB(40, 5, 10, 40),
-                            //   data: dataByYears,
-                            //   variables: {
-                            //     'year': Variable(
-                            //       accessor: (Map map) => map['year'].toString(),
-                            //     ),
-                            //     'type': Variable(
-                            //       accessor: (Map map) => map['type'] as String,
-                            //     ),
-                            //     'value': Variable(
-                            //       accessor: (Map map) => map['value'] as num,
-                            //     ),
-                            //   },
-                            //   elements: [
-                            //     IntervalElement(
-                            //       position: Varset('year') *
-                            //           Varset('value') /
-                            //           Varset('type'),
-                            //       color: ColorAttr(
-                            //           variable: 'type', values: graphColors),
-                            //       size: SizeAttr(value: 10),
-                            //       modifiers: [DodgeModifier(ratio: 0.16)],
-                            //     )
-                            //   ],
-                            //   axes: [
-                            //     Defaults.horizontalAxis..tickLine = TickLine(),
-                            //     Defaults.verticalAxis,
-                            //   ],
-                            //   selections: {
-                            //     'tap': PointSelection(
-                            //       variable: 'value',
-                            //     )
-                            //   },
-                            //   tooltip: TooltipGuide(multiTuples: true),
-                            //   crosshair: CrosshairGuide(),
-                            //   annotations: [
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kOrange,
-                            //       anchor: (size) => const Offset(50, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total injecté',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(60, 290),
-                            //     ),
-                            //     MarkAnnotation(
-                            //       relativePath: Path()
-                            //         ..addRect(Rect.fromCircle(
-                            //             center: const Offset(0, 0), radius: 5)),
-                            //       style: Paint()..color = kBlue,
-                            //       anchor: (size) => const Offset(200, 290),
-                            //     ),
-                            //     TagAnnotation(
-                            //       label: Label(
-                            //         'Total consommé',
-                            //         LabelStyle(
-                            //             style: Defaults.textStyle,
-                            //             align: Alignment.centerRight),
-                            //       ),
-                            //       anchor: (size) => const Offset(210, 290),
-                            //     ),
-                            //   ],
-                            // ),
                           ),
                           // AppBarActionItems(),
                           // PaymentDetailList(),
@@ -730,12 +353,10 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   List<Widget> menuItems = [];
   int? hoveredMenuIndex;
-  // bool showRefundNotification = false;
 
   @override
   void initState() {
     super.initState();
-    // showRefundNotification = widget.showRefundNotification;
   }
 
   @override
@@ -823,30 +444,6 @@ class _SideMenuState extends State<SideMenu> {
                                                   ? kBlue
                                                   : kLBlue,
                                             ),
-                                            // Conditionnellement afficher un cercle rouge si les notifications doivent être montrées
-                                            if (widget.showRefundNotification &&
-                                                widget.menuItemsInfos[index]![
-                                                        'name'] ==
-                                                    'refund')
-                                              Positioned(
-                                                right: 0,
-                                                top: 0,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.all(1),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.red,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            6),
-                                                  ),
-                                                  constraints:
-                                                      const BoxConstraints(
-                                                    minWidth: 12,
-                                                    minHeight: 12,
-                                                  ),
-                                                ),
-                                              ),
                                           ],
                                         ),
                                         onPressed: null,

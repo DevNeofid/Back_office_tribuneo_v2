@@ -2,20 +2,20 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/responsive.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/models/order_model.dart';
-import 'package:tribuneo_backoffice/domain/models/urssaf_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/orders_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/config/responsive.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_row.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class UpdateOrderForm extends StatefulWidget {
-  final OrderRecModel? orderItem;
+  final OrderModel? orderItem;
   const UpdateOrderForm({Key? key, required this.orderItem}) : super(key: key);
   @override
   State<UpdateOrderForm> createState() => _UpdateOrderFormState();
@@ -39,7 +39,7 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   final OrderUseCase _orderUseCase = OrderUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isChecked = false;
-  late OrderRecModel modifyItem;
+  late OrderModel modifyItem;
   DateTime selectedDate = DateTime.now();
   UrssafModel? _selectedUrssafEvent;
   late DateTime selectedExpiryDate;

@@ -1,13 +1,13 @@
-import 'package:tribuneo_backoffice/domain/models/refund_shop_model.dart';
-import 'package:tribuneo_backoffice/domain/models/transfer_order_model.dart';
-import 'package:tribuneo_backoffice/domain/repositories/transfer_order_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/transfer_order_repository.dart';
 
 class TransferOrderUseCase {
   final TransferOrderRepository transferOrderRepository =
       TransferOrderRepository();
 
-  Future<List<TransferOrderModel>> getTOrders() async {
-    return await transferOrderRepository.getTOrders();
+  Future<List<TransferOrderModel>> getOrders() async {
+    return await transferOrderRepository.getOrders();
   }
 
   Future downloadFile(int id) async {

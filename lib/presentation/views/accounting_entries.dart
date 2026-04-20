@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'dart:developer';
-import 'package:tribuneo_backoffice/domain/models/accounting_entries_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/accounting_entries_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/utils/file_downloader.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/date_formater.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/accounting_entries_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
 enum SampleItem { itemOne, itemTwo }
 

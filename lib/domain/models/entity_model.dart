@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tribuneo_backoffice/domain/models/address_model.dart';
-import 'package:tribuneo_backoffice/domain/models/bank_informations_model.dart';
-import 'package:tribuneo_backoffice/domain/models/sector_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/address_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_informations_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/sector_model.dart';
 
 class EntityModel {
   int? id;
@@ -12,7 +12,7 @@ class EntityModel {
   String? phone;
   String? type;
   num? fundAmount;
-  int? acceptDemat;
+  bool? acceptDemat;
   AddressModel? address;
   BankInformationsModel? bankInformations;
   List<Sector>? activitySectors;
@@ -54,9 +54,8 @@ class EntityModel {
     //print("### DEBUG ### -> address ${json['address']}");
     acceptDemat = json['accept_demat'];
     //print("### DEBUG ### -> bankInformations ${json['bankInformations']}");
-    address = json['address'] != null
-        ? AddressModel.fromJson(json['address'])
-        : null;
+    address =
+        json['address'] != null ? AddressModel.fromJson(json['address']) : null;
     bankInformations = json['bankInformations'] != null
         ? BankInformationsModel.fromJson(json['bankInformations'])
         : null;
@@ -85,7 +84,8 @@ class EntityModel {
       data['bankInformations'] = bankInformations!.toJson();
     }
     if (activitySectors != null) {
-      data['activitySectors'] = activitySectors!.map((sector) => sector.toJson()).toList();
+      data['activitySectors'] =
+          activitySectors!.map((sector) => sector.toJson()).toList();
     }
     return data;
   }

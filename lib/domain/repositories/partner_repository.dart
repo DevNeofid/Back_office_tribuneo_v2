@@ -1,15 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/data/remote/remote_data_source.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/models/sector_model.dart';
+import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/sector_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:http/http.dart' as http;
 
-class PartnerRepository {
-  final RemoteDataSource _remoteData = RemoteDataSource();
-  LocalDataHelper localDataHelper = LocalDataHelper();
+class PartnerRepository extends BaseRepository {
+  final ApiClient _remoteData = ApiClient();
 
   final String suffixe = 'entity';
 
@@ -20,26 +19,40 @@ class PartnerRepository {
     Map<int, dynamic> result = {};
     Map<String, List<EntityModel>> mapEntities = {};
     List<EntityModel> allPartners = [];
+
+    String tenant = await getTenantForCurrentNetwork();
+
     try {
-      dynamic response = await _remoteData.get(suffixe, queryParams: {
-        'entity_type': 'partner',
-        'full_infos': 'true',
-        'sorted_by_letter': 'true'
-      });
+      dynamic response = await _remoteData.get(suffixe,
+          overrideTenant: tenant,
+          queryParams: {
+            'entity_type': 'partner',
+            'full_infos': 'true',
+            'sorted_by_letter': 'true'
+          });
+
       if (response.statusCode == 200) {
         if (kDebugMode) {
           //print('###DEBUG### date after response: ${DateTime.now()}');
         }
-        List<dynamic> responseBody = jsonDecode(response.data);
-        for (var data in responseBody) {
-          List<EntityModel> partners = [];
-          data.forEach((key, value) {
-            for (var partner in value) {
-              EntityModel p = EntityModel.fromJson(partner);
-              partners.add(p);
-              mapEntities[key] = partners;
-              allPartners.add(p);
+        Map<String, dynamic> responseBody = response.data;
+
+        if (responseBody.containsKey('data') &&
+            responseBody['data']['items'] != null) {
+          Map<String, dynamic> items = responseBody['data']['items'];
+
+          items.forEach((letter, partnersList) {
+            List<EntityModel> partnersForLetter = [];
+
+            if (partnersList is List) {
+              for (var partnerJson in partnersList) {
+                EntityModel p = EntityModel.fromJson(partnerJson);
+                partnersForLetter.add(p);
+                allPartners.add(p);
+              }
             }
+
+            mapEntities[letter] = partnersForLetter;
           });
         }
       } else {
@@ -55,6 +68,9 @@ class PartnerRepository {
         },
       );
     } catch (e) {
+      if (kDebugMode) {
+        print('Erreur lors du parsing des partenaires : $e');
+      }
       result = {};
     }
     return result;
@@ -90,23 +106,33 @@ class PartnerRepository {
 
   Future<List<Sector>> getSectors() async {
     List<Sector> result = [];
-    const String suffixeAS = 'activity_sectors';
+    const String suffixeAS = 'activity-sectors';
+
     try {
       dynamic response = await _remoteData.get(suffixeAS);
+
       if (response.statusCode == 200) {
-        List<dynamic> jsonResponse = jsonDecode(response.data);
-        result = jsonResponse
-            .map((sectorJson) => Sector.fromJson(sectorJson))
+        final Map<String, dynamic> responseMap = response.data;
+
+        final List<dynamic> sectorsList = responseMap['data'];
+
+        result = sectorsList
+            .map((sectorJson) =>
+                Sector.fromJson(sectorJson as Map<String, dynamic>))
             .toList();
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('Error getting sectors: $e');
+      }
       result = [];
     }
+
     return result;
   }
 
   Future<http.Response> addNewSector(String sectorName) async {
-    const String suffixeAS = 'activity_sectors';
+    const String suffixeAS = 'activity-sectors';
     try {
       dynamic res = await _remoteData.post(
           suffixeAS, jsonEncode({'name': sectorName, 'description': ''}));
@@ -117,7 +143,7 @@ class PartnerRepository {
   }
 
   Future deleteSector(int id) async {
-    const String suffixeAS = 'activity_sectors';
+    const String suffixeAS = 'activity-sectors';
     try {
       return await _remoteData.delete(suffixeAS, id);
     } catch (e) {
@@ -127,7 +153,7 @@ class PartnerRepository {
 
   Future updateSectorPartner(Map data) async {
     String dataJson = jsonEncode(data);
-    const String suffixeSAS = 'set_activity_sectors';
+    const String suffixeSAS = 'activity-sectors';
     try {
       return await _remoteData.post(suffixeSAS, dataJson);
     } catch (e) {

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/views/my_simple_page.dart';
+import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_simple_page.dart';
 
 class DashboardContentView extends StatefulWidget {
   const DashboardContentView({super.key});
@@ -17,6 +17,7 @@ class DashboardContentView extends StatefulWidget {
 
 class _DashboardContentViewState extends State<DashboardContentView> {
   final Completer<void> signOutCompleter = Completer();
+  final StorageFunction _storageFunction = StorageFunction();
   int? _hoveredIndex;
 
   @override
@@ -30,13 +31,11 @@ class _DashboardContentViewState extends State<DashboardContentView> {
   }
 
   Future<void> _signOut() async {
-    final tokenBox = await Hive.openBox('tokenBox');
-    await tokenBox.delete('token');
+    await _storageFunction.clearUser();
   }
 
   void _signOutAndNavigateToLogin(BuildContext context) async {
     await _signOut();
-    // ignore: use_build_context_synchronously
     _navigateToLogin(context);
   }
 

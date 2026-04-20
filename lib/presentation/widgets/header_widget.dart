@@ -1,13 +1,13 @@
 import 'dart:async';
 
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/env/env.dart';
+import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 
 class Header extends StatelessWidget {
-  const Header({
+  Header({
     Key? key,
     this.title = 'Dashboard',
   }) : super(key: key);
@@ -15,8 +15,7 @@ class Header extends StatelessWidget {
   final String title;
 
   Future<void> _signOut() async {
-    final tokenBox = await Hive.openBox('token');
-    await tokenBox.delete('token');
+    await StorageFunction().clearUser();
   }
 
   void _signOutAndNavigateToLogin(BuildContext context) async {
@@ -103,7 +102,7 @@ class Header extends StatelessWidget {
                 child: Icon(Icons.person, size: 25, color: kBlue),
               ),
               TextSpan(
-                text: Env.kNetworkName,
+                text: '$globalNetworkName',
                 style: TextStyle(
                   fontSize: 25,
                   letterSpacing: 0.3,

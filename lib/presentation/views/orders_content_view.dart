@@ -4,20 +4,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'dart:developer';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/models/order_model.dart';
-import 'package:tribuneo_backoffice/domain/models/payment_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/orders_usecase.dart';
-import 'package:tribuneo_backoffice/env/env.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/date_formater.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/orders/order_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/loading.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
-import 'package:tribuneo_backoffice/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 
 enum SampleItem { itemOne, itemTwo, itemThree, itemFour, itemFive, itemSix }
 
@@ -31,12 +29,11 @@ class OrdersContentView extends StatefulWidget {
 }
 
 class _OrdersContentViewState extends State<OrdersContentView> {
-  LocalDataHelper localDataHelper = LocalDataHelper();
   final TextEditingController _searchController = TextEditingController();
   final OrderUseCase _orderUseCase = OrderUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
-  List<OrderRecModel> _orders = [];
-  List<OrderRecModel> _allOrders = [];
+  List<OrderModel> _orders = [];
+  List<OrderModel> _allOrders = [];
   SampleItem? selectedMenu;
   SampleItem2? selectedMenu2;
   bool _isLoading = false;
@@ -55,7 +52,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     await _orderUseCase.getOrders().then((value) {
       setState(() {
         _orders = value
-            .map((e) => OrderRecModel(
+            .map((e) => OrderModel(
                   id: e.id,
                   orderNumber: e.orderNumber,
                   giftFrom: e.giftFrom,
@@ -90,7 +87,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         }).then((value) => _refreshOrders());
   }
 
-  Future _createQRCode(OrderRecModel order) async {
+  Future _createQRCode(OrderModel order) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -118,7 +115,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     }
   }
 
-  Future<void> _createCsv(OrderRecModel order) async {
+  Future<void> _createCsv(OrderModel order) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -146,7 +143,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     }
   }
 
-  Future<void> _showPayments(OrderRecModel order) async {
+  Future<void> _showPayments(OrderModel order) async {
     return await showDialog(
         useSafeArea: true,
         context: context,
@@ -155,7 +152,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         }).then((value) => _refreshOrders());
   }
 
-  Future<void> _createInvoice(OrderRecModel order) async {
+  Future<void> _createInvoice(OrderModel order) async {
     Map infos = {};
     try {
       infos = await _orderUseCase.getInvoiceInfos(order.id!);
@@ -206,7 +203,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     }
   }
 
-  Future<void> _createSummary(OrderRecModel order) async {
+  Future<void> _createSummary(OrderModel order) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -286,7 +283,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     return null;
   }
 
-  Future<void> _createDeliveryNote(OrderRecModel order) async {
+  Future<void> _createDeliveryNote(OrderModel order) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -349,7 +346,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         _orders = List.from(_allOrders);
       });
     } else {
-      List<OrderRecModel> filteredOrders = [];
+      List<OrderModel> filteredOrders = [];
       for (var order in _allOrders) {
         if (order.orderNumber!.toLowerCase().contains(query.toLowerCase()) ||
             order.giftFrom!.toLowerCase().contains(query.toLowerCase()) ||
@@ -493,11 +490,11 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                                 DataCell(SizedBox(
                                   width: isCompact ? 130 : 190,
                                   child: Tooltip(
-                                    message: Env.kNetworkName != 'VDPC'
+                                    message: globalNetworkName != 'VDPC'
                                         ? (order.giftReason ?? '')
                                         : (order.orderItems?[0].persoMsg ?? ''),
                                     child: Text(
-                                      Env.kNetworkName != 'VDPC'
+                                      globalNetworkName != 'VDPC'
                                           ? (order.giftReason ?? '')
                                           : (order.orderItems?[0].persoMsg ??
                                               ''),
@@ -637,7 +634,7 @@ class PaymentMethod {
 }
 
 class ShowPayment extends StatefulWidget {
-  final OrderRecModel order;
+  final OrderModel order;
 
   const ShowPayment({Key? key, required this.order}) : super(key: key);
 
@@ -648,7 +645,7 @@ class ShowPayment extends StatefulWidget {
 class ShowPaymentState extends State<ShowPayment> {
   OrderUseCase orderUseCase = OrderUseCase();
   PaymentMethod? _selectedPaymentMethod;
-  late OrderRecModel order;
+  late OrderModel order;
   List<PaymentModel> _payments = [];
   final List<PaymentMethod> _paymentMethods = [
     PaymentMethod(1, "CASH"),

@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/models/user_model.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/views/login_view.dart';
-import 'package:tribuneo_backoffice/presentation/views/my_simple_page.dart';
-import 'package:tribuneo_backoffice/domain/usecases/main_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/login_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_simple_page.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 
 void main() async {
+  await initializeDateFormatting("fr_FR");
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
 
-  Hive.registerAdapter(UserModelAdapter());
-  await Hive.openBox<UserModel>('users');
-  await Hive.openBox('token');
+  final MainUseCase mainUseCase = MainUseCase();
+  bool isAuthenticated = await mainUseCase.checkToken();
 
-  LocalDataHelper localDataHelper = LocalDataHelper();
+  if (isAuthenticated) {
+    final storageFunction = StorageFunction();
+    final network = await storageFunction.readNetwork();
 
-  // Vérifiez si le token est correct
-  String? token = await localDataHelper.getByKey('token', 0);
-  bool isTokenValid = false;
-  if (token != null) {
-    isTokenValid = await MainUseCase().authCheck(token);
+    if (network != null) {
+      globalNetworkName = network.name;
+    }
   }
-  runApp(MyApp(isTokenValid: isTokenValid));
+
+  runApp(MyApp(isAuthenticated: isAuthenticated));
 }
 
 class MyApp extends StatelessWidget {
-  final bool isTokenValid;
-  const MyApp({super.key, required this.isTokenValid});
+  final bool isAuthenticated;
+  const MyApp({super.key, required this.isAuthenticated});
 
   // This widget is the root of your application.
   @override
@@ -49,7 +47,7 @@ class MyApp extends StatelessWidget {
         Locale('en', 'US'),
         Locale('fr', 'FR'),
       ],
-      initialRoute: isTokenValid ? '/' : '/login',
+      initialRoute: isAuthenticated ? '/' : '/login',
       routes: {
         '/login': (context) => const LoginView(title: 'Login Page'),
         '/': (context) => const MySimplePage(),

@@ -1,14 +1,9 @@
-import 'package:tribuneo_backoffice/domain/repositories/main_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/main_repository.dart';
 
 class MainUseCase {
-  final MainRepository mainRepository = MainRepository();
+  final MainRepository _mainRepository = MainRepository();
 
-  // Function for adding a new order
-  Future<void> syncData() async {
-    return await mainRepository.syncData();
-  }
-
-  Future<bool> authCheck(String token) async {
-    return await mainRepository.authCheck(token);
+  Future<bool> checkToken() async {
+    return await _mainRepository.checkToken();
   }
 }

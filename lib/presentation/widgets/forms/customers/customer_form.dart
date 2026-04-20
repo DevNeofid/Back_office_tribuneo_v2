@@ -2,16 +2,16 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:tribuneo_backoffice/config/responsive.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/customer_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/_global.dart';
-import 'package:tribuneo_backoffice/presentation/utils/form_validator.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/config/responsive.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/neo_input.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class CustomerForm extends StatefulWidget {
   const CustomerForm({Key? key}) : super(key: key);

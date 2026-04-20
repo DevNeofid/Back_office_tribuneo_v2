@@ -1,1 +1,1 @@
-# Folder containing all calls to the local database of the mobile application
+# Folder containing all calls to secure storage

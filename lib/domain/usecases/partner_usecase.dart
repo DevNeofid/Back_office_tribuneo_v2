@@ -1,5 +1,5 @@
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/repositories/partner_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/partner_repository.dart';
 
 class PartnerUseCase {
   final PartnerRepository partnerRepository = PartnerRepository();

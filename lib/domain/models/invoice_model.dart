@@ -9,7 +9,7 @@ class InvoiceModel {
   int? idProofOfReceipt;
   String? orderNumber;
   num? orderTotalAmount;
-  Date? orderExpirationDate;
+  String? orderExpirationDate;
   String? giftFrom;
   String? giftReason;
   String? proofOfReceiptNumber;
@@ -23,8 +23,8 @@ class InvoiceModel {
   num? totalPayable;
   int? idTransaction;
   String? transactionNumber;
-  Date? transactionDate;
-  Date? createdDate;
+  String? transactionDate;
+  String? createdDate;
 
   InvoiceModel(
       {this.id,
@@ -65,9 +65,11 @@ class InvoiceModel {
     idProofOfReceipt = json['id_proof_of_receipt'];
     orderNumber = json['order_number'];
     orderTotalAmount = json['order_total_amount'];
-    orderExpirationDate = json['order_expiration_date'] != null
-        ? Date.fromJson(json['order_expiration_date'])
+
+    orderExpirationDate = json['order_expiration_date'] is String
+        ? json['order_expiration_date']
         : null;
+
     giftFrom = json['gift_from'];
     giftReason = json['gift_reason'];
     proofOfReceiptNumber = json['proof_of_receipt_number'];
@@ -81,12 +83,11 @@ class InvoiceModel {
     totalPayable = json['total_payable'];
     idTransaction = json['id_transaction'];
     transactionNumber = json['transaction_number'];
-    transactionDate = json['transaction_date'] != null
-        ? Date.fromJson(json['transaction_date'])
-        : null;
-    createdDate = json['created_date'] != null
-        ? Date.fromJson(json['created_date'])
-        : null;
+
+    transactionDate =
+        json['transaction_date'] is String ? json['transaction_date'] : null;
+
+    createdDate = json['created_date'] is String ? json['created_date'] : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -101,9 +102,7 @@ class InvoiceModel {
     data['id_proof_of_receipt'] = idProofOfReceipt;
     data['order_number'] = orderNumber;
     data['order_total_amount'] = orderTotalAmount;
-    if (orderExpirationDate != null) {
-      data['order_expiration_date'] = orderExpirationDate!.toJson();
-    }
+    data['order_expiration_date'] = orderExpirationDate;
     data['gift_from'] = giftFrom;
     data['gift_reason'] = giftReason;
     data['proof_of_receipt_number'] = proofOfReceiptNumber;
@@ -117,12 +116,8 @@ class InvoiceModel {
     data['total_payable'] = totalPayable;
     data['id_transaction'] = idTransaction;
     data['transaction_number'] = transactionNumber;
-    if (transactionDate != null) {
-      data['transaction_date'] = transactionDate;
-    }
-    if (createdDate != null) {
-      data['created_date'] = createdDate!.toJson();
-    }
+    data['transaction_date'] = transactionDate;
+    data['created_date'] = createdDate;
     return data;
   }
 }
@@ -152,28 +147,6 @@ class OrderItems {
     data['amount'] = amount;
     data['id_order'] = idOrder;
     data['perso_msg'] = persoMsg;
-    return data;
-  }
-}
-
-class Date {
-  String? date;
-  int? timezoneType;
-  String? timezone;
-
-  Date({this.date, this.timezoneType, this.timezone});
-
-  Date.fromJson(Map<String, dynamic> json) {
-    date = json['date'];
-    timezoneType = json['timezone_type'];
-    timezone = json['timezone'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['date'] = date;
-    data['timezone_type'] = timezoneType;
-    data['timezone'] = timezone;
     return data;
   }
 }

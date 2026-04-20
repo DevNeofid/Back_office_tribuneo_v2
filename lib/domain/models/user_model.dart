@@ -1,87 +1,96 @@
-import 'package:hive/hive.dart';
-
-part 'adapters/user_model.g.dart';
-
-@HiveType(typeId: 1)
-class UserModel extends HiveObject {
-  @HiveField(0)
+class UserModel {
   int? id;
-  @HiveField(1)
-  String? firstname;
-  @HiveField(2)
-  String? lastname;
-  @HiveField(3)
-  String? email;
-  @HiveField(4)
-  String? mobile;
-  @HiveField(5)
-  DateTime? createdDate;
-  @HiveField(6)
-  DateTime? updatedDate;
-  @HiveField(7)
-  String? token;
-  @HiveField(8)
-  String? role;
-  @HiveField(9)
   int? idNetwork;
+  String? firstname;
+  String? lastname;
+  String? email;
+  String? mobile;
+  CreatedDate? createdDate;
+  CreatedDate? updatedDate;
+  String? role;
 
-  UserModel(
-      {int? id,
-      String? firstname,
-      String? lastname,
-      String? email,
-      String? mobile,
-      DateTime? createdDate,
-      DateTime? updatedDate,
-      String? token,
-      String? role,
-      int? idNetwork}) {
-    if (id != null) {
-      id = id;
+  UserModel({
+    this.id,
+    this.idNetwork,
+    this.firstname,
+    this.lastname,
+    this.email,
+    this.mobile,
+    this.createdDate,
+    this.updatedDate,
+    this.role,
+  });
+
+  UserModel.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        idNetwork = json['id_network'],
+        firstname = json['firstname'],
+        lastname = json['lastname'],
+        email = json['email'],
+        mobile = json['mobile'],
+        createdDate = _parseCreatedDate(json['created_date']),
+        updatedDate = _parseCreatedDate(json['updated_date']),
+        role = json['role'];
+
+  static CreatedDate? _parseCreatedDate(dynamic value) {
+    if (value == null) {
+      return null;
     }
-    if (firstname != null) {
-      firstname = firstname;
+
+    if (value is Map<String, dynamic>) {
+      return CreatedDate.fromJson(value);
     }
-    if (lastname != null) {
-      lastname = lastname;
+
+    if (value is Map) {
+      return CreatedDate.fromJson(Map<String, dynamic>.from(value));
     }
-    if (email != null) {
-      email = email;
+
+    if (value is String) {
+      return CreatedDate(date: value);
     }
-    if (mobile != null) {
-      mobile = mobile;
-    }
-    if (createdDate != null) {
-      createdDate = createdDate;
-    }
-    if (updatedDate != null) {
-      updatedDate = updatedDate;
-    }
-    if (token != null) {
-      token = token;
-    }
-    if (role != null) {
-      role = role;
-    }
-    if (idNetwork != null) {
-      idNetwork = idNetwork;
-    }
+
+    return null;
   }
 
-  UserModel.fromJson(Map<String, dynamic> jsonData) {
-    id = jsonData['id'];
-    firstname = jsonData['firstname'];
-    lastname = jsonData['lastname'];
-    email = jsonData['email'];
-    mobile = jsonData['mobile'];
-    createdDate = jsonData['created_date'] != null
-        ? DateTime.parse(jsonData['created_date']['date'].toString())
-        : null;
-    updatedDate = jsonData['updated_date'] != null
-        ? DateTime.parse(jsonData['updated_date']['date'].toString())
-        : null;
-    token = jsonData['token'];
-    role = jsonData['role'];
-    idNetwork = jsonData['id_network'];
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['id_network'] = idNetwork;
+    data['firstname'] = firstname;
+    data['lastname'] = lastname;
+    data['email'] = email;
+    data['mobile'] = mobile;
+    if (createdDate != null) {
+      data['created_date'] = createdDate!.toJson();
+    }
+    if (updatedDate != null) {
+      data['updated_date'] = updatedDate!.toJson();
+    }
+    data['role'] = role;
+    return data;
+  }
+
+  bool get isNetworkAdmin => role == 'NETWORK_ADMIN';
+}
+
+class CreatedDate {
+  String? date;
+  int? timezoneType;
+  String? timezone;
+
+  CreatedDate({this.date, this.timezoneType, this.timezone});
+
+  CreatedDate.fromJson(Map<String, dynamic> json) {
+    date = json['date'];
+    timezoneType = json['timezone_type'];
+    timezone = json['timezone'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['date'] = date;
+    data['timezone_type'] = timezoneType;
+    data['timezone'] = timezone;
+    return data;
   }
 }

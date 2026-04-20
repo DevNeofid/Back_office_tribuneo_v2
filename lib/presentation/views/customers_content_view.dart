@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:tribuneo_backoffice/config/size_config.dart';
-import 'package:tribuneo_backoffice/data/local/local_data_helper.dart';
-import 'package:tribuneo_backoffice/domain/models/entity_model.dart';
-import 'package:tribuneo_backoffice/domain/usecases/customer_usecase.dart';
-import 'package:tribuneo_backoffice/presentation/utils/common.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/addresses/address_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/addresses/update_address_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/bank_informations/bank_information_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/bank_informations/update_bank_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/customers/customer_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/customers/update_customers_form.dart';
-import 'package:tribuneo_backoffice/presentation/widgets/forms/orders/order_form.dart';
+import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/update_address_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/bank_information_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/update_bank_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/customer_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/update_customers_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -28,7 +27,6 @@ class CustomersContentView extends StatefulWidget {
 class CustomersContentViewState extends State<CustomersContentView>
     with SingleTickerProviderStateMixin {
   late final TabController tabController;
-  LocalDataHelper localDataHelper = LocalDataHelper();
   final CustomerUseCase _customerUseCase = CustomerUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   TextEditingController searchController = TextEditingController();
