@@ -47,11 +47,11 @@ class TransferOrderRepository extends BaseRepository {
   }
 
   Future<List<RefundShopModel>> awaitRefund() async {
-    String suffixe = '???';
     String tenant = await getTenantForCurrentNetwork();
     List<RefundShopModel> refunds = [];
     try {
-      dynamic response = await _remoteData.get(suffixe, overrideTenant: tenant);
+      dynamic response =
+          await _remoteData.get('$suffixe/pending', overrideTenant: tenant);
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = response.data['data'];
         for (var refund in jsonResponse) {
@@ -68,10 +68,9 @@ class TransferOrderRepository extends BaseRepository {
   }
 
   Future refundShop() async {
-    String suffixe = 'bank_transfer_order_gen';
     String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe,
+      dynamic response = await _remoteData.get('$suffixe/gen',
           bytesType: true, overrideTenant: tenant);
       if (response.statusCode == 200) {
         return response.data;
@@ -84,13 +83,11 @@ class TransferOrderRepository extends BaseRepository {
   }
 
   Future editProof(String transactionNumber) async {
-    String suffixe = 'proof_of_receipt';
+    String suffixe = 'accounting/proof-of-receipt';
     String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe,
-          queryParams: {'transaction_number': transactionNumber},
-          bytesType: true,
-          overrideTenant: tenant);
+      dynamic response = await _remoteData.get('$suffixe/$transactionNumber',
+          bytesType: true, overrideTenant: tenant);
       if (response.statusCode == 200) {
         return response.data;
       } else {

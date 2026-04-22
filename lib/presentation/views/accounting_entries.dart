@@ -1,3 +1,4 @@
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -112,6 +113,10 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+
+    final dataSource =
+        AccountingEntriesDataSource(_accountingEntries, _downloadFile);
+
     return SizedBox(
       height: SizeConfig.screenHeight * 0.9,
       width: double.infinity,
@@ -133,8 +138,11 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
             ),
             const SizedBox(height: 50),
             Builder(builder: (context) {
-              final bool isCompact = MediaQuery.of(context).size.width < 1500;
+              final double tableWidth = MediaQuery.of(context).size.width * 0.6;
+
               return Container(
+                width: tableWidth,
+                height: 650,
                 decoration: BoxDecoration(
                   color: kWhite,
                   borderRadius: BorderRadius.circular(14),
@@ -148,19 +156,10 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: isCompact ? 600 : 800,
-                      ),
-                      child: DataTable(
-                        columnSpacing: isCompact ? 16 : 22,
-                        horizontalMargin: isCompact ? 10 : 14,
-                        dividerThickness: 0.6,
-                        dataRowMinHeight: 50,
-                        dataRowMaxHeight: 56,
-                        headingRowHeight: 54,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      dataTableTheme: DataTableThemeData(
+                        headingRowColor: WidgetStateProperty.all(kBlue),
                         headingTextStyle: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -170,65 +169,46 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                           fontSize: 13,
                           color: kBlueEnd,
                         ),
-                        headingRowColor: WidgetStateProperty.all(kBlue),
-                        showCheckboxColumn: false,
-                        columns: const [
-                          DataColumn(
-                            label: Expanded(
-                              child: Center(
-                                child: Text('Nom du fichier',
-                                    textAlign: TextAlign.center),
-                              ),
-                            ),
-                          ),
-                          DataColumn(
-                            label: Expanded(
-                              child: Center(
-                                child: Text('Date de création',
-                                    textAlign: TextAlign.center),
-                              ),
-                            ),
-                          ),
-                          DataColumn(
-                            label: Expanded(
-                              child: Center(
-                                child: Text('Actions',
-                                    textAlign: TextAlign.center),
-                              ),
-                            ),
-                          ),
-                        ],
-                        rows: _accountingEntries.asMap().entries.map((entry) {
-                          final e = entry.value;
-                          final index = entry.key;
-                          final isEvenRow = index % 2 == 0;
-                          return DataRow(
-                            color: isEvenRow
-                                ? WidgetStateProperty.all(kWhite)
-                                : WidgetStateProperty.all(
-                                    kLBlue.withValues(alpha: 0.10)),
-                            cells: [
-                              DataCell(Center(
-                                  child: SelectableText(e.filename ?? ''))),
-                              DataCell(Center(
-                                  child: SelectableText(DateFormater()
-                                      .modifyDate(e.createdDate!)))),
-                              DataCell(
-                                Center(
-                                  child: IconButton(
-                                    icon: const Icon(Icons.download),
-                                    color: kBlue,
-                                    tooltip: 'Télécharger',
-                                    onPressed: () {
-                                      _downloadFile(e);
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
+                        dividerThickness: 0.6,
+                        dataRowMinHeight: 50,
+                        dataRowMaxHeight: 56,
+                        headingRowHeight: 54,
                       ),
+                    ),
+                    child: PaginatedDataTable2(
+                      wrapInCard: false,
+                      columnSpacing: 22,
+                      horizontalMargin: 14,
+                      minWidth: 800,
+                      rowsPerPage: 10,
+                      showCheckboxColumn: false,
+                      columns: const [
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text('Nom du fichier',
+                                  textAlign: TextAlign.center),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child: Text('Date de création',
+                                  textAlign: TextAlign.center),
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: Expanded(
+                            child: Center(
+                              child:
+                                  Text('Actions', textAlign: TextAlign.center),
+                            ),
+                          ),
+                        ),
+                      ],
+                      source: dataSource,
                     ),
                   ),
                 ),
@@ -240,4 +220,51 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       ),
     );
   }
+}
+
+class AccountingEntriesDataSource extends DataTableSource {
+  final List<AccountingEntriesModel> _data;
+  final Function(AccountingEntriesModel) onDownload;
+
+  AccountingEntriesDataSource(this._data, this.onDownload);
+
+  @override
+  DataRow? getRow(int index) {
+    if (index >= _data.length) return null;
+
+    final e = _data[index];
+    final isEvenRow = index % 2 == 0;
+
+    return DataRow(
+      color: isEvenRow
+          ? WidgetStateProperty.all(kWhite)
+          : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+      cells: [
+        DataCell(Center(child: SelectableText(e.filename ?? ''))),
+        DataCell(Center(
+            child: SelectableText(DateFormater().modifyDate(e.createdDate!)))),
+        DataCell(
+          Center(
+            child: IconButton(
+              icon: const Icon(Icons.download),
+              color: kBlue,
+              tooltip: 'Télécharger',
+              onPressed: () {
+                onDownload(e);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => _data.length;
+
+  @override
+  int get selectedRowCount => 0;
 }

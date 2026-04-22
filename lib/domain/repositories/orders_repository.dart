@@ -12,15 +12,14 @@ class OrderRepository extends BaseRepository {
   final ApiClient _remoteData = ApiClient();
   NeoEncrypt encrypt = NeoEncrypt();
 
-  String suffixeO = 'order';
-  final String suffixeQ = 'qrcgen';
+  String suffixe = 'order';
+  final String suffixeQ = 'qrcode/gen';
 
   Future<List<OrderModel>> getOrders() async {
     String tenant = await getTenantForCurrentNetwork();
     List<OrderModel> orders = [];
     try {
-      dynamic response =
-          await _remoteData.get(suffixeO, overrideTenant: tenant);
+      dynamic response = await _remoteData.get(suffixe, overrideTenant: tenant);
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseBody = response.data;
 
@@ -49,7 +48,7 @@ class OrderRepository extends BaseRepository {
   Future addOrders(OrderSendModel order,
       {String? fileName, dynamic file}) async {
     if (file != null) {
-      suffixeO = "${suffixeO}/file";
+      suffixe = "${suffixe}/file";
     }
 
     OrderSendModel? res;
@@ -61,7 +60,7 @@ class OrderRepository extends BaseRepository {
           "file_name": fileName,
           "file_bytes": file
         };
-        dynamic request = await _remoteData.postWithFile(suffixeO, map);
+        dynamic request = await _remoteData.postWithFile(suffixe, map);
         if (request.statusCode == 201) {
           request = jsonDecode(request.body);
           res = OrderSendModel.fromJson(request);
@@ -74,7 +73,7 @@ class OrderRepository extends BaseRepository {
     } else {
       try {
         String data = jsonEncode(order);
-        dynamic request = await _remoteData.post(suffixeO, data);
+        dynamic request = await _remoteData.post(suffixe, data);
         if (request.statusCode == 201) {
           request = jsonDecode(request.body);
           res = OrderSendModel.fromJson(request);
@@ -95,7 +94,7 @@ class OrderRepository extends BaseRepository {
     OrderSendModel? res;
     String data = jsonEncode(order.toJson());
     try {
-      dynamic request = await _remoteData.put(suffixeO, data, id: order.id);
+      dynamic request = await _remoteData.put(suffixe, data, id: order.id);
       if (request.statusCode == 200) {
         request = jsonDecode(request.body);
         res = OrderSendModel.fromJson(request);
@@ -110,9 +109,8 @@ class OrderRepository extends BaseRepository {
   }
 
   Future deleteOrder(int id) async {
-    String suffixe = 'order/delete';
     try {
-      dynamic request = await _remoteData.softDelete(suffixe, id);
+      dynamic request = await _remoteData.softDelete('$suffixe/delete', id: id);
       if (request.statusCode == 200) {
         return true;
       }
@@ -160,7 +158,7 @@ class OrderRepository extends BaseRepository {
   }
 
   Future createCsv(int idOrder) async {
-    String suffixe = 'qrcgen_csv';
+    String suffixe = 'qrcode/gen/csv';
     try {
       dynamic response =
           await _remoteData.get(suffixe, id: idOrder, bytesType: true);
@@ -257,7 +255,7 @@ class OrderRepository extends BaseRepository {
   Future createSummary(int idOrder) async {
     try {
       dynamic response =
-          await _remoteData.get('order/$idOrder/summary', bytesType: true);
+          await _remoteData.get('$suffixe/$idOrder/summary', bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {

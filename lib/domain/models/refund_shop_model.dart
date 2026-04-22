@@ -1,31 +1,40 @@
 class RefundShopModel {
-  String? transactionNumber;
-  String? name;
-  String? code;
   String? refundAmount;
-  int? isEdited;
+  int? id;
+  String? code;
+  String? name;
+  String? transactionNumber;
   String? createdDate;
+  int? isEdited;
 
   RefundShopModel(
-      {this.refundAmount, this.transactionNumber, this.code, this.name, this.createdDate, this.isEdited});
+      {this.refundAmount,
+      this.id,
+      this.code,
+      this.name,
+      this.transactionNumber,
+      this.createdDate,
+      this.isEdited});
 
   RefundShopModel.fromJson(Map<String, dynamic> json) {
-    transactionNumber = json['transaction_number'];
-    name = json['name'];
-    code = json['code'];
     refundAmount = json['refund_amount'];
-    isEdited = json['id_proofs_of_receipt'];
+    id = json['id'];
+    code = json['code'];
+    name = json['name'];
+    transactionNumber = json['transaction_number'];
     createdDate = json['created_date'];
+    isEdited = json['proof_of_receipt_id'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['transaction_number'] = transactionNumber;
-    data['name'] = name;
-    data['code'] = code;
     data['refund_amount'] = refundAmount;
-    data['id_proofs_of_receipt'] = isEdited;
+    data['id'] = id;
+    data['code'] = code;
+    data['name'] = name;
+    data['transaction_number'] = transactionNumber;
     data['created_date'] = createdDate;
+    data['proof_of_receipt_id'] = isEdited;
     return data;
   }
 }

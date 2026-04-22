@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:back_office_tribuneo_v2/presentation/views/my_simple_page.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 
 class DashboardContentView extends StatefulWidget {
   const DashboardContentView({super.key});
@@ -26,8 +26,8 @@ class _DashboardContentViewState extends State<DashboardContentView> {
   }
 
   void callBackMenu(int indexContent) {
-    final mySimplePageState = MySimplePage.of(context);
-    mySimplePageState.callBackMenu(indexContent);
+    final mySinglePageState = MySinglePage.of(context);
+    mySinglePageState.callBackMenu(indexContent);
   }
 
   Future<void> _signOut() async {

@@ -19,18 +19,18 @@ import 'package:back_office_tribuneo_v2/presentation/views/stats_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/transfert_order_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/header_widget.dart';
 
-class MySimplePage extends StatefulWidget {
-  const MySimplePage({super.key});
+class MySinglePage extends StatefulWidget {
+  const MySinglePage({super.key});
 
   @override
-  State<MySimplePage> createState() => MySimplePageState();
+  State<MySinglePage> createState() => MySinglePageState();
 
-  static MySimplePageState of(BuildContext context) {
-    return context.findAncestorStateOfType<MySimplePageState>()!;
+  static MySinglePageState of(BuildContext context) {
+    return context.findAncestorStateOfType<MySinglePageState>()!;
   }
 }
 
-class MySimplePageState extends State<MySimplePage> {
+class MySinglePageState extends State<MySinglePage> {
   static const double _sideMenuWidth = 120;
 
   String selectedMenu = 'dashboard';

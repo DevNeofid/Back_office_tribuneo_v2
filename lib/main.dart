@@ -3,7 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/login_view.dart';
-import 'package:back_office_tribuneo_v2/presentation/views/my_simple_page.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       initialRoute: isAuthenticated ? '/' : '/login',
       routes: {
         '/login': (context) => const LoginView(title: 'Login Page'),
-        '/': (context) => const MySimplePage(),
+        '/': (context) => const MySinglePage(),
       },
     );
   }

@@ -205,7 +205,8 @@ class ApiClient {
   }
 
   /// Méthode softDelete (PUT)
-  Future<Response> softDelete(String suffixeUrl, int id, {String? data}) async {
+  Future<Response> softDelete(String suffixeUrl,
+      {int? id, String? data}) async {
     await _ensureInitialized();
     final response = await dio.put(
       suffixeUrl,

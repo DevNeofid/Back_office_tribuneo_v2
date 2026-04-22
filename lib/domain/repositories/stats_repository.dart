@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
@@ -135,6 +136,43 @@ class StatsRepository {
         final List<dynamic> responseBody = response.data['data'] ?? [];
         for (var item in responseBody) {
           totals.add(PartnerTotalAmountModel.fromJson(item));
+        }
+      } else {
+        totals = [];
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      totals = [];
+    }
+
+    return totals;
+  }
+
+  Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  ) async {
+    List<NetworkTotalAmountModel> totals = [];
+    try {
+      final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+      final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+      final Map<String, String> body = {
+        'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+        'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+      };
+
+      dynamic response = await _remoteData.post(
+        '$suffixe/network', // Correspond à stats/network
+        body,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseBody = response.data['data'] ?? [];
+        for (var item in responseBody) {
+          totals.add(NetworkTotalAmountModel.fromJson(item));
         }
       } else {
         totals = [];

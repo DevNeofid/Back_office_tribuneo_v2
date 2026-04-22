@@ -9,10 +9,9 @@ class AccountingEntriesRepository extends BaseRepository {
   final String suffixe = 'accounting';
 
   Future createAccountingEntries() async {
-    String suffixe = 'accounting/entries/gen';
     String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe,
+      dynamic response = await _remoteData.get('$suffixe/entries/gen',
           overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
@@ -51,7 +50,7 @@ class AccountingEntriesRepository extends BaseRepository {
   Future downloadFile(int id) async {
     String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get('${suffixe}/entry/$id',
+      dynamic response = await _remoteData.get('$suffixe/entry/$id',
           overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;

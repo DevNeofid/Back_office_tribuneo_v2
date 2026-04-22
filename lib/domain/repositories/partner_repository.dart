@@ -33,7 +33,7 @@ class PartnerRepository extends BaseRepository {
 
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          //print('###DEBUG### date after response: ${DateTime.now()}');
+          print('###DEBUG### date after response: ${DateTime.now()}');
         }
         Map<String, dynamic> responseBody = response.data;
 
@@ -88,17 +88,16 @@ class PartnerRepository extends BaseRepository {
   Future updatePartner(EntityModel partner) async {
     String data = jsonEncode(partner.toJson());
     try {
-      return await _remoteData.put(suffixe, data, id: partner.id);
+      return await _remoteData.put('$suffixe/${partner.id}/update', data);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
   }
 
   Future deletePartner(int id, String type) async {
-    const String suffixeD = 'entity_delete';
     String data = jsonEncode({'type': type});
     try {
-      return await _remoteData.softDelete(suffixeD, id, data: data);
+      return await _remoteData.softDelete('$suffixe/$id/delete', data: data);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }

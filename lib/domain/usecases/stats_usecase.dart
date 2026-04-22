@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_activated_since_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
@@ -30,5 +31,10 @@ class StatsUseCase {
   Future<List<PartnerTotalAmountModel>> getPartnerTotalBalances(
       [DateTime? dateFrom, DateTime? dateTo]) async {
     return await statsRepository.getPartnerTotalBalances(dateFrom, dateTo);
+  }
+
+  Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(
+      [DateTime? dateFrom, DateTime? dateTo]) async {
+    return await statsRepository.getNetworkTotalAmounts(dateFrom, dateTo);
   }
 }
