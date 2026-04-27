@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
-import 'dart:developer';
 import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/accounting_entries_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
@@ -26,7 +25,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       AccountingEntriesUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
 
-  List<AccountingEntriesModel> _accountingEntries = [];
+  late final AccountingEntriesDataSource _dataSource;
   SampleItem? selectedMenu;
   late DateTime today;
   late String formattedDate;
@@ -35,20 +34,8 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   void initState() {
     super.initState();
     _timeNow();
-    _refreshAccountingEntries();
-  }
-
-  _refreshAccountingEntries() async {
-    _accountingEntries = [];
-    await _accountingEntriesUseCase.getAccountingEntries().then((value) {
-      setState(() {
-        _accountingEntries = value
-            .map((e) => AccountingEntriesModel(
-                id: e.id, filename: e.filename, createdDate: e.createdDate))
-            .toList();
-      });
-      inspect(_accountingEntries);
-    });
+    _dataSource =
+        AccountingEntriesDataSource(_accountingEntriesUseCase, _downloadFile);
   }
 
   _timeNow() {
@@ -114,9 +101,6 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
 
-    final dataSource =
-        AccountingEntriesDataSource(_accountingEntries, _downloadFile);
-
     return SizedBox(
       height: SizeConfig.screenHeight * 0.9,
       width: double.infinity,
@@ -175,7 +159,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                         headingRowHeight: 54,
                       ),
                     ),
-                    child: PaginatedDataTable2(
+                    child: AsyncPaginatedDataTable2(
                       wrapInCard: false,
                       columnSpacing: 22,
                       horizontalMargin: 14,
@@ -199,7 +183,8 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                             ),
                           ),
                         ),
-                        DataColumn(
+                        DataColumn2(
+                          size: ColumnSize.S,
                           label: Expanded(
                             child: Center(
                               child:
@@ -208,7 +193,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                           ),
                         ),
                       ],
-                      source: dataSource,
+                      source: _dataSource,
                     ),
                   ),
                 ),
@@ -222,49 +207,63 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   }
 }
 
-class AccountingEntriesDataSource extends DataTableSource {
-  final List<AccountingEntriesModel> _data;
+class AccountingEntriesDataSource extends AsyncDataTableSource {
+  final AccountingEntriesUseCase _accountingEntriesUseCase;
   final Function(AccountingEntriesModel) onDownload;
+  int _lastKnownTotal = 0;
 
-  AccountingEntriesDataSource(this._data, this.onDownload);
+  AccountingEntriesDataSource(this._accountingEntriesUseCase, this.onDownload);
 
   @override
-  DataRow? getRow(int index) {
-    if (index >= _data.length) return null;
-
-    final e = _data[index];
-    final isEvenRow = index % 2 == 0;
-
-    return DataRow(
-      color: isEvenRow
-          ? WidgetStateProperty.all(kWhite)
-          : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
-      cells: [
-        DataCell(Center(child: SelectableText(e.filename ?? ''))),
-        DataCell(Center(
-            child: SelectableText(DateFormater().modifyDate(e.createdDate!)))),
-        DataCell(
-          Center(
-            child: IconButton(
-              icon: const Icon(Icons.download),
-              color: kBlue,
-              tooltip: 'Télécharger',
-              onPressed: () {
-                onDownload(e);
-              },
-            ),
-          ),
-        ),
-      ],
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final result = await _accountingEntriesUseCase.getAccountingEntries(
+      limit: limit,
+      offset: apiOffset,
     );
+
+    final List<DataRow> rows = [];
+    for (int i = 0; i < result.items.length; i++) {
+      final e = result.items[i];
+      final int rowIndex = startIndex + i;
+      final isEvenRow = rowIndex % 2 == 0;
+
+      rows.add(
+        DataRow(
+          color: isEvenRow
+              ? WidgetStateProperty.all(kWhite)
+              : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+          cells: [
+            DataCell(Center(child: SelectableText(e.filename ?? ''))),
+            DataCell(Center(
+                child: SelectableText(
+                    DateFormater().modifyDate(e.createdDate ?? '') ?? ''))),
+            DataCell(
+              Center(
+                child: IconButton(
+                  icon: const Icon(Icons.download),
+                  color: kBlue,
+                  tooltip: 'Télécharger',
+                  onPressed: () {
+                    onDownload(e);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (result.total > 0) {
+      _lastKnownTotal = result.total;
+    } else {
+      _lastKnownTotal = startIndex + result.items.length;
+      if (result.items.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
   }
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => _data.length;
-
-  @override
-  int get selectedRowCount => 0;
 }

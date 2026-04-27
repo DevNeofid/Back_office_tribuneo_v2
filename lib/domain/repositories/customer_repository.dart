@@ -87,10 +87,8 @@ class CustomerRepository extends BaseRepository {
   }
 
   Future deleteCustomer(int id, String type) async {
-    String data = jsonEncode({'type': type});
     try {
-      return await _remoteData.softDelete('entity/${id}/delete',
-          id: id, data: data);
+      return await _remoteData.delete(suffixe, id);
     } catch (e) {
       // Handle exceptions or log errors as appropriate
       return http.Response(

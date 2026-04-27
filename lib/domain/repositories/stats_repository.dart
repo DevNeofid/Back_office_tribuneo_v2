@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
@@ -15,14 +16,60 @@ class StatsRepository {
 
   final String suffixe = 'stats';
 
-  Future<List<UserBalanceModel>> getUsers() async {
+  int _extractTotal(dynamic response, int fallback) {
+    if (response is! Map) return fallback;
+
+    int? parse(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    final dynamic data = response['data'];
+    if (data is Map) {
+      final dynamic pagination = data['pagination'];
+      final dynamic meta = data['meta'];
+      final candidates = [
+        data['total'],
+        data['count'],
+        data['total_items'],
+        if (pagination is Map) pagination['total'],
+        if (pagination is Map) pagination['count'],
+        if (meta is Map) meta['total'],
+        if (meta is Map) meta['count'],
+      ];
+
+      for (final candidate in candidates) {
+        final parsed = parse(candidate);
+        if (parsed != null) return parsed;
+      }
+    }
+
+    return fallback;
+  }
+
+  Future<PaginatedResult<UserBalanceModel>> getUsersPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
     List<UserBalanceModel> users = [];
+    int total = 0;
     try {
-      dynamic response = await _remoteData.get('$suffixe/users/balance');
+      dynamic response = await _remoteData.get(
+        '$suffixe/users/balance',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
 
       if (response.statusCode == 200) {
-        List<dynamic> responseBody = response.data['data'];
-        for (var user in responseBody) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+        for (var user in items) {
           users.add(UserBalanceModel.fromJson(user));
         }
       }
@@ -32,7 +79,12 @@ class StatsRepository {
       }
     }
 
-    return users;
+    return PaginatedResult<UserBalanceModel>(items: users, total: total);
+  }
+
+  Future<List<UserBalanceModel>> getUsers() async {
+    final result = await getUsersPaginated(limit: 1000, offset: 0);
+    return result.items;
   }
 
   Future<List<PartnerAccountModel>> getPartnerAcc() async {
@@ -148,6 +200,53 @@ class StatsRepository {
     }
 
     return totals;
+  }
+
+  Future<PaginatedResult<PartnerTotalAmountModel>>
+      getPartnerTotalBalancesPaginated(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<PartnerTotalAmountModel> totals = [];
+    int total = 0;
+    try {
+      final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+      final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+      final Map<String, String> body = {
+        'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+        'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+      };
+
+      dynamic response = await _remoteData.post(
+        '$suffixe/entity/amount',
+        body,
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+        for (var item in items) {
+          totals.add(PartnerTotalAmountModel.fromJson(item));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+    }
+
+    return PaginatedResult<PartnerTotalAmountModel>(
+        items: totals, total: total);
   }
 
   Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(

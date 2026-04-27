@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
-import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
-import 'package:back_office_tribuneo_v2/domain/models/user_balance_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/stats_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
@@ -17,6 +15,7 @@ class StatsContentView extends StatefulWidget {
 }
 
 class StatsContentViewState extends State<StatsContentView> {
+  final StatsUseCase _statsUseCase = StatsUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   int _selectedButtonIndex = 0;
   final bool _isLoading = false;
@@ -236,76 +235,51 @@ class StatsContentViewState extends State<StatsContentView> {
   }
 
   Widget _buildPartnerTotalBalanceContent() {
-    return FutureBuilder<List<PartnerTotalAmountModel>>(
-      future: StatsUseCase()
-          .getPartnerTotalBalances(_selectedStartDate, _selectedEndDate),
-      builder: (context, snapshot) {
-        final bool isCompact = MediaQuery.of(context).size.width < 1500;
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          final data = snapshot.data ?? [];
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: _buildStyledTable(
-              context,
-              AsyncPaginatedDataTable2(
-                wrapInCard: false,
-                source: PartnerTotalDataSource(data),
-                columnSpacing: isCompact ? 16 : 22,
-                horizontalMargin: isCompact ? 10 : 14,
-                minWidth: isCompact ? 600 : 800,
-                rowsPerPage: 10,
-                columns: const [
-                  DataColumn(label: Center(child: Text('Nom'))),
-                  DataColumn(label: Center(child: Text('Montant total'))),
-                ],
-              ),
-              rowCount:
-                  data.length > 10 ? 10 : (data.isEmpty ? 1 : data.length),
-            ),
-          );
-        }
-      },
+    final bool isCompact = MediaQuery.of(context).size.width < 1500;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: PartnerTotalDataSource(
+            _statsUseCase,
+            _selectedStartDate,
+            _selectedEndDate,
+          ),
+          columnSpacing: isCompact ? 16 : 22,
+          horizontalMargin: isCompact ? 10 : 14,
+          minWidth: isCompact ? 600 : 800,
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Nom'))),
+            DataColumn(label: Center(child: Text('Montant total'))),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildUsersContent() {
-    return FutureBuilder<List<UserBalanceModel>>(
-      future: StatsUseCase().getUsers(),
-      builder: (context, snapshot) {
-        final bool isCompact = MediaQuery.of(context).size.width < 1500;
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          final data = snapshot.data ?? [];
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: _buildStyledTable(
-              context,
-              AsyncPaginatedDataTable2(
-                wrapInCard: false,
-                source: UsersDataSource(data),
-                columnSpacing: isCompact ? 16 : 22,
-                horizontalMargin: isCompact ? 10 : 14,
-                minWidth: isCompact ? 600 : 800,
-                rowsPerPage: 10,
-                columns: const [
-                  DataColumn(label: Center(child: Text('Téléphone'))),
-                  DataColumn(label: Center(child: Text('Initiales'))),
-                  DataColumn(label: Center(child: Text('Montant coupon (€)'))),
-                ],
-              ),
-              rowCount:
-                  data.length > 10 ? 10 : (data.isEmpty ? 1 : data.length),
-            ),
-          );
-        }
-      },
+    final bool isCompact = MediaQuery.of(context).size.width < 1500;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: UsersDataSource(_statsUseCase),
+          columnSpacing: isCompact ? 16 : 22,
+          horizontalMargin: isCompact ? 10 : 14,
+          minWidth: isCompact ? 600 : 800,
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Téléphone'))),
+            DataColumn(label: Center(child: Text('Initiales'))),
+            DataColumn(label: Center(child: Text('Montant coupon (€)'))),
+          ],
+        ),
+      ),
     );
   }
 
@@ -360,17 +334,30 @@ class StatsContentViewState extends State<StatsContentView> {
 }
 
 class PartnerTotalDataSource extends AsyncDataTableSource {
-  final List<PartnerTotalAmountModel> _data;
-  PartnerTotalDataSource(this._data);
+  final StatsUseCase _statsUseCase;
+  final DateTime? _dateFrom;
+  final DateTime? _dateTo;
+  int _lastKnownTotal = 0;
+
+  PartnerTotalDataSource(this._statsUseCase, this._dateFrom, this._dateTo);
+
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
-    final endIndex =
-        (startIndex + limit > _data.length) ? _data.length : startIndex + limit;
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getPartnerTotalBalancesPaginated(
+      _dateFrom,
+      _dateTo,
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final data = paginated.items;
     final List<DataRow> rows = [];
-    for (int i = startIndex; i < endIndex; i++) {
-      final item = _data[i];
+    for (int i = 0; i < data.length; i++) {
+      final item = data[i];
+      final int rowIndex = startIndex + i;
       rows.add(DataRow(
-        color: i % 2 == 0
+        color: rowIndex % 2 == 0
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
@@ -380,23 +367,41 @@ class PartnerTotalDataSource extends AsyncDataTableSource {
         ],
       ));
     }
-    return AsyncRowsResponse(_data.length, rows);
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + data.length;
+      if (data.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
   }
 }
 
 class UsersDataSource extends AsyncDataTableSource {
-  final List<UserBalanceModel> _users;
-  UsersDataSource(this._users);
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  UsersDataSource(this._statsUseCase);
+
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
-    final endIndex = (startIndex + limit > _users.length)
-        ? _users.length
-        : startIndex + limit;
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getUsersPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final users = paginated.items;
     final List<DataRow> rows = [];
-    for (int i = startIndex; i < endIndex; i++) {
-      final user = _users[i];
+    for (int i = 0; i < users.length; i++) {
+      final user = users[i];
+      final int rowIndex = startIndex + i;
       rows.add(DataRow(
-        color: i % 2 == 0
+        color: rowIndex % 2 == 0
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
@@ -407,6 +412,16 @@ class UsersDataSource extends AsyncDataTableSource {
         ],
       ));
     }
-    return AsyncRowsResponse(_users.length, rows);
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + users.length;
+      if (users.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
   }
 }
