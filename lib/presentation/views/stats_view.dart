@@ -33,7 +33,7 @@ class StatsContentViewState extends State<StatsContentView> {
 
     final double headerHeight = 54.0;
     final double rowHeight = 56.0;
-    final double tableHeight = headerHeight + (rowCount * rowHeight) + 16.0;
+    final double tableHeight = headerHeight + (rowCount * rowHeight);
 
     return Align(
       alignment: Alignment.topCenter,

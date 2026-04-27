@@ -126,7 +126,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
 
               return Container(
                 width: tableWidth,
-                height: 650,
+                height: 600,
                 decoration: BoxDecoration(
                   color: kWhite,
                   borderRadius: BorderRadius.circular(14),

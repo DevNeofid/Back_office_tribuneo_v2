@@ -1,11 +1,8 @@
-// ignore_for_file: avoid_web_libraries_in_flutter
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
-import 'dart:developer';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
@@ -46,7 +43,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
 
   _refreshOrders() async {
     setState(() {
-      _isLoading = true; // Start loading
+      _isLoading = true;
     });
     _orders = [];
     await _orderUseCase.getOrders().then((value) {
@@ -68,12 +65,12 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                   updatedDate: e.updatedDate,
                 ))
             .toList();
-        _isLoading = false; // Stop loading
+        _isLoading = false;
       });
       _allOrders = List.from(_orders);
     }).catchError((error) {
       setState(() {
-        _isLoading = false; // End loading even if there's an error
+        _isLoading = false;
       });
     });
   }
@@ -99,7 +96,6 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       String? name = order.giftFrom;
       name = name!.replaceAll(' ', '_');
       String? number = order.orderNumber;
-      print("Appel de l'API pour créer le QR Code...");
       dynamic res = await _orderUseCase.createQRCode(order.id!);
       List<dynamic> listDynamic = res;
 
@@ -107,7 +103,6 @@ class _OrdersContentViewState extends State<OrdersContentView> {
           listDynamic, '${name}_$number', 'application/zip',
           fileExtension: 'zip');
     } catch (error) {
-      print("Erreur lors de la génération des QR Codes: $error");
       snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de la génération des QRcode.')));
     } finally {
@@ -160,7 +155,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text(
             'Erreur : Pensez à vérifier que votre client a une adresse de renseignée ?'),
-        backgroundColor: Colors.red, // Optional: to change background color
+        backgroundColor: Colors.red,
       ));
       return;
     }
@@ -179,7 +174,6 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       },
     );
 
-    // Make an objet with the order id and the additional info
     Map<String, dynamic> invoice = {
       'id_order': order.id,
       'comment': additionalInfo
@@ -446,25 +440,47 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                             color: kBlueEnd,
                           ),
                           headingRowColor: WidgetStateProperty.all(kBlue),
-                          columns: [
-                            const DataColumn(label: Center(child: Text('N°'))),
-                            const DataColumn(
-                                label: Center(child: Text('Offert par'))),
-                            const DataColumn(
-                                label: Center(child: Text('Occasion'))),
-                            const DataColumn(label: Center(child: Text('Qté'))),
-                            const DataColumn(
-                                label: Center(child: Text('Payé'))),
-                            const DataColumn(
-                                label: Center(child: Text('Facturé'))),
-                            const DataColumn(
-                                label: Center(child: Text('Création'))),
-                            const DataColumn(
-                                label: Center(child: Text('Expiration'))),
-                            const DataColumn(
-                                label: Center(child: Text('Gestion'))),
-                            const DataColumn(
-                                label: Center(child: Text('Edition'))),
+                          columns: const [
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('N°',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Offert par',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Occasion',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Qté',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Payé',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Facturé',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Création',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Expiration',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Gestion',
+                                        textAlign: TextAlign.center))),
+                            DataColumn(
+                                label: Expanded(
+                                    child: Text('Edition',
+                                        textAlign: TextAlign.center))),
                           ],
                           rows: _orders.asMap().entries.map((entry) {
                             final order = entry.value;
@@ -475,64 +491,78 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                               cells: [
                                 DataCell(Center(
                                     child: SelectableText(
-                                        order.orderNumber ?? ''))),
-                                DataCell(SizedBox(
-                                  width: isCompact ? 120 : 170,
-                                  child: Tooltip(
-                                    message: order.giftFrom ?? '',
-                                    child: Text(
-                                      order.giftFrom ?? '',
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
+                                        order.orderNumber ?? '',
+                                        textAlign: TextAlign.center))),
+                                DataCell(Center(
+                                  child: SizedBox(
+                                    width: isCompact ? 120 : 170,
+                                    child: Tooltip(
+                                      message: order.giftFrom ?? '',
+                                      child: Text(
+                                        order.giftFrom ?? '',
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
                                   ),
                                 )),
-                                DataCell(SizedBox(
-                                  width: isCompact ? 130 : 190,
-                                  child: Tooltip(
-                                    message: globalNetworkName != 'VDPC'
-                                        ? (order.giftReason ?? '')
-                                        : (order.orderItems?[0].persoMsg ?? ''),
-                                    child: Text(
-                                      globalNetworkName != 'VDPC'
+                                DataCell(Center(
+                                  child: SizedBox(
+                                    width: isCompact ? 130 : 190,
+                                    child: Tooltip(
+                                      message: globalNetworkName != 'VDPC'
                                           ? (order.giftReason ?? '')
                                           : (order.orderItems?[0].persoMsg ??
                                               ''),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
+                                      child: Text(
+                                        globalNetworkName != 'VDPC'
+                                            ? (order.giftReason ?? '')
+                                            : (order.orderItems?[0].persoMsg ??
+                                                ''),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
                                   ),
                                 )),
                                 DataCell(Center(
                                     child: Text(
-                                        order.fundQuantity?.toString() ?? ''))),
+                                        order.fundQuantity?.toString() ?? '',
+                                        textAlign: TextAlign.center))),
                                 DataCell(Center(
                                     child: Text(
                                   (order.paid ?? 0).toStringAsFixed(2),
+                                  textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: isPaid ? kGreen : kRed),
                                 ))),
                                 DataCell(Center(
                                     child: Text(
                                   (order.totalAmount ?? 0).toStringAsFixed(2),
+                                  textAlign: TextAlign.center,
                                   style:
                                       TextStyle(color: isPaid ? kGreen : kRed),
                                 ))),
                                 DataCell(Center(
-                                    child: Text(DateFormater().modifyDate(
-                                            order.createdDate!.date!) ??
-                                        ''))),
+                                    child: Text(
+                                        DateFormater().modifyDate(
+                                                order.createdDate!.date!) ??
+                                            '',
+                                        textAlign: TextAlign.center))),
                                 DataCell(Center(
-                                    child: Text(DateFormater().modifyDate(
-                                            order.fundExpiryDate!.date!) ??
-                                        ''))),
+                                    child: Text(
+                                        DateFormater().modifyDate(
+                                                order.fundExpiryDate!.date!) ??
+                                            '',
+                                        textAlign: TextAlign.center))),
                                 DataCell(
                                   Center(
                                     child: PopupMenuButton<SampleItem>(
                                       icon: const Icon(
                                           Icons.call_to_action_outlined),
                                       initialValue: selectedMenu,
-                                      // Callback that sets the selected popup menu item.
                                       onSelected: (SampleItem item) {
                                         if (item == SampleItem.itemOne) {
                                           _showPayments(order);
@@ -592,7 +622,6 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                                   Center(
                                     child: PopupMenuButton<SampleItem2>(
                                       initialValue: selectedMenu2,
-                                      // Callback that sets the selected popup menu item.
                                       onSelected: (SampleItem2 item) {
                                         if (item == SampleItem2.itemTwo) {
                                           _deleteOrder(order.id!);
@@ -671,41 +700,27 @@ class ShowPaymentState extends State<ShowPayment> {
   _refreshPayments() async {
     List<PaymentModel> response =
         await orderUseCase.getPayments(widget.order.id!);
-    inspect(response);
     setState(() {
       _payments = response;
     });
   }
 
   traduction(String payment) {
-    if (payment == 'CASH') {
-      return 'Espèces';
-    } else if (payment == 'CHECK') {
-      return 'Chèque';
-    } else if (payment == 'BANK_TRANSFER') {
-      return 'Virement';
-    } else if (payment == 'ONLINE_PAYMENT') {
-      return 'Paiement en ligne';
-    } else if (payment == 'CREDIT_AND_DEBIT_CARDS') {
-      return 'Carte bancaire';
-    } else {
-      return '';
-    }
+    if (payment == 'CASH') return 'Espèces';
+    if (payment == 'CHECK') return 'Chèque';
+    if (payment == 'BANK_TRANSFER') return 'Virement';
+    if (payment == 'ONLINE_PAYMENT') return 'Paiement en ligne';
+    if (payment == 'CREDIT_AND_DEBIT_CARDS') return 'Carte bancaire';
+    return '';
   }
 
-  String date = "";
   DateTime selectedDate = DateTime.now();
   _selectDate(BuildContext context) async {
     final DateTime? selected = await showDatePicker(
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: kBlue,
-            ),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
+            colorScheme: const ColorScheme.light(primary: kBlue),
           ),
           child: child!,
         );
@@ -731,18 +746,14 @@ class ShowPaymentState extends State<ShowPayment> {
           paymentDateController.text = _getDisplayableDate(selectedDate);
         });
       } else {
-        snackbarKey.currentState?.showSnackBar(
-          const SnackBar(
+        snackbarKey.currentState?.showSnackBar(const SnackBar(
             content: Text(
-                "La date de paiement ne peut pas être antérieure à la date du dernier paiement."),
-          ),
-        );
+                "La date de paiement ne peut pas être antérieure à la date du dernier paiement.")));
       }
     }
   }
 
   String _getDisplayableDate(DateTime date) {
-    // return DateFormat.yMd('fr').format(date);
     String day = date.day > 9 ? date.day.toString() : "0${date.day.toString()}";
     String month =
         date.month > 9 ? date.month.toString() : "0${date.month.toString()}";
@@ -758,16 +769,11 @@ class ShowPaymentState extends State<ShowPayment> {
     if (value != null) {
       double paymentAmount = double.parse(value);
       if (_validatePayment(paymentAmount) && _selectedPaymentMethod != null) {
-        setState(() {
-          _sendPayment(paymentAmount);
-        });
+        _sendPayment(paymentAmount);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
-                "Le montant saisi dépasse le montant total de la commande."),
-          ),
-        );
+                "Le montant saisi dépasse le montant total de la commande.")));
       }
     }
   }
@@ -782,18 +788,14 @@ class ShowPaymentState extends State<ShowPayment> {
                 'Vous allez envoyer un paiement de ${_paymentAmountController.text} à la date du ${_getDisplayableDate(selectedDate)} ?'),
             actions: <Widget>[
               TextButton(
-                child: const Text('Annuler'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
+                  child: const Text('Annuler'),
+                  onPressed: () => Navigator.of(context).pop()),
               TextButton(
-                child: const Text('Valider'),
-                onPressed: () {
-                  _addPayment(amount);
-                  Navigator.of(context).pop();
-                },
-              ),
+                  child: const Text('Valider'),
+                  onPressed: () {
+                    _addPayment(amount);
+                    Navigator.of(context).pop();
+                  }),
             ],
           );
         }).then((value) => _refreshPayments());
@@ -828,7 +830,6 @@ class ShowPaymentState extends State<ShowPayment> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Liste des paiements
               Table(
                 border: TableBorder(
                   horizontalInside:
@@ -841,55 +842,49 @@ class ShowPaymentState extends State<ShowPayment> {
                   const TableRow(
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Center(child: Text('Date')),
-                      ),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(child: Text('Date'))),
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Center(child: Text('Méthode')),
-                      ),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(child: Text('Méthode'))),
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Center(child: Text('Montant')),
-                      ),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(child: Text('Montant'))),
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: SizedBox(),
-                      ),
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: SizedBox()),
                     ],
                   ),
                   ..._payments
-                      .map(
-                        (payment) => TableRow(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(
-                                  '${DateFormater().modifyDate(payment.paymentDate!.date!)}'),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(traduction(payment.paymentMethod!)),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Text(payment.amount!.toStringAsFixed(2)),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8.0),
-                              child: SizedBox(),
-                            ),
-                          ],
-                        ),
-                      )
+                      .map((payment) => TableRow(
+                            children: [
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Center(
+                                      child: Text(
+                                          '${DateFormater().modifyDate(payment.paymentDate!.date!)}'))),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Center(
+                                      child: Text(
+                                          traduction(payment.paymentMethod!)))),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Center(
+                                      child: Text(
+                                          payment.amount!.toStringAsFixed(2)))),
+                              const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                                  child: SizedBox()),
+                            ],
+                          ))
                       .toList(),
                 ],
               ),
               const SizedBox(height: 20),
-              // Affiche le champ d'ajout de paiement si le montant total n'est pas atteint
               if (_payments.fold<num>(0, (sum, p) => sum + p.amount!) <
                   order.totalAmount!)
                 IntrinsicHeight(
@@ -905,9 +900,7 @@ class ShowPaymentState extends State<ShowPayment> {
                           fontSize: 14,
                           text: "Date",
                           backgroundColor: kBlue,
-                          onPressed: () {
-                            _selectDate(context);
-                          },
+                          onPressed: () => _selectDate(context),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -920,16 +913,12 @@ class ShowPaymentState extends State<ShowPayment> {
                             isExpanded: true,
                             hint: const Text("Méthode"),
                             value: _selectedPaymentMethod,
-                            onChanged: (PaymentMethod? newValue) {
-                              setState(() {
-                                _selectedPaymentMethod = newValue;
-                              });
-                            },
+                            onChanged: (PaymentMethod? newValue) => setState(
+                                () => _selectedPaymentMethod = newValue),
                             items: _paymentMethods.map((PaymentMethod method) {
                               return DropdownMenuItem<PaymentMethod>(
-                                value: method,
-                                child: Text(traduction(method.name)),
-                              );
+                                  value: method,
+                                  child: Text(traduction(method.name)));
                             }).toList(),
                           ),
                         ),
@@ -941,18 +930,8 @@ class ShowPaymentState extends State<ShowPayment> {
                           decoration: const InputDecoration(
                               labelText: 'Ajouter un paiement'),
                           keyboardType: TextInputType.number,
-                          validator: (value) {
-                            double paymentAmount =
-                                double.tryParse(value ?? '') ?? 0;
-                            if (!_validatePayment(paymentAmount)) {
-                              return "Le montant saisi dépasse le montant total de la commande.";
-                            }
-                            return null;
-                          },
                           controller: _paymentAmountController,
-                          onFieldSubmitted: (value) {
-                            _submitPayment(value);
-                          },
+                          onFieldSubmitted: (value) => _submitPayment(value),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -961,9 +940,8 @@ class ShowPaymentState extends State<ShowPayment> {
                         child: NeoButton(
                             width: 100,
                             height: 40,
-                            onPressed: () {
-                              _submitPayment(_paymentAmountController.text);
-                            },
+                            onPressed: () =>
+                                _submitPayment(_paymentAmountController.text),
                             text: "Valider"),
                       ),
                     ],
@@ -985,9 +963,8 @@ class ShowPaymentState extends State<ShowPayment> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Fermer'),
-        ),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fermer')),
       ],
     );
   }

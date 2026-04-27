@@ -1,14 +1,13 @@
 import 'dart:developer';
 
+import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
-import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
@@ -40,9 +39,11 @@ class _PartnerFormState extends State<PartnerForm> {
     super.initState();
   }
 
-  Future addPartner() async {
+  Future<void> addPartner() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+    } else {
+      return;
     }
 
     EntityModel e = EntityModel.fromJson({
@@ -54,226 +55,165 @@ class _PartnerFormState extends State<PartnerForm> {
       "accept_demat": _checked ? 1 : 0,
       "type": entityType,
     });
+
     inspect(e);
+
     try {
       await _partnerUseCase.addPartner(e);
-      navigatorKey.currentState?.pop();
-
-      // Show success message
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Inscription du partenaire réussie'),
-        backgroundColor: Colors.green, // Optional: to change background color
+      if (!mounted) return;
+      Navigator.pop(context, true);
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text(
+          'Inscription du partenaire réussie',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
       ));
     } catch (e) {
-      // Show error message if something goes wrong
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Erreur lors de l’inscription du partenaire'),
-        backgroundColor: Colors.red, // Optional: to change background color
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text(
+          'Erreur lors de l’inscription du partenaire',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
       ));
     }
-    return;
   }
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     partnerNameController.dispose();
     partnerMailController.dispose();
     partnerSiretController.dispose();
     partnerCodeController.dispose();
     partnerPhoneController.dispose();
+    partnerDescriptionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+
     return AlertDialog(
-      backgroundColor: kTransparent,
+      backgroundColor: Colors.transparent,
       contentPadding: const EdgeInsets.all(0),
       content: Form(
         key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.8,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                        child: SelectableText(
-                          "Ajouter un partenaire",
-                          style: GoogleFonts.poppins(
-                              fontSize: 32,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w600,
-                              color: kOrange),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: partnerNameController,
-                                hintText: 'Nom du partenaire',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 3 : 1,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: partnerMailController,
-                                hintText: 'Email du partenaire',
-                                keyboardType: TextInputType.text,
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: partnerSiretController,
-                                hintText: 'Siret du partenaire',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateSiret(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: partnerPhoneController,
-                                hintText: 'Téléphone du partenaire',
-                                keyboardType: TextInputType.number,
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validatePhoneNumber(
-                                      value ?? '');
-                                },
-                                formatter:
-                                    FilteringTextInputFormatter.digitsOnly,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: partnerCodeController,
-                                hintText: 'Code du partenaire',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateCode(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            const Expanded(
-                              flex: 2,
-                              child: SizedBox(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: CheckboxListTile(
-                                  title: const Text(
-                                      'Accepte la dématérialisation'),
-                                  value: _checked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      _checked = value!;
-                                    });
-                                  },
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                ),
-                              ),
-                            ]),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          NeoButton(text: "Enregistrer", onPressed: addPartner),
-                        ],
-                      ),
-                    ],
+        child: Container(
+          width: SizeConfig.screenWidth * 0.3,
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(20)),
+            color: kPLGrey2,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Center(
+                  child: SelectableText(
+                    "Ajouter un partenaire",
+                    style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        letterSpacing: 0.3,
+                        fontWeight: FontWeight.w600,
+                        color: kOrange),
                   ),
                 ),
-              ),
+                const SizedBox(height: 30),
+                NeoInput(
+                  controller: partnerNameController,
+                  hintText: 'Nom du partenaire',
+                  fillColor: kPWhite,
+                  validator: (value) {
+                    return FormValidator.validateText(value ?? '');
+                  },
+                ),
+                const SizedBox(height: 20),
+                NeoInput(
+                  controller: partnerMailController,
+                  hintText: 'Email du partenaire',
+                  keyboardType: TextInputType.emailAddress,
+                  fillColor: kPWhite,
+                  validator: (value) {
+                    return FormValidator.validateText(value ?? '');
+                  },
+                ),
+                const SizedBox(height: 20),
+                NeoInput(
+                  controller: partnerSiretController,
+                  hintText: 'Siret du partenaire',
+                  fillColor: kPWhite,
+                  validator: (value) {
+                    return FormValidator.validateSiret(value ?? '');
+                  },
+                ),
+                const SizedBox(height: 20),
+                NeoInput(
+                  controller: partnerPhoneController,
+                  hintText: 'Téléphone du partenaire',
+                  keyboardType: TextInputType.phone,
+                  fillColor: kPWhite,
+                  validator: (value) {
+                    return FormValidator.validatePhoneNumber(value ?? '');
+                  },
+                  formatter: FilteringTextInputFormatter.digitsOnly,
+                ),
+                const SizedBox(height: 20),
+                NeoInput(
+                  controller: partnerCodeController,
+                  hintText: 'Code du partenaire',
+                  fillColor: kPWhite,
+                  validator: (value) {
+                    return FormValidator.validateCode(value ?? '');
+                  },
+                ),
+                const SizedBox(height: 20),
+                CheckboxListTile(
+                  title: Text(
+                    'Accepte la dématérialisation',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: kBlack,
+                    ),
+                  ),
+                  value: _checked,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _checked = value!;
+                    });
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: kBlue,
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(
+                        'Annuler',
+                        style: GoogleFonts.poppins(
+                          color: kRed,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    NeoButton(
+                      text: "Enregistrer",
+                      onPressed: addPartner,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ]),
+        ),
       ),
     );
   }
