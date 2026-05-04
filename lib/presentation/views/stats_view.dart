@@ -29,8 +29,6 @@ class StatsContentViewState extends State<StatsContentView> {
 
   Widget _buildStyledTable(BuildContext context, Widget tableWidget,
       {int rowCount = 10}) {
-    final bool isCompact = MediaQuery.of(context).size.width < 1500;
-
     final double headerHeight = 54.0;
     final double rowHeight = 56.0;
     final double tableHeight = headerHeight + (rowCount * rowHeight);
@@ -39,7 +37,7 @@ class StatsContentViewState extends State<StatsContentView> {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: isCompact ? 600 : 800,
+          maxWidth: MediaQuery.of(context).size.width * 0.70,
         ),
         child: SizedBox(
           height: tableHeight,
@@ -128,13 +126,27 @@ class StatsContentViewState extends State<StatsContentView> {
                             child: Text('Montant total des partenaires')),
                         DropdownMenuItem(
                             value: 2, child: Text('Montant total du réseau')),
+                        DropdownMenuItem(
+                            value: 3,
+                            child: Text('Montant total des bons par clients')),
+                        DropdownMenuItem(
+                            value: 4,
+                            child: Text('Partenaires jamais connectés')),
+                        DropdownMenuItem(
+                            value: 5,
+                            child:
+                                Text('Somme des coupons expirés par client')),
+                        DropdownMenuItem(
+                            value: 6, child: Text('Partenaires sans activité')),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-            if (_selectedButtonIndex == 1 || _selectedButtonIndex == 2)
+            if (_selectedButtonIndex == 1 ||
+                _selectedButtonIndex == 2 ||
+                _selectedButtonIndex == 5)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -229,6 +241,14 @@ class StatsContentViewState extends State<StatsContentView> {
         return _buildPartnerTotalBalanceContent();
       case 2:
         return _buildNetworkTotalAmount();
+      case 3:
+        return _buildVoucherTotalBalancePerCustomer();
+      case 4:
+        return _buildPartnerDigitalNeverOpenSession();
+      case 5:
+        return _buildSumExpiredVouchersConsumer();
+      case 6:
+        return _buildDigitalPartnerNoActivity();
       default:
         return Container();
     }
@@ -261,7 +281,6 @@ class StatsContentViewState extends State<StatsContentView> {
   }
 
   Widget _buildUsersContent() {
-    final bool isCompact = MediaQuery.of(context).size.width < 1500;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: _buildStyledTable(
@@ -269,9 +288,6 @@ class StatsContentViewState extends State<StatsContentView> {
         AsyncPaginatedDataTable2(
           wrapInCard: false,
           source: UsersDataSource(_statsUseCase),
-          columnSpacing: isCompact ? 16 : 22,
-          horizontalMargin: isCompact ? 10 : 14,
-          minWidth: isCompact ? 600 : 800,
           rowsPerPage: 10,
           columns: const [
             DataColumn(label: Center(child: Text('Téléphone'))),
@@ -288,7 +304,6 @@ class StatsContentViewState extends State<StatsContentView> {
       future: StatsUseCase()
           .getNetworkTotalAmounts(_selectedStartDate, _selectedEndDate),
       builder: (context, snapshot) {
-        final bool isCompact = MediaQuery.of(context).size.width < 1500;
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
@@ -300,9 +315,6 @@ class StatsContentViewState extends State<StatsContentView> {
             child: _buildStyledTable(
               context,
               DataTable2(
-                columnSpacing: isCompact ? 16 : 22,
-                horizontalMargin: isCompact ? 10 : 14,
-                minWidth: isCompact ? 600 : 800,
                 columns: const [
                   DataColumn(label: Center(child: Text('Frais de gestion'))),
                   DataColumn(label: Center(child: Text('Total injecté'))),
@@ -329,6 +341,90 @@ class StatsContentViewState extends State<StatsContentView> {
           );
         }
       },
+    );
+  }
+
+  Widget _buildVoucherTotalBalancePerCustomer() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: VoucherTotalBalancePerCustomerDataSource(_statsUseCase),
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Nom'))),
+            DataColumn(label: Center(child: Text('Montant'))),
+            DataColumn(label: Center(child: Text('Date d\'expiration'))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPartnerDigitalNeverOpenSession() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: PartnerDigitalNeverOpenSessionDataSource(_statsUseCase),
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Nom'))),
+            DataColumn(label: Center(child: Text('Email'))),
+            DataColumn2(
+                size: ColumnSize.S, label: Center(child: Text('Téléphone'))),
+            DataColumn2(
+                size: ColumnSize.S, label: Center(child: Text('Avec QR Code'))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSumExpiredVouchersConsumer() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: SumExpiredVouchersConsumerDataSource(
+            _statsUseCase,
+            _selectedStartDate,
+            _selectedEndDate,
+          ),
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Nom'))),
+            DataColumn(label: Center(child: Text('Nombre de coupons'))),
+            DataColumn(label: Center(child: Text('Somme non dépensée'))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDigitalPartnerNoActivity() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: DigitalPartnerNoActivityDataSource(_statsUseCase),
+          rowsPerPage: 10,
+          columns: const [
+            DataColumn(label: Center(child: Text('Nom'))),
+            DataColumn(label: Center(child: Text('ID'))),
+            DataColumn(label: Center(child: Text('Email'))),
+            DataColumn(label: Center(child: Text('Téléphone'))),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -418,6 +514,203 @@ class UsersDataSource extends AsyncDataTableSource {
     } else {
       _lastKnownTotal = startIndex + users.length;
       if (users.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class VoucherTotalBalancePerCustomerDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  VoucherTotalBalancePerCustomerDataSource(this._statsUseCase);
+
+  String _formatExpirationDate(String? value) {
+    if (value == null || value.isEmpty) return '';
+
+    final DateTime? parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+
+    return DateFormat('dd/MM/yyyy').format(parsed);
+  }
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated =
+        await _statsUseCase.getVoucherTotalBalancesPerCustomerPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final vouchers = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < vouchers.length; i++) {
+      final item = vouchers[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(child: Text(item.name ?? ''))),
+          DataCell(Center(child: Text(item.amount ?? '0.00'))),
+          DataCell(
+              Center(child: Text(_formatExpirationDate(item.expirationDate)))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + vouchers.length;
+      if (vouchers.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class PartnerDigitalNeverOpenSessionDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  PartnerDigitalNeverOpenSessionDataSource(this._statsUseCase);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated =
+        await _statsUseCase.getPartnerDigitalNeverOpenSessionPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final partners = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < partners.length; i++) {
+      final item = partners[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(child: Text(item.name ?? ''))),
+          DataCell(Center(child: Text(item.email ?? ''))),
+          DataCell(Center(child: Text(item.phone ?? ''))),
+          DataCell(Center(child: Text(item.withQrCode ?? ''))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + partners.length;
+      if (partners.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class SumExpiredVouchersConsumerDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  final DateTime? _dateFrom;
+  final DateTime? _dateTo;
+  int _lastKnownTotal = 0;
+
+  SumExpiredVouchersConsumerDataSource(
+      this._statsUseCase, this._dateFrom, this._dateTo);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated =
+        await _statsUseCase.getSumExpiredVouchersConsumerPaginated(
+      dateFrom: _dateFrom,
+      dateTo: _dateTo,
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final items = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(child: Text(item.name ?? ''))),
+          DataCell(
+              Center(child: Text(item.expiredVouchers?.toString() ?? '0'))),
+          DataCell(Center(child: Text(item.unredeemendAmount ?? '0.00'))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + items.length;
+      if (items.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class DigitalPartnerNoActivityDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  DigitalPartnerNoActivityDataSource(this._statsUseCase);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getDigitalPartnerNoActivityPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final partners = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < partners.length; i++) {
+      final item = partners[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(child: Text(item.name ?? ''))),
+          DataCell(Center(child: Text(item.id?.toString() ?? ''))),
+          DataCell(Center(child: Text(item.email ?? ''))),
+          DataCell(Center(child: Text(item.phone ?? ''))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + partners.length;
+      if (partners.length == limit) {
         _lastKnownTotal += 1;
       }
     }

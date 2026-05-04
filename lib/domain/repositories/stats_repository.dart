@@ -1,14 +1,18 @@
 import 'dart:convert';
 
+import 'package:back_office_tribuneo_v2/domain/models/digital_partner_no_activity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_activated_since_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/partner_digital_never_open_session_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_unsettled_balance_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/voucher_total_balance_per_customer_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_balance_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/sum_expired_vouchers_consumer_model.dart';
 import 'package:flutter/foundation.dart';
 
 class StatsRepository {
@@ -75,7 +79,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
     }
 
@@ -90,7 +94,7 @@ class StatsRepository {
   Future<List<PartnerAccountModel>> getPartnerAcc() async {
     List<PartnerAccountModel> partners = [];
     try {
-      dynamic response = await _remoteData.get('${suffixe}/partners_account');
+      dynamic response = await _remoteData.get('$suffixe/partners_account');
       if (response.statusCode == 200) {
         response = response.data;
         for (var partner in response) {
@@ -101,7 +105,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
       partners = [];
     }
@@ -112,7 +116,7 @@ class StatsRepository {
     List<PartnerUnsettledBalanceModel> balances = [];
     try {
       dynamic response =
-          await _remoteData.get('${suffixe}/partners/unsettled_balances');
+          await _remoteData.get('$suffixe/partners/unsettled_balances');
       if (response.statusCode == 200) {
         response = response.data;
         for (var balance in response) {
@@ -123,7 +127,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
       balances = [];
     }
@@ -136,15 +140,12 @@ class StatsRepository {
     try {
       Map<String, String>? queryParams;
       if (date != null) {
-        // Format date as a string 'yyyy-MM-dd'
         String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-        // Prepare the query parameters
         queryParams = {'date': formattedDate};
       }
 
-      // Pass the queryParams to the get method
       dynamic response = await _remoteData.get(
-        '${suffixe}/partners/activated_since',
+        '$suffixe/partners/activated_since',
         queryParams: queryParams,
       );
 
@@ -158,7 +159,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
       actives = [];
     }
@@ -194,7 +195,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
       totals = [];
     }
@@ -241,7 +242,7 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
     }
 
@@ -264,7 +265,7 @@ class StatsRepository {
       };
 
       dynamic response = await _remoteData.post(
-        '$suffixe/network', // Correspond à stats/network
+        '$suffixe/network',
         body,
       );
 
@@ -278,11 +279,186 @@ class StatsRepository {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('###DEBUG### Error: $e');
+        print(e);
       }
       totals = [];
     }
 
     return totals;
+  }
+
+  Future<PaginatedResult<VoucherTotalBalancePerCustomerModel>>
+      getVoucherTotalBalancesPerCustomerPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<VoucherTotalBalancePerCustomerModel> vouchers = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/total-balance-vouchers-per-customer',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          vouchers.add(VoucherTotalBalancePerCustomerModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<VoucherTotalBalancePerCustomerModel>(
+      items: vouchers,
+      total: total,
+    );
+  }
+
+  Future<PaginatedResult<PartnerDigitalNeverOpenSessionModel>>
+      getPartnerDigitalNeverOpenSessionPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<PartnerDigitalNeverOpenSessionModel> partners = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/partner-digital-never-open-session',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          partners.add(PartnerDigitalNeverOpenSessionModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<PartnerDigitalNeverOpenSessionModel>(
+      items: partners,
+      total: total,
+    );
+  }
+
+  Future<PaginatedResult<SumExpiredVouchersConsumerModel>>
+      getSumExpiredVouchersConsumerPaginated({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<SumExpiredVouchersConsumerModel> consumers = [];
+    int total = 0;
+
+    try {
+      final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+      final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+      final Map<String, String> body = {
+        'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+        'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+      };
+
+      dynamic response = await _remoteData.post(
+        '$suffixe/sum-expired-vouchers-consumer',
+        body,
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          consumers.add(SumExpiredVouchersConsumerModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<SumExpiredVouchersConsumerModel>(
+      items: consumers,
+      total: total,
+    );
+  }
+
+  Future<PaginatedResult<DigitalPartnerNoActivityModel>>
+      getDigitalPartnerNoActivityPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<DigitalPartnerNoActivityModel> partners = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/digital-partner-no-activity',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          partners.add(DigitalPartnerNoActivityModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<DigitalPartnerNoActivityModel>(
+      items: partners,
+      total: total,
+    );
   }
 }

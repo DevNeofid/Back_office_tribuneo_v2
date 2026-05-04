@@ -1,10 +1,14 @@
+import 'package:back_office_tribuneo_v2/domain/models/digital_partner_no_activity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_activated_since_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/partner_digital_never_open_session_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_unsettled_balance_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/sum_expired_vouchers_consumer_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_balance_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/voucher_total_balance_per_customer_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/stats_repository.dart';
 
 class StatsUseCase {
@@ -62,5 +66,53 @@ class StatsUseCase {
   Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(
       [DateTime? dateFrom, DateTime? dateTo]) async {
     return await statsRepository.getNetworkTotalAmounts(dateFrom, dateTo);
+  }
+
+  Future<PaginatedResult<VoucherTotalBalancePerCustomerModel>>
+      getVoucherTotalBalancesPerCustomerPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getVoucherTotalBalancesPerCustomerPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<PartnerDigitalNeverOpenSessionModel>>
+      getPartnerDigitalNeverOpenSessionPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getPartnerDigitalNeverOpenSessionPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<SumExpiredVouchersConsumerModel>>
+      getSumExpiredVouchersConsumerPaginated({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getSumExpiredVouchersConsumerPaginated(
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<DigitalPartnerNoActivityModel>>
+      getDigitalPartnerNoActivityPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getDigitalPartnerNoActivityPaginated(
+      limit: limit,
+      offset: offset,
+    );
   }
 }
