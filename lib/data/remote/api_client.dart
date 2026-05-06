@@ -98,6 +98,7 @@ class ApiClient {
   Future<Response> post(
     String suffixeUrl,
     dynamic data, {
+    Map<String, dynamic>? queryParams,
     bool? bytesType,
     String? overrideTenant,
   }) async {
@@ -110,6 +111,7 @@ class ApiClient {
       final response = await dio.post(
         suffixeUrl,
         data: data,
+        queryParameters: queryParams,
         options: Options(
           headers: customHeaders.isNotEmpty ? customHeaders : null,
           responseType:

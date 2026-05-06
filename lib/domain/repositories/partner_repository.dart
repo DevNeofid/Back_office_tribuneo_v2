@@ -95,9 +95,8 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future deletePartner(int id, String type) async {
-    String data = jsonEncode({'type': type});
     try {
-      return await _remoteData.softDelete('$suffixe/$id/delete', data: data);
+      return await _remoteData.delete(suffixe, id);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }

@@ -45,7 +45,6 @@ class PartnersContentViewState extends State<PartnersContentView>
   bool _isLoading = false;
   String _filter = 'A';
   String _lastFilter = 'A';
-  // ignore: prefer_final_fields
   String _lastSearch = '';
   QrBoxItem? selectedMenuQr;
   EditBoxItem? selectedMenuEdit;
@@ -76,7 +75,7 @@ class PartnersContentViewState extends State<PartnersContentView>
 
   Future<void> _refreshPartners() async {
     setState(() {
-      _isLoading = true; // Start loading
+      _isLoading = true;
     });
     await _partnerUseCase.getPartners().then((value) {
       if (!mounted) return;
@@ -93,20 +92,19 @@ class PartnersContentViewState extends State<PartnersContentView>
         } else {
           _filter = availableFilters.contains(_lastFilter)
               ? _lastFilter
-              : availableFilters[0]; // A
+              : availableFilters[0];
           _partners = sortedEntities[_filter] ?? [];
         }
-        _isLoading = false; // End loading
+        _isLoading = false;
       });
     }).catchError((error) {
       setState(() {
-        _isLoading = false; // End loading even if there's an error
+        _isLoading = false;
       });
     });
   }
 
   void search(String text) {
-    // verify if the text is empty
     if (text.isEmpty) {
       setState(() {
         _filter = _lastFilter;
@@ -145,15 +143,13 @@ class PartnersContentViewState extends State<PartnersContentView>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Généreration du QR Code...');
+        return const LoadingDialog(loadingText: 'Génération du QR Code...');
       },
     );
     String? name = partner.name;
     name = name!.replaceAll(' ', '_');
     await _partnerUseCase.createQRCodeReceipt(partner.id!).then((value) {
       List<dynamic> listDynamic = value;
-
-      //download image
       FileDownloader.downloadLargeFile(
           listDynamic, '${name}_qr_code', 'application/pdf',
           fileExtension: 'pdf');
@@ -166,15 +162,13 @@ class PartnersContentViewState extends State<PartnersContentView>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Généreration du QR Code...');
+        return const LoadingDialog(loadingText: 'Génération du QR Code...');
       },
     );
     String? name = partner.name;
     name = name!.replaceAll(' ', '_');
     await _partnerUseCase.createQRCode(partner.id!).then((value) {
       List<dynamic> listDynamic = value;
-
-      //download image
       FileDownloader.downloadLargeFile(
           listDynamic, '${name}_qr_code', 'application/pdf',
           fileExtension: 'pdf');
@@ -218,43 +212,55 @@ class PartnersContentViewState extends State<PartnersContentView>
   }
 
   Future<void> _addPartner() async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return const PartnerForm();
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _addAddress(int id) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return AddressForm(idPartner: id);
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _addBankInformations(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return BankInformationsForm(entity: partner);
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _addActivity(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return SectorCreationForm(partner: partner);
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _addEntityType(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -265,56 +271,68 @@ class PartnersContentViewState extends State<PartnersContentView>
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Valider'),
                 onPressed: () {
                   _partnerUseCase.addEntityType(partner.id!);
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _genUpdate(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpdatePartnerInfo(
             partner: partner,
           );
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _addressUpdate(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpdateAddressForm(
             entity: partner,
           );
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _bankInformationsUpdate(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpadateBankInformationsForm(
             entity: partner,
           );
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   Future<void> _deletePartner(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -325,23 +343,25 @@ class PartnersContentViewState extends State<PartnersContentView>
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Désactiver'),
                 onPressed: () {
                   _partnerUseCase.deletePartner(partner.id!, partner.type!);
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        }).then((value) => _refreshPartners());
+        });
+    if (shouldRefresh == true) {
+      _refreshPartners();
+    }
   }
 
   _setNeoInitialIndex(int index) {
-    print('Call setNeoInitialIndex with index: $index');
     tabController.animateTo(index);
     setState(() {
       neoCurrentIndex = index;
@@ -536,7 +556,6 @@ class PartnersContentViewState extends State<PartnersContentView>
           height: 20,
         ),
         SizedBox(
-          //height: SizeConfig.screenHeight * 0.8,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
@@ -559,8 +578,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                 color: kBlack.withValues(alpha: 0.1),
                                 spreadRadius: 1,
                                 blurRadius: 1,
-                                offset: const Offset(
-                                    0, 1), // changes position of shadow
+                                offset: const Offset(0, 1),
                               ),
                             ],
                           ),
@@ -928,7 +946,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                         Expanded(
                                           child: Padding(
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 15),
+                                                vertical: 10, horizontal: 15),
                                             child: Column(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
@@ -952,8 +970,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                             style: GoogleFonts
                                                                 .poppins(
                                                               color: kBlack,
-                                                              fontSize:
-                                                                  24, // taille de texte pour le montant
+                                                              fontSize: 24,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,

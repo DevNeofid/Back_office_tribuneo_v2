@@ -69,7 +69,7 @@ class CustomersContentViewState extends State<CustomersContentView>
 
   Future<void> _refreshCustomers() async {
     setState(() {
-      _isLoading = true; // Start loading
+      _isLoading = true;
     });
     await _customerUseCase.getCustomers().then((value) {
       if (!mounted) return;
@@ -86,56 +86,68 @@ class CustomersContentViewState extends State<CustomersContentView>
         } else {
           _filter = availableFilters.contains(_lastFilter)
               ? _lastFilter
-              : availableFilters[0]; // A
+              : availableFilters[0];
           _customers = sortedEntities[_filter] ?? [];
         }
-        _isLoading = false; // End loading
+        _isLoading = false;
       });
     }).catchError((error) {
       setState(() {
-        _isLoading = false; // End loading even if there's an error
+        _isLoading = false;
       });
     });
   }
 
   Future<void> _addCustomer() async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return const CustomerForm();
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _addOrder(int entityId, String entityName) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return OrderForm(idEntity: entityId, entityName: entityName);
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _addAddress(int id) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return AddressForm(idPartner: id);
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _addBankInformations(EntityModel customer) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return BankInformationsForm(entity: customer);
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _addEntityType(EntityModel customer) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -146,23 +158,26 @@ class CustomersContentViewState extends State<CustomersContentView>
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Valider'),
                 onPressed: () {
                   _customerUseCase.addEntityType(customer.id!);
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _deleteCustomer(EntityModel customer) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -173,26 +188,29 @@ class CustomersContentViewState extends State<CustomersContentView>
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Désactiver'),
                 onPressed: () {
                   _customerUseCase.deleteCustomer(customer.id!, customer.type!);
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   void search(String text) {
-    _lastSearch = text; // Mémorisez le terme de recherche actuel
+    _lastSearch = text;
     if (text.isEmpty) {
       setState(() {
-        _filter = _lastFilter; // Utilisez _lastFilter si la recherche est vide
+        _filter = _lastFilter;
         _customers = sortedEntities[_filter] as List<EntityModel>;
       });
       return;
@@ -212,40 +230,48 @@ class CustomersContentViewState extends State<CustomersContentView>
   }
 
   Future<void> _genUpdate(EntityModel customer) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpdateCustomerForm(
             entity: customer,
           );
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _addressUpdate(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpdateAddressForm(
             entity: partner,
           );
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   Future<void> _bankInformationsUpdate(EntityModel partner) async {
-    return await showDialog(
+    final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return UpadateBankInformationsForm(
             entity: partner,
           );
-        }).then((value) => _refreshCustomers());
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   _setNeoInitialIndex(int index) {
-    print('Call setNeoInitialIndex with index: $index');
     tabController.animateTo(index);
     setState(() {
       neoCurrentIndex = index;
@@ -283,17 +309,14 @@ class CustomersContentViewState extends State<CustomersContentView>
                   onHighlightChanged: (isHighlighted) {
                     if (isHighlighted) {
                       setState(() {
-                        _buttonColor1 =
-                            kOrange; // changer la couleur du bouton 1
+                        _buttonColor1 = kOrange;
                         _button1Selected = true;
                         _button2Selected = false;
                         _button3Selected = false;
                       });
                     } else {
                       setState(() {
-                        _buttonColor1 = _button1Selected
-                            ? kOrange
-                            : kBlue; // changer la couleur du bouton 1
+                        _buttonColor1 = _button1Selected ? kOrange : kBlue;
                       });
                     }
                   },
@@ -306,21 +329,17 @@ class CustomersContentViewState extends State<CustomersContentView>
                   ),
                 ),
                 InkResponse(
-                  // onTap: () => {print('test button 2 !')},
                   onHighlightChanged: (isHighlighted) {
                     if (isHighlighted) {
                       setState(() {
-                        _buttonColor2 =
-                            kOrange; // changer la couleur du bouton 1
+                        _buttonColor2 = kOrange;
                         _button1Selected = false;
                         _button2Selected = true;
                         _button3Selected = false;
                       });
                     } else {
                       setState(() {
-                        _buttonColor2 = _button2Selected
-                            ? kOrange
-                            : kBlue; // changer la couleur du bouton 1
+                        _buttonColor2 = _button2Selected ? kOrange : kBlue;
                       });
                     }
                   },
@@ -329,25 +348,21 @@ class CustomersContentViewState extends State<CustomersContentView>
                       _setNeoInitialIndex(1);
                     },
                     backgroundColor: _buttonColor2,
-                    child: const Icon(Icons.gps_fixed,
-                        color: Colors.white), // couleur du bouton flottant 1
+                    child: const Icon(Icons.gps_fixed, color: Colors.white),
                   ),
                 ),
                 InkResponse(
                   onHighlightChanged: (isHighlighted) {
                     if (isHighlighted) {
                       setState(() {
-                        _buttonColor3 =
-                            kOrange; // changer la couleur du bouton 1
+                        _buttonColor3 = kOrange;
                         _button1Selected = false;
                         _button2Selected = false;
                         _button3Selected = true;
                       });
                     } else {
                       setState(() {
-                        _buttonColor3 = _button3Selected
-                            ? kOrange
-                            : kBlue; // changer la couleur du bouton 1
+                        _buttonColor3 = _button3Selected ? kOrange : kBlue;
                       });
                     }
                   },
@@ -356,8 +371,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                       _setNeoInitialIndex(2);
                     },
                     backgroundColor: _buttonColor3,
-                    child: const Icon(Icons.money,
-                        color: Colors.white), // couleur du bouton flottant 1
+                    child: const Icon(Icons.money, color: Colors.white),
                   ),
                 ),
               ],
@@ -398,7 +412,6 @@ class CustomersContentViewState extends State<CustomersContentView>
                       itemCount: sortedEntities.length,
                       itemBuilder: (BuildContext context, int index) {
                         String letter = availableFilters[index];
-                        //String.fromCharCode(65 + index);
                         return Container(
                           padding: const EdgeInsets.all(0),
                           width: 30,
@@ -415,7 +428,6 @@ class CustomersContentViewState extends State<CustomersContentView>
                               });
                             },
                             style: ElevatedButton.styleFrom(
-                              //center child
                               padding: const EdgeInsets.all(10),
                               backgroundColor:
                                   _filter == letter ? kOrange : kBlue,
@@ -459,8 +471,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                               color: kBlack.withValues(alpha: 0.1),
                               spreadRadius: 1,
                               blurRadius: 1,
-                              offset: const Offset(
-                                  0, 1), // changes position of shadow
+                              offset: const Offset(0, 1),
                             ),
                           ],
                         ),
@@ -767,10 +778,8 @@ class CustomersContentViewState extends State<CustomersContentView>
                                               width: 1,
                                               color: kGrey,
                                               thickness: 1,
-                                              indent:
-                                                  10, // Ajoutez un espace en haut
-                                              endIndent:
-                                                  10, // Ajoutez un espace en bas
+                                              indent: 10,
+                                              endIndent: 10,
                                             ),
                                             Expanded(
                                               child: Padding(

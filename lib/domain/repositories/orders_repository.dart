@@ -123,9 +123,8 @@ class OrderRepository extends BaseRepository {
   }
 
   Future<List<UrssafModel>> getUrssaf() async {
-    String suffixe = 'urssaf_events';
     try {
-      dynamic response = await _remoteData.get(suffixe);
+      dynamic response = await _remoteData.get('$suffixe/events');
       if (response.statusCode == 200) {
         final List<dynamic> urssafJson = jsonDecode(response.data);
         final urssaf =
