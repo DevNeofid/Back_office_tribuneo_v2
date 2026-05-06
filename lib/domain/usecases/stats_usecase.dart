@@ -30,6 +30,16 @@ class StatsUseCase {
     );
   }
 
+  Future<String?> getUsersPaginatedCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getUsersPaginatedCsv(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   Future<List<PartnerAccountModel>> getPartnerAcc() async {
     return await statsRepository.getPartnerAcc();
   }
@@ -63,9 +73,31 @@ class StatsUseCase {
     );
   }
 
+  Future<String?> getPartnerTotalBalancesCsv(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getPartnerTotalBalancesCsv(
+      dateFrom,
+      dateTo,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(
       [DateTime? dateFrom, DateTime? dateTo]) async {
     return await statsRepository.getNetworkTotalAmounts(dateFrom, dateTo);
+  }
+
+  Future<String?> getNetworkTotalAmountsCsv(
+      [DateTime? dateFrom, DateTime? dateTo]) async {
+    return await statsRepository.getNetworkTotalAmountsCsv(
+      dateFrom,
+      dateTo,
+    );
   }
 
   Future<PaginatedResult<VoucherTotalBalancePerCustomerModel>>
@@ -79,12 +111,32 @@ class StatsUseCase {
     );
   }
 
+  Future<String?> getVoucherTotalBalancesPerCustomerCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getVoucherTotalBalancesPerCustomerCsv(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   Future<PaginatedResult<PartnerDigitalNeverOpenSessionModel>>
       getPartnerDigitalNeverOpenSessionPaginated({
     int limit = 10,
     int offset = 0,
   }) async {
     return await statsRepository.getPartnerDigitalNeverOpenSessionPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getPartnerDigitalNeverOpenSessionCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getPartnerDigitalNeverOpenSessionCsv(
       limit: limit,
       offset: offset,
     );
@@ -105,12 +157,36 @@ class StatsUseCase {
     );
   }
 
+  Future<String?> getSumExpiredVouchersConsumerCsv({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getSumExpiredVouchersConsumerCsv(
+      dateFrom: dateFrom,
+      dateTo: dateTo,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
   Future<PaginatedResult<DigitalPartnerNoActivityModel>>
       getDigitalPartnerNoActivityPaginated({
     int limit = 10,
     int offset = 0,
   }) async {
     return await statsRepository.getDigitalPartnerNoActivityPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getDigitalPartnerNoActivityCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getDigitalPartnerNoActivityCsv(
       limit: limit,
       offset: offset,
     );

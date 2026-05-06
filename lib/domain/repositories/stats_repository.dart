@@ -20,6 +20,51 @@ class StatsRepository {
 
   final String suffixe = 'stats';
 
+  Map<String, dynamic> _withCsvDownload(Map<String, dynamic>? queryParams) {
+    final merged = <String, dynamic>{
+      if (queryParams != null) ...queryParams,
+      'download': 1,
+    };
+    return merged;
+  }
+
+  Future<String?> _downloadCsvData(
+    String suffix, {
+    Map<String, dynamic>? queryParams,
+    dynamic body,
+    bool usePost = false,
+  }) async {
+    final mergedQueryParams = _withCsvDownload(queryParams);
+
+    try {
+      final response = usePost
+          ? await _remoteData.post(
+              suffix,
+              body,
+              queryParams: mergedQueryParams,
+              bytesType: true,
+            )
+          : await _remoteData.get(
+              suffix,
+              queryParams: mergedQueryParams,
+              bytesType: true,
+            );
+
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data is List<int>) {
+          return utf8.decode(response.data);
+        }
+        return response.data.toString();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return null;
+  }
+
   int _extractTotal(dynamic response, int fallback) {
     if (response is! Map) return fallback;
 
@@ -84,6 +129,19 @@ class StatsRepository {
     }
 
     return PaginatedResult<UserBalanceModel>(items: users, total: total);
+  }
+
+  Future<String?> getUsersPaginatedCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/users/balance',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
   }
 
   Future<List<UserBalanceModel>> getUsers() async {
@@ -250,6 +308,31 @@ class StatsRepository {
         items: totals, total: total);
   }
 
+  Future<String?> getPartnerTotalBalancesCsv(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+    final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+    final Map<String, String> body = {
+      'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+      'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+    };
+
+    return _downloadCsvData(
+      '$suffixe/entity/amount',
+      body: body,
+      usePost: true,
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
   Future<List<NetworkTotalAmountModel>> getNetworkTotalAmounts(
     DateTime? dateFrom,
     DateTime? dateTo,
@@ -285,6 +368,25 @@ class StatsRepository {
     }
 
     return totals;
+  }
+
+  Future<String?> getNetworkTotalAmountsCsv(
+    DateTime? dateFrom,
+    DateTime? dateTo,
+  ) async {
+    final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+    final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+    final Map<String, String> body = {
+      'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+      'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+    };
+
+    return _downloadCsvData(
+      '$suffixe/network',
+      body: body,
+      usePost: true,
+    );
   }
 
   Future<PaginatedResult<VoucherTotalBalancePerCustomerModel>>
@@ -328,6 +430,19 @@ class StatsRepository {
     );
   }
 
+  Future<String?> getVoucherTotalBalancesPerCustomerCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/total-balance-vouchers-per-customer',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
   Future<PaginatedResult<PartnerDigitalNeverOpenSessionModel>>
       getPartnerDigitalNeverOpenSessionPaginated({
     int limit = 10,
@@ -366,6 +481,19 @@ class StatsRepository {
     return PaginatedResult<PartnerDigitalNeverOpenSessionModel>(
       items: partners,
       total: total,
+    );
+  }
+
+  Future<String?> getPartnerDigitalNeverOpenSessionCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/partner-digital-never-open-session',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
     );
   }
 
@@ -421,6 +549,31 @@ class StatsRepository {
     );
   }
 
+  Future<String?> getSumExpiredVouchersConsumerCsv({
+    DateTime? dateFrom,
+    DateTime? dateTo,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+    final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+    final Map<String, String> body = {
+      'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+      'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+    };
+
+    return _downloadCsvData(
+      '$suffixe/sum-expired-vouchers-consumer',
+      body: body,
+      usePost: true,
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
   Future<PaginatedResult<DigitalPartnerNoActivityModel>>
       getDigitalPartnerNoActivityPaginated({
     int limit = 10,
@@ -459,6 +612,19 @@ class StatsRepository {
     return PaginatedResult<DigitalPartnerNoActivityModel>(
       items: partners,
       total: total,
+    );
+  }
+
+  Future<String?> getDigitalPartnerNoActivityCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/digital-partner-no-activity',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
     );
   }
 }

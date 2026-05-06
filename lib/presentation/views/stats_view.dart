@@ -6,6 +6,7 @@ import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/stats_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/export_to_csv_button.dart';
 
 class StatsContentView extends StatefulWidget {
   const StatsContentView({super.key});
@@ -21,6 +22,58 @@ class StatsContentViewState extends State<StatsContentView> {
   final bool _isLoading = false;
   DateTime _selectedStartDate = DateTime(2023, 1, 1);
   DateTime _selectedEndDate = DateTime.now();
+  bool _isChangingStat = false;
+
+  String get _currentFilename {
+    switch (_selectedButtonIndex) {
+      case 0:
+        return 'comptes_utilisateurs.csv';
+      case 1:
+        return 'montant_total_partenaires.csv';
+      case 2:
+        return 'montant_total_reseau.csv';
+      case 3:
+        return 'montant_total_bons_clients.csv';
+      case 4:
+        return 'partenaires_jamais_connectes.csv';
+      case 5:
+        return 'somme_coupons_expires.csv';
+      case 6:
+        return 'partenaires_sans_activite.csv';
+      default:
+        return 'export_stats.csv';
+    }
+  }
+
+  Future<String?> _getCurrentCsvDownload() async {
+    switch (_selectedButtonIndex) {
+      case 0:
+        return _statsUseCase.getUsersPaginatedCsv();
+      case 1:
+        return _statsUseCase.getPartnerTotalBalancesCsv(
+          _selectedStartDate,
+          _selectedEndDate,
+        );
+      case 2:
+        return _statsUseCase.getNetworkTotalAmountsCsv(
+          _selectedStartDate,
+          _selectedEndDate,
+        );
+      case 3:
+        return _statsUseCase.getVoucherTotalBalancesPerCustomerCsv();
+      case 4:
+        return _statsUseCase.getPartnerDigitalNeverOpenSessionCsv();
+      case 5:
+        return _statsUseCase.getSumExpiredVouchersConsumerCsv(
+          dateFrom: _selectedStartDate,
+          dateTo: _selectedEndDate,
+        );
+      case 6:
+        return _statsUseCase.getDigitalPartnerNoActivityCsv();
+      default:
+        return null;
+    }
+  }
 
   @override
   void initState() {
@@ -31,7 +84,9 @@ class StatsContentViewState extends State<StatsContentView> {
       {int rowCount = 10}) {
     final double headerHeight = 54.0;
     final double rowHeight = 56.0;
-    final double tableHeight = headerHeight + (rowCount * rowHeight);
+    final double footerHeight = rowHeight;
+    final double tableHeight =
+        headerHeight + (rowCount * rowHeight) + footerHeight;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -115,29 +170,46 @@ class StatsContentViewState extends State<StatsContentView> {
                         if (newValue != null) {
                           setState(() {
                             _selectedButtonIndex = newValue;
+                            _isChangingStat = true;
+                          });
+                          Future.delayed(const Duration(milliseconds: 600), () {
+                            if (mounted) {
+                              setState(() {
+                                _isChangingStat = false;
+                              });
+                            }
                           });
                         }
                       },
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 0, child: Text('Comptes utilisateurs')),
+                            value: 0,
+                            child: Text('Comptes utilisateurs',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
                             value: 1,
-                            child: Text('Montant total des partenaires')),
+                            child: Text('Montant total des partenaires',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
-                            value: 2, child: Text('Montant total du réseau')),
+                            value: 2,
+                            child: Text('Montant total du réseau',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
                             value: 3,
-                            child: Text('Montant total des bons par clients')),
+                            child: Text('Montant total des bons par clients',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
                             value: 4,
-                            child: Text('Partenaires jamais connectés')),
+                            child: Text('Partenaires jamais connectés',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
                             value: 5,
-                            child:
-                                Text('Somme des coupons expirés par client')),
+                            child: Text('Somme des coupons expirés par client',
+                                style: GoogleFonts.poppins())),
                         DropdownMenuItem(
-                            value: 6, child: Text('Partenaires sans activité')),
+                            value: 6,
+                            child: Text('Partenaires sans transactions',
+                                style: GoogleFonts.poppins())),
                       ],
                     ),
                   ),
@@ -159,7 +231,8 @@ class StatsContentViewState extends State<StatsContentView> {
                           children: [
                             Expanded(
                               child: Text(
-                                  'Date de debut: ${dateFormat.format(_selectedStartDate)}'),
+                                  'Date de debut: ${dateFormat.format(_selectedStartDate)}',
+                                  style: GoogleFonts.poppins()),
                             ),
                             const Icon(Icons.calendar_today),
                           ],
@@ -193,7 +266,8 @@ class StatsContentViewState extends State<StatsContentView> {
                           children: [
                             Expanded(
                               child: Text(
-                                  'Date de fin: ${dateFormat.format(_selectedEndDate)}'),
+                                  'Date de fin: ${dateFormat.format(_selectedEndDate)}',
+                                  style: GoogleFonts.poppins()),
                             ),
                             const Icon(Icons.calendar_today),
                           ],
@@ -226,6 +300,14 @@ class StatsContentViewState extends State<StatsContentView> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: kBlue))
                   : _buildSelectedContent(),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
+              child: ExportToCsvButton(
+                filename: _currentFilename,
+                fetchCsvData: _getCurrentCsvDownload,
+                externalLoading: _isChangingStat,
+              ),
             ),
           ],
         ),
@@ -271,9 +353,14 @@ class StatsContentViewState extends State<StatsContentView> {
           horizontalMargin: isCompact ? 10 : 14,
           minWidth: isCompact ? 600 : 800,
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Nom'))),
-            DataColumn(label: Center(child: Text('Montant total'))),
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child:
+                        Text('Montant total', style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -289,10 +376,17 @@ class StatsContentViewState extends State<StatsContentView> {
           wrapInCard: false,
           source: UsersDataSource(_statsUseCase),
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Téléphone'))),
-            DataColumn(label: Center(child: Text('Initiales'))),
-            DataColumn(label: Center(child: Text('Montant coupon (€)'))),
+          columns: [
+            DataColumn(
+                label: Center(
+                    child: Text('Téléphone', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Initiales', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Montant coupon (€)',
+                        style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -307,7 +401,7 @@ class StatsContentViewState extends State<StatsContentView> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
+          return Text('Error: ${snapshot.error}', style: GoogleFonts.poppins());
         } else {
           final data = snapshot.data ?? [];
           return Padding(
@@ -315,10 +409,19 @@ class StatsContentViewState extends State<StatsContentView> {
             child: _buildStyledTable(
               context,
               DataTable2(
-                columns: const [
-                  DataColumn(label: Center(child: Text('Frais de gestion'))),
-                  DataColumn(label: Center(child: Text('Total injecté'))),
-                  DataColumn(label: Center(child: Text('Gain expiré total'))),
+                columns: [
+                  DataColumn(
+                      label: Center(
+                          child: Text('Frais de gestion',
+                              style: GoogleFonts.poppins()))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Total injecté',
+                              style: GoogleFonts.poppins()))),
+                  DataColumn(
+                      label: Center(
+                          child: Text('Gain expiré total',
+                              style: GoogleFonts.poppins()))),
                 ],
                 rows: data.map((item) {
                   final double expiredGain =
@@ -327,11 +430,14 @@ class StatsContentViewState extends State<StatsContentView> {
                     cells: [
                       DataCell(Center(
                           child: Text(
-                              '${item.managementFees.toStringAsFixed(2)} €'))),
-                      DataCell(
-                          Center(child: Text('${item.injectedTotalAmount} €'))),
+                              '${item.managementFees.toStringAsFixed(2)} €',
+                              style: GoogleFonts.poppins()))),
                       DataCell(Center(
-                          child: Text('${expiredGain.toStringAsFixed(2)} €'))),
+                          child: Text('${item.injectedTotalAmount} €',
+                              style: GoogleFonts.poppins()))),
+                      DataCell(Center(
+                          child: Text('${expiredGain.toStringAsFixed(2)} €',
+                              style: GoogleFonts.poppins()))),
                     ],
                   );
                 }).toList(),
@@ -353,10 +459,17 @@ class StatsContentViewState extends State<StatsContentView> {
           wrapInCard: false,
           source: VoucherTotalBalancePerCustomerDataSource(_statsUseCase),
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Nom'))),
-            DataColumn(label: Center(child: Text('Montant'))),
-            DataColumn(label: Center(child: Text('Date d\'expiration'))),
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Montant', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Date d\'expiration',
+                        style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -372,13 +485,21 @@ class StatsContentViewState extends State<StatsContentView> {
           wrapInCard: false,
           source: PartnerDigitalNeverOpenSessionDataSource(_statsUseCase),
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Nom'))),
-            DataColumn(label: Center(child: Text('Email'))),
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Email', style: GoogleFonts.poppins()))),
             DataColumn2(
-                size: ColumnSize.S, label: Center(child: Text('Téléphone'))),
+                size: ColumnSize.S,
+                label: Center(
+                    child: Text('Téléphone', style: GoogleFonts.poppins()))),
             DataColumn2(
-                size: ColumnSize.S, label: Center(child: Text('Avec QR Code'))),
+                size: ColumnSize.S,
+                label: Center(
+                    child: Text('Avec QR Code', style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -398,10 +519,18 @@ class StatsContentViewState extends State<StatsContentView> {
             _selectedEndDate,
           ),
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Nom'))),
-            DataColumn(label: Center(child: Text('Nombre de coupons'))),
-            DataColumn(label: Center(child: Text('Somme non dépensée'))),
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Nombre de coupons',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Somme non dépensée',
+                        style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -417,11 +546,18 @@ class StatsContentViewState extends State<StatsContentView> {
           wrapInCard: false,
           source: DigitalPartnerNoActivityDataSource(_statsUseCase),
           rowsPerPage: 10,
-          columns: const [
-            DataColumn(label: Center(child: Text('Nom'))),
-            DataColumn(label: Center(child: Text('ID'))),
-            DataColumn(label: Center(child: Text('Email'))),
-            DataColumn(label: Center(child: Text('Téléphone'))),
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(child: Text('ID', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Email', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Téléphone', style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -457,9 +593,11 @@ class PartnerTotalDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(item.name ?? ''))),
           DataCell(Center(
-              child: Text(item.totalAmount?.toStringAsFixed(2) ?? '0.00'))),
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.totalAmount?.toStringAsFixed(2) ?? '0.00',
+                  style: GoogleFonts.poppins()))),
         ],
       ));
     }
@@ -501,10 +639,13 @@ class UsersDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(user.mobile ?? ''))),
-          DataCell(Center(child: Text(user.initials ?? ''))),
-          DataCell(
-              Center(child: Text(user.amount?.toStringAsFixed(2) ?? '0.00'))),
+          DataCell(Center(
+              child: Text(user.mobile ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(user.initials ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(user.amount?.toStringAsFixed(2) ?? '0.00',
+                  style: GoogleFonts.poppins()))),
         ],
       ));
     }
@@ -556,10 +697,14 @@ class VoucherTotalBalancePerCustomerDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(item.name ?? ''))),
-          DataCell(Center(child: Text(item.amount ?? '0.00'))),
-          DataCell(
-              Center(child: Text(_formatExpirationDate(item.expirationDate)))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child:
+                  Text(item.amount ?? '0.00', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(_formatExpirationDate(item.expirationDate),
+                  style: GoogleFonts.poppins()))),
         ],
       ));
     }
@@ -602,10 +747,15 @@ class PartnerDigitalNeverOpenSessionDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(item.name ?? ''))),
-          DataCell(Center(child: Text(item.email ?? ''))),
-          DataCell(Center(child: Text(item.phone ?? ''))),
-          DataCell(Center(child: Text(item.withQrCode ?? ''))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.email ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.phone ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child:
+                  Text(item.withQrCode ?? '', style: GoogleFonts.poppins()))),
         ],
       ));
     }
@@ -653,10 +803,14 @@ class SumExpiredVouchersConsumerDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(item.name ?? ''))),
-          DataCell(
-              Center(child: Text(item.expiredVouchers?.toString() ?? '0'))),
-          DataCell(Center(child: Text(item.unredeemendAmount ?? '0.00'))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.expiredVouchers?.toString() ?? '0',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.unredeemendAmount ?? '0.00',
+                  style: GoogleFonts.poppins()))),
         ],
       ));
     }
@@ -698,10 +852,15 @@ class DigitalPartnerNoActivityDataSource extends AsyncDataTableSource {
             ? WidgetStateProperty.all(kWhite)
             : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
         cells: [
-          DataCell(Center(child: Text(item.name ?? ''))),
-          DataCell(Center(child: Text(item.id?.toString() ?? ''))),
-          DataCell(Center(child: Text(item.email ?? ''))),
-          DataCell(Center(child: Text(item.phone ?? ''))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.id?.toString() ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.email ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.phone ?? '', style: GoogleFonts.poppins()))),
         ],
       ));
     }
