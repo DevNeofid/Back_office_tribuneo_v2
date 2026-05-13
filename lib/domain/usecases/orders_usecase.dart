@@ -9,7 +9,7 @@ class OrderUseCase {
   OrderUseCase();
 
   // Function for adding a new order
-  Future<void> addOrder(OrderSendModel order,
+  Future<OrderSendModel?> addOrder(OrderSendModel order,
       {String? fileName, dynamic file}) async {
     return await orderRepository.addOrders(order,
         fileName: fileName, file: file);

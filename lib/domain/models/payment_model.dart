@@ -4,10 +4,9 @@ class PaymentModel {
   int? idOrder;
   num? amount;
   int? idPaymentMethod;
-  String? paymentMethod;
-  Date? createdDate;
-  Date? paymentDate;
-  Date? updatedDate;
+  DateTime? createdDate;
+  DateTime? paymentDate;
+  DateTime? updatedDate;
 
   PaymentModel(
       {this.id,
@@ -15,8 +14,8 @@ class PaymentModel {
       this.idOrder,
       this.amount,
       this.idPaymentMethod,
-      this.paymentMethod,
       this.createdDate,
+      this.paymentDate,
       this.updatedDate});
 
   PaymentModel.fromJson(Map<String, dynamic> json) {
@@ -25,16 +24,9 @@ class PaymentModel {
     idOrder = json['id_order'];
     amount = json['amount'];
     idPaymentMethod = json['id_payment_method'];
-    paymentMethod = json['payment_method'];
-    createdDate = json['created_date'] != null
-        ? Date.fromJson(json['created_date'])
-        : null;
-    paymentDate = json['payment_date'] != null
-        ? Date.fromJson(json['payment_date'])
-        : null;
-    updatedDate = json['updated_date'] != null
-        ? Date.fromJson(json['updated_date'])
-        : null;
+    createdDate = _parseDate(json['created_date']);
+    paymentDate = _parseDate(json['payment_date']);
+    updatedDate = _parseDate(json['updated_date']);
   }
 
   Map<String, dynamic> toJson() {
@@ -44,38 +36,26 @@ class PaymentModel {
     data['id_order'] = idOrder;
     data['amount'] = amount;
     data['id_payment_method'] = idPaymentMethod;
-    data['payment_method'] = paymentMethod;
     if (createdDate != null) {
-      data['created_date'] = createdDate!.toJson();
+      data['created_date'] = createdDate!.toIso8601String();
     }
     if (paymentDate != null) {
-      data['payment_date'] = paymentDate!.toJson();
+      data['payment_date'] = paymentDate!.toIso8601String();
     }
     if (updatedDate != null) {
-      data['updated_date'] = updatedDate!.toJson();
+      data['updated_date'] = updatedDate!.toIso8601String();
     }
     return data;
   }
-}
 
-class Date {
-  String? date;
-  int? timezoneType;
-  String? timezone;
-
-  Date({this.date, this.timezoneType, this.timezone});
-
-  Date.fromJson(Map<String, dynamic> json) {
-    date = json['date'];
-    timezoneType = json['timezone_type'];
-    timezone = json['timezone'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['date'] = date;
-    data['timezone_type'] = timezoneType;
-    data['timezone'] = timezone;
-    return data;
+  DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    if (value is Map<String, dynamic> && value.containsKey('date')) {
+      return DateTime.tryParse(value['date'].toString());
+    }
+    return null;
   }
 }

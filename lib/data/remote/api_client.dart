@@ -126,17 +126,19 @@ class ApiClient {
   }
 
   /// Méthode POST pour l'envoi de fichiers (multipart/form-data)
-  Future<Response> postWithFile(
-      String suffixeUrl, Map<String, dynamic> data) async {
+  Future<Response> postWithFile(String suffixeUrl, Map<String, dynamic> data,
+      {String? overrideTenant}) async {
+    Map<String, dynamic> customHeaders = {
+      'Content-Type': 'multipart/form-data',
+    };
+    if (overrideTenant != null) customHeaders['X-Tenant'] = overrideTenant;
     try {
       FormData formData = FormData.fromMap(data);
       Response response = await dio.post(
         suffixeUrl.toString(),
         data: formData,
         options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: customHeaders,
         ),
       );
       return response;
@@ -218,13 +220,19 @@ class ApiClient {
   }
 
   /// Méthode DELETE
-  Future<Response> delete(String suffixeUrl, int? id) async {
+  Future<Response> delete(String suffixeUrl, int? id,
+      {String? overrideTenant}) async {
     await _ensureInitialized();
 
     String path = id != null ? '$suffixeUrl/$id' : suffixeUrl;
 
+    Map<String, dynamic> customHeaders = {};
+    if (overrideTenant != null) customHeaders['X-Tenant'] = overrideTenant;
+
     try {
-      final response = await dio.delete(path);
+      final response = await dio.delete(path,
+          options: Options(
+              headers: customHeaders.isNotEmpty ? customHeaders : null));
       return checkForMaintenance(response);
     } catch (e) {
       if (kDebugMode) print('Erreur lors de la requête DELETE: $e');

@@ -380,7 +380,7 @@ class _OrderFormState extends State<OrderForm> {
         key: _formKey,
         child: Stack(children: [
           SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
+            width: SizeConfig.screenWidth * 0.65,
             height: SizeConfig.screenHeight * 0.85,
             child: Container(
               width: SizeConfig.screenWidth * 0.85,
@@ -762,8 +762,8 @@ class _OrderFormState extends State<OrderForm> {
                           padding: const EdgeInsets.only(bottom: 8.0),
                           child: Text(
                             "Ceci va remplacer \"Offert par\" sur le chèque",
-                            style: GoogleFonts.poppins(
-                                color: Colors.red, fontSize: 13),
+                            style:
+                                GoogleFonts.poppins(color: kBlue, fontSize: 13),
                           ),
                         ),
                       )

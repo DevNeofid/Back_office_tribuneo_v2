@@ -75,7 +75,7 @@ class NeoRowState extends State<NeoRow> {
                     padding: EdgeInsets.only(bottom: 6.0),
                     child: Text(
                       "Le message personnalisé va remplacer la raison URSAF",
-                      style: TextStyle(color: Colors.red, fontSize: 12),
+                      style: TextStyle(color: kBlue, fontSize: 12),
                     ),
                   )
                 : const SizedBox.shrink();

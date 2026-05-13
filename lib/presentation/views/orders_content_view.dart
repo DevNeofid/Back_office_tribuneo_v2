@@ -76,37 +76,73 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   }
 
   Future<void> _addOrder() async {
-    return await showDialog(
+    final result = await showDialog(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return const OrderForm(idEntity: -1, entityName: '');
-        }).then((value) => _refreshOrders());
+        });
+
+    if (result == true) {
+      _refreshOrders();
+    }
   }
 
-  Future _createQRCode(OrderModel order) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Génération des QR Codes...');
-      },
-    );
+  void _createQRCode(OrderModel order) {
+    snackbarKey.currentState?.showSnackBar(const SnackBar(
+        content: Text(
+          'Génération en arrière-plan, vous pouvez continuer à naviguer.',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: kGreen,
+        duration: Duration(seconds: 3)));
+    _processQRCodeGeneration(order);
+  }
+
+  Future<void> _processQRCodeGeneration(OrderModel order) async {
     try {
       String? name = order.giftFrom;
       name = name!.replaceAll(' ', '_');
       String? number = order.orderNumber;
-      dynamic res = await _orderUseCase.createQRCode(order.id!);
-      List<dynamic> listDynamic = res;
 
-      FileDownloader.downloadLargeFile(
-          listDynamic, '${name}_$number', 'application/zip',
-          fileExtension: 'zip');
+      dynamic res = await _orderUseCase.createQRCode(order.id!);
+
+      if (res != null) {
+        List<dynamic> listDynamic = res;
+
+        BuildContext? currentContext = navigatorKey.currentState?.context;
+        if (currentContext != null) {
+          showDialog(
+              context: currentContext,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Génération terminée'),
+                  content: Text(
+                      'Les QR Codes pour la commande $number sont prêts. Le téléchargement commence.'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('Fermer'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              });
+        }
+
+        FileDownloader.downloadLargeFile(
+            listDynamic, '${name}_$number', 'application/zip',
+            fileExtension: 'zip');
+      } else {
+        snackbarKey.currentState?.showSnackBar(const SnackBar(
+            content: Text('Erreur lors de la génération des QRcode.'),
+            backgroundColor: kRed));
+      }
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de la génération des QRcode.')));
-    } finally {
-      navigatorKey.currentState?.pop();
+          content: Text('Erreur lors de la génération des QRcode.'),
+          backgroundColor: kRed));
     }
   }
 
@@ -139,12 +175,16 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   }
 
   Future<void> _showPayments(OrderModel order) async {
-    return await showDialog(
+    final result = await showDialog(
         useSafeArea: true,
         context: context,
         builder: (context) {
           return ShowPayment(order: order);
-        }).then((value) => _refreshOrders());
+        });
+
+    if (result == true) {
+      _refreshOrders();
+    }
   }
 
   Future<void> _createInvoice(OrderModel order) async {
@@ -155,7 +195,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text(
             'Erreur : Pensez à vérifier que votre client a une adresse de renseignée ?'),
-        backgroundColor: Colors.red,
+        backgroundColor: kRed,
       ));
       return;
     }
@@ -188,11 +228,12 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       FileDownloader.downloadLargeFile(
           listDynamic, 'Facture_${name}_$number', 'application/pdf',
           fileExtension: 'pdf');
+
+      _refreshOrders();
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de la génération du PDF.')));
     } finally {
-      _refreshOrders();
       navigatorKey.currentState?.pop();
     }
   }
@@ -294,10 +335,10 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       name = name!.replaceAll(' ', '_');
       String? number = order.orderNumber;
 
-      List<dynamic> listDynamic = res;
+      List<dynamic> file = res;
 
       FileDownloader.downloadLargeFile(
-          listDynamic, 'BL_${name}_$number', 'application/pdf',
+          file, 'BL_${name}_$number', 'application/pdf',
           fileExtension: 'pdf');
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
@@ -308,7 +349,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   }
 
   void _deleteOrder(int id) async {
-    return await showDialog(
+    final result = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -319,19 +360,23 @@ class _OrdersContentViewState extends State<OrdersContentView> {
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Supprimer'),
-                onPressed: () {
-                  _orderUseCase.deleteOrder(id);
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                  await _orderUseCase.deleteOrder(id);
+                  Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        }).then((value) => _refreshOrders());
+        });
+
+    if (result == true) {
+      _refreshOrders();
+    }
   }
 
   void _filterOrders(String query) {
@@ -676,6 +721,7 @@ class ShowPaymentState extends State<ShowPayment> {
   PaymentMethod? _selectedPaymentMethod;
   late OrderModel order;
   List<PaymentModel> _payments = [];
+  bool _hasModifiedData = false;
   final List<PaymentMethod> _paymentMethods = [
     PaymentMethod(1, "CASH"),
     PaymentMethod(2, "CHECK"),
@@ -736,7 +782,7 @@ class ShowPaymentState extends State<ShowPayment> {
     if (selected != null && selected != selectedDate) {
       DateTime lastPaymentDate = selected;
       if (_payments.isNotEmpty) {
-        lastPaymentDate = DateTime.parse(_payments.last.paymentDate!.date!)
+        lastPaymentDate = DateTime.parse(_payments.last.paymentDate!.toString())
             .subtract(const Duration(hours: 12));
       }
       if (selected.isAfter(lastPaymentDate) ||
@@ -779,7 +825,7 @@ class ShowPaymentState extends State<ShowPayment> {
   }
 
   Future<void> _sendPayment(double amount) async {
-    return await showDialog(
+    final result = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -789,16 +835,19 @@ class ShowPaymentState extends State<ShowPayment> {
             actions: <Widget>[
               TextButton(
                   child: const Text('Annuler'),
-                  onPressed: () => Navigator.of(context).pop()),
+                  onPressed: () => Navigator.of(context).pop(false)),
               TextButton(
                   child: const Text('Valider'),
                   onPressed: () {
-                    _addPayment(amount);
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   }),
             ],
           );
-        }).then((value) => _refreshPayments());
+        });
+
+    if (result == true) {
+      await _addPayment(amount);
+    }
   }
 
   Future _addPayment(double amount) async {
@@ -814,6 +863,7 @@ class ShowPaymentState extends State<ShowPayment> {
       'id_payment_method': _selectedPaymentMethod!.id
     };
     await orderUseCase.addPayment(payment);
+    _hasModifiedData = true;
     _refreshPayments();
   }
 
@@ -846,13 +896,7 @@ class ShowPaymentState extends State<ShowPayment> {
                           child: Center(child: Text('Date'))),
                       Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: Center(child: Text('Méthode'))),
-                      Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Montant'))),
-                      Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: SizedBox()),
                     ],
                   ),
                   ..._payments
@@ -863,22 +907,13 @@ class ShowPaymentState extends State<ShowPayment> {
                                       const EdgeInsets.symmetric(vertical: 8.0),
                                   child: Center(
                                       child: Text(
-                                          '${DateFormater().modifyDate(payment.paymentDate!.date!)}'))),
-                              Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Center(
-                                      child: Text(
-                                          traduction(payment.paymentMethod!)))),
+                                          '${DateFormater().modifyDate(payment.paymentDate!.toString())}'))),
                               Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8.0),
                                   child: Center(
                                       child: Text(
                                           payment.amount!.toStringAsFixed(2)))),
-                              const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                                  child: SizedBox()),
                             ],
                           ))
                       .toList(),
@@ -963,7 +998,7 @@ class ShowPaymentState extends State<ShowPayment> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(_hasModifiedData),
             child: const Text('Fermer')),
       ],
     );

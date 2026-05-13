@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -44,41 +45,41 @@ class OrderRepository extends BaseRepository {
     return orders;
   }
 
-  // Function to add a new order
-  Future addOrders(OrderSendModel order,
+  Future<OrderSendModel?> addOrders(OrderSendModel order,
       {String? fileName, dynamic file}) async {
-    if (file != null) {
-      suffixe = "${suffixe}/file";
-    }
+    String tenant = await getTenantForCurrentNetwork();
+    String currentSuffix = file != null ? "$suffixe/file" : suffixe;
 
     OrderSendModel? res;
 
     if (file != null) {
       try {
         Map<String, dynamic> map = {
-          "other_data": order.toJson(),
+          "other_data": jsonEncode(order.toJson()),
           "file_name": fileName,
           "file_bytes": file
         };
-        dynamic request = await _remoteData.postWithFile(suffixe, map);
-        if (request.statusCode == 201) {
-          request = jsonDecode(request.body);
-          res = OrderSendModel.fromJson(request);
-        } else {
-          res = null;
+
+        dynamic response = await _remoteData.postWithFile(currentSuffix, map,
+            overrideTenant: tenant);
+
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          res = OrderSendModel.fromJson(response.data);
         }
       } catch (e) {
+        if (kDebugMode) {
+          print('###DEBUG### Error: $e');
+        }
         res = null;
       }
     } else {
       try {
         String data = jsonEncode(order);
-        dynamic request = await _remoteData.post(suffixe, data);
-        if (request.statusCode == 201) {
-          request = jsonDecode(request.body);
-          res = OrderSendModel.fromJson(request);
-        } else {
-          res = null;
+        dynamic response =
+            await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
+
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          res = OrderSendModel.fromJson(response.data);
         }
       } catch (e) {
         if (kDebugMode) {
@@ -109,8 +110,10 @@ class OrderRepository extends BaseRepository {
   }
 
   Future deleteOrder(int id) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic request = await _remoteData.softDelete('$suffixe/delete', id: id);
+      dynamic request =
+          await _remoteData.delete(suffixe, id, overrideTenant: tenant);
       if (request.statusCode == 200) {
         return true;
       }
@@ -126,7 +129,7 @@ class OrderRepository extends BaseRepository {
     try {
       dynamic response = await _remoteData.get('$suffixe/events');
       if (response.statusCode == 200) {
-        final List<dynamic> urssafJson = jsonDecode(response.data);
+        final List<dynamic> urssafJson = response.data['data'];
         final urssaf =
             urssafJson.map((urssaf) => UrssafModel.fromJson(urssaf)).toList();
         return urssaf;
@@ -142,28 +145,61 @@ class OrderRepository extends BaseRepository {
   }
 
   Future createQrCode(int idOrder) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
       dynamic response =
-          await _remoteData.get(suffixeQ, id: idOrder, bytesType: true);
+          await _remoteData.get(suffixeQ, id: idOrder, overrideTenant: tenant);
 
-      if (response.statusCode == 200) {
-        // var res = json.decode(response.data);
-        // return res;
-        return response.data;
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        String statusUrl = response.data['data']['status_url'];
+        String resultUrl = response.data['data']['result_url'];
+
+        if (statusUrl.startsWith('/')) {
+          statusUrl = statusUrl.substring(1);
+        }
+        if (resultUrl.startsWith('/')) {
+          resultUrl = resultUrl.substring(1);
+        }
+
+        bool isDone = false;
+
+        while (!isDone) {
+          await Future.delayed(const Duration(seconds: 2));
+          dynamic statusResponse =
+              await _remoteData.get(statusUrl, overrideTenant: tenant);
+
+          if (statusResponse.statusCode == 200) {
+            Map<String, dynamic> statusData = statusResponse.data['data'];
+            if (statusData['status'] == 'done') {
+              isDone = true;
+            } else if (statusData['status'] == 'failed' ||
+                statusData['status'] == 'error') {
+              return null;
+            }
+          } else {
+            return null;
+          }
+        }
+
+        dynamic finalResponse = await _remoteData.get(resultUrl,
+            bytesType: true, overrideTenant: tenant);
+        if (finalResponse.statusCode == 200) {
+          return finalResponse.data;
+        }
       }
     } catch (e) {
       return null;
     }
+    return null;
   }
 
   Future createCsv(int idOrder) async {
     String suffixe = 'qrcode/gen/csv';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.get(suffixe, id: idOrder, bytesType: true);
+      dynamic response = await _remoteData.get(suffixe,
+          id: idOrder, bytesType: true, overrideTenant: tenant);
       if (response.statusCode == 200) {
-        // var res = json.decode(response.data);
-        // return res;
         return response.data;
       }
     } catch (e) {
@@ -173,11 +209,13 @@ class OrderRepository extends BaseRepository {
 
   Future<List<PaymentModel>> getPayments(int idOrder) async {
     String suffixe = 'payment';
+    String tenant = await getTenantForCurrentNetwork();
     List<PaymentModel> payments = [];
     try {
-      dynamic response = await _remoteData.get(suffixe, id: idOrder);
+      dynamic response =
+          await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
       if (response.statusCode == 200) {
-        response = jsonDecode(response.data);
+        response = response.data['data'];
         for (var payment in response) {
           payments.add(PaymentModel.fromJson(payment as Map<String, dynamic>));
         }
@@ -193,8 +231,9 @@ class OrderRepository extends BaseRepository {
   Future addPayment(Map payment) async {
     String suffixe = 'payment';
     String data = jsonEncode(payment);
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.post(suffixe, data);
+      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('Error: $e');
@@ -205,8 +244,10 @@ class OrderRepository extends BaseRepository {
 
   Future getInvoiceInfos(int idOrder) async {
     String suffixe = 'invoice_info';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixe, id: idOrder);
+      dynamic response =
+          await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
       if (response.statusCode == 200) {
         var res = jsonDecode(response.data);
         Map<String, dynamic> invoiceInfos = {
@@ -224,8 +265,10 @@ class OrderRepository extends BaseRepository {
   Future createInvoice(Map invoice) async {
     String suffixe = 'invoice_purchase';
     String data = jsonEncode(invoice);
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.post(suffixe, data, bytesType: true);
+      dynamic response = await _remoteData.post(suffixe, data,
+          overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {
@@ -237,24 +280,26 @@ class OrderRepository extends BaseRepository {
   }
 
   Future createDeliveryNote(int idOrder) async {
-    String suffixe = 'delivery_note';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.get(suffixe, id: idOrder, bytesType: true);
+      dynamic response = await _remoteData.get('accounting/delivery-note/',
+          id: idOrder, overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {
         throw Exception('Failed to load delivery note');
       }
     } catch (e) {
+      print('Error: $e');
       return null;
     }
   }
 
   Future createSummary(int idOrder) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.get('$suffixe/$idOrder/summary', bytesType: true);
+      dynamic response = await _remoteData.get('$suffixe/$idOrder/summary',
+          overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
         return response.data;
       } else {
