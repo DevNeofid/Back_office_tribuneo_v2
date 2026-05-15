@@ -6,15 +6,34 @@ class AddressRepository {
   final ApiClient _remoteData = ApiClient();
   final String suffixe = 'address';
 
-  Future addAddress(AddressModel address) async {
-    String data = jsonEncode(address.toJson());
-    await _remoteData.post(suffixe, data);
-    return;
+  Future<void> addAddress(AddressModel address) async {
+    try {
+      final String data = jsonEncode(address.toJson());
+      final dynamic response = await _remoteData.post(suffixe, data);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return response;
+      } else {
+        throw Exception(
+            "Erreur lors de l'ajout de l'adresse : ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Erreur lors de l'ajout de l'adresse : $e");
+    }
   }
 
-  Future updateAddress(AddressModel address) async {
-    String data = jsonEncode(address.toJson());
-    await _remoteData.put(suffixe, data, id: address.id);
-    return;
+  Future<void> updateAddress(AddressModel address) async {
+    try {
+      final String data = jsonEncode(address.toJson());
+      final dynamic response =
+          await _remoteData.put(suffixe, data, id: address.id);
+      if (response.statusCode == 200) {
+        return response;
+      } else {
+        throw Exception(
+            "Erreur lors de la mise à jour de l'adresse : ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Erreur lors de la mise à jour de l'adresse : $e");
+    }
   }
 }

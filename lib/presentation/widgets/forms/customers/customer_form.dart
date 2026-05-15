@@ -31,6 +31,7 @@ class _CustomerFormState extends State<CustomerForm> {
 
   final CustomerUseCase _customerUseCase = CustomerUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isSaving = false;
 
   @override
   initState() {
@@ -55,6 +56,10 @@ class _CustomerFormState extends State<CustomerForm> {
 
     inspect(e);
 
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
       await _customerUseCase.addCustomer(e);
       if (!mounted) return;
@@ -67,6 +72,11 @@ class _CustomerFormState extends State<CustomerForm> {
         backgroundColor: Colors.green,
       ));
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
       snackbarKey.currentState?.showSnackBar(SnackBar(
         content: Text(
           'Erreur lors de l’ajout du client',
@@ -172,7 +182,9 @@ class _CustomerFormState extends State<CustomerForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.pop(context, false),
                       child: Text(
                         'Annuler',
                         style: GoogleFonts.poppins(
@@ -182,10 +194,18 @@ class _CustomerFormState extends State<CustomerForm> {
                         ),
                       ),
                     ),
-                    NeoButton(
-                      text: "Enregistrer",
-                      onPressed: addCustomer,
-                    ),
+                    _isSaving
+                        ? const SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: CircularProgressIndicator(
+                              color: kOrange,
+                            ),
+                          )
+                        : NeoButton(
+                            text: "Enregistrer",
+                            onPressed: addCustomer,
+                          ),
                   ],
                 ),
               ],

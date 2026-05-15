@@ -31,35 +31,45 @@ class _UpadateBankInformationsFormState
   TextEditingController officeCode = TextEditingController();
   TextEditingController accountNumber = TextEditingController();
   TextEditingController accountingNumber = TextEditingController();
+  TextEditingController intraComNumber = TextEditingController();
 
   final BankInformationsUseCase _bankInformationsUseCase =
       BankInformationsUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String? entityType;
+  bool _isSaving = false;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     entityType = widget.entity.type;
-    bic.text = widget.entity.bankInformations!.bic!;
-    key.text = widget.entity.bankInformations!.key!;
-    bankCode.text = widget.entity.bankInformations!.bankCode!;
-    officeCode.text = widget.entity.bankInformations!.officeCode!;
-    accountNumber.text = widget.entity.bankInformations!.accountNumber!;
-    accountingNumber.text = widget.entity.bankInformations!.accountingNumber!;
+    final bankInformations = widget.entity.bankInformations;
 
+    bic.text = bankInformations?.bic ?? '';
+    key.text = bankInformations?.key ?? '';
+    bankCode.text = bankInformations?.bankCode ?? '';
+    officeCode.text = bankInformations?.officeCode ?? '';
+    accountNumber.text = bankInformations?.accountNumber ?? '';
+    accountingNumber.text = bankInformations?.accountingNumber ?? '';
+    intraComNumber.text = bankInformations?.intraCommunityVat ?? '';
     iban.addListener(_handleTextChanged);
-    iban.text = _formatIban(widget.entity.bankInformations!.iban!);
+    iban.text = _formatIban(bankInformations?.iban ?? '');
   }
 
   Future<void> addBankInformations() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
 
+    _formKey.currentState!.save();
+
+    setState(() {
+      _isSaving = true;
+    });
+
     BankInformationsModel b = BankInformationsModel(
-      id: widget.entity.bankInformations!.id,
+      id: widget.entity.bankInformations?.id,
       iban: iban.text.replaceAll(' ', ''),
       bic: bic.text,
       key: key.text,
@@ -67,21 +77,27 @@ class _UpadateBankInformationsFormState
       officeCode: officeCode.text,
       accountNumber: accountNumber.text,
       accountingNumber: accountingNumber.text,
+      intraCommunityVat: intraComNumber.text,
       idEntity: widget.entity.id,
     );
 
     try {
-      _bankInformationsUseCase.updateBankInfo(b);
+      await _bankInformationsUseCase.updateBankInfo(b);
+      if (!mounted) return;
       Navigator.pop(context);
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Modification des informations bancaires réussie'),
-        backgroundColor: Colors.green, // Optional: to change background color
+        backgroundColor: Colors.green,
       ));
     } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content:
             Text('Erreur lors de la modification des informations bancaires'),
-        backgroundColor: Colors.red, // Optional: to change background color
+        backgroundColor: Colors.red,
       ));
     }
     return;
@@ -89,14 +105,15 @@ class _UpadateBankInformationsFormState
 
   @override
   void dispose() {
-    iban.dispose();
     iban.removeListener(_handleTextChanged);
+    iban.dispose();
     bic.dispose();
     key.dispose();
     bankCode.dispose();
     officeCode.dispose();
     accountNumber.dispose();
     accountingNumber.dispose();
+    intraComNumber.dispose();
     super.dispose();
   }
 
@@ -126,6 +143,8 @@ class _UpadateBankInformationsFormState
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+    double inputWidth = Responsive.isDesktop(context) ? 400 : double.infinity;
+
     return AlertDialog(
       backgroundColor: kTransparent,
       contentPadding: const EdgeInsets.all(0),
@@ -133,10 +152,10 @@ class _UpadateBankInformationsFormState
         key: _formKey,
         child: Stack(children: [
           SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.8,
+            width: SizeConfig.screenWidth * 0.4,
+            height: SizeConfig.screenHeight * 0.9,
             child: Container(
-              width: SizeConfig.screenWidth * 0.85,
+              width: SizeConfig.screenWidth * 0.4,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -145,12 +164,13 @@ class _UpadateBankInformationsFormState
               child: SingleChildScrollView(
                 child: Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Center(
                         child: SelectableText(
                           "Indiquer les informations bancaire de ce commerçant",
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,
                               letterSpacing: 0.3,
@@ -158,202 +178,129 @@ class _UpadateBankInformationsFormState
                               color: kOrange),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      entityType == 'partner'
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  height: 60,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: iban,
-                                          hintText: 'Iban',
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator.validateText(
-                                                value ?? '');
-                                          },
-                                        ),
-                                      ),
-                                      !Responsive.isMobile(context)
-                                          ? Expanded(
-                                              flex:
-                                                  Responsive.isDesktop(context)
-                                                      ? 3
-                                                      : 1,
-                                              child: const SizedBox(height: 10),
-                                            )
-                                          : const SizedBox(height: 10),
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: bic,
-                                          hintText: 'BIC',
-                                          // keyboardType: TextInputType.number,
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator.validateText(
-                                                value ?? '');
-                                          },
-                                          // formatter: FilteringTextInputFormatter
-                                          //     .digitsOnly,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: SizeConfig.screenHeight * 0.02),
-                                SizedBox(
-                                  height: 60,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: key,
-                                          hintText: 'Clé RIB',
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator.validateText(
-                                                value ?? '');
-                                          },
-                                        ),
-                                      ),
-                                      !Responsive.isMobile(context)
-                                          ? Expanded(
-                                              flex:
-                                                  Responsive.isDesktop(context)
-                                                      ? 3
-                                                      : 1,
-                                              child: const SizedBox(height: 10),
-                                            )
-                                          : const SizedBox(height: 10),
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: bankCode,
-                                          hintText: 'Code établissement',
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator.validateText(
-                                                value ?? '');
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: SizeConfig.screenHeight * 0.02),
-                                SizedBox(
-                                  height: 60,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: officeCode,
-                                          keyboardType: const TextInputType
-                                              .numberWithOptions(decimal: true),
-                                          hintText: 'Code guichet',
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator
-                                                .validatePosition(value ?? '');
-                                          },
-                                        ),
-                                      ),
-                                      !Responsive.isMobile(context)
-                                          ? Expanded(
-                                              flex:
-                                                  Responsive.isDesktop(context)
-                                                      ? 3
-                                                      : 1,
-                                              child: const SizedBox(height: 10),
-                                            )
-                                          : const SizedBox(height: 10),
-                                      Expanded(
-                                        flex: 2,
-                                        child: NeoInput(
-                                          controller: accountNumber,
-                                          keyboardType: const TextInputType
-                                              .numberWithOptions(decimal: true),
-                                          hintText: 'Numéro de compte',
-                                          fillColor: kPWhite,
-                                          validator: (value) {
-                                            return FormValidator
-                                                .validatePosition(value ?? '');
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: SizeConfig.screenHeight * 0.02),
-                              ],
-                            )
-                          : const SizedBox(),
+                      const SizedBox(height: 30),
+                      if (entityType == 'partner') ...[
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: iban,
+                            hintText: 'Iban',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validateText(value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: bic,
+                            hintText: 'BIC',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validateText(value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: key,
+                            hintText: 'Clé RIB',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validateText(value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: bankCode,
+                            hintText: 'Code établissement',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validateText(value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: officeCode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Code guichet',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validatePosition(
+                                  value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: accountNumber,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Numéro de compte',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              return FormValidator.validatePosition(
+                                  value ?? '');
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                      ],
                       SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: accountingNumber,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true),
-                                hintText: 'Numéro de compte comptabilité',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateAccounting(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 3 : 1,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            const Expanded(
-                              flex: 2,
-                              child: SizedBox(),
-                            ),
-                          ],
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: accountingNumber,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          hintText: 'Numéro de comptabilité',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateAccounting(
+                                value ?? '');
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: intraComNumber,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          hintText: 'Numéro intra communautaire',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateIntraComNumber(
+                                value ?? '');
+                          },
                         ),
                       ),
                       SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          NeoButton(
+                      _isSaving
+                          ? const SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(
+                                color: kOrange,
+                              ),
+                            )
+                          : NeoButton(
                               text: "Enregistrer",
-                              onPressed: addBankInformations),
-                        ],
-                      ),
+                              onPressed: addBankInformations,
+                            ),
                     ],
                   ),
                 ),

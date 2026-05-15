@@ -63,12 +63,14 @@ class FormValidator {
     return null;
   }
 
-  static String? validateSiret(String value) {
-    RegExp regex = RegExp(r'^\d{14}$');
-    if (!regex.hasMatch(value.trim())) {
-      return '🚩 Numéro Siret non valide';
+  static String? validateSiret(String? value) {
+    if (value == null || value.isEmpty) {
+      return '🚩 Numéro SIRET incorrect';
+    } else if (value.length != 14 || !RegExp(r'^\d{14}$').hasMatch(value)) {
+      return '🚩 Numéro SIRET invalide';
+    } else {
+      return null;
     }
-    return null;
   }
 
   static String? validateCode(String value) {
@@ -82,6 +84,22 @@ class FormValidator {
     if (value.trim().isEmpty) {
       return '🚩 Code comptable non valide';
     }
+    return null;
+  }
+
+  static String? validateIntraComNumber(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '🚩 Numéro Intra-Com requis';
+    }
+
+    final cleanValue = value.replaceAll(' ', '').toUpperCase();
+
+    final regex = RegExp(r'^FR[A-Z0-9]{2}\d{9}$');
+
+    if (!regex.hasMatch(cleanValue)) {
+      return '🚩 Numéro Intra-Com invalide';
+    }
+
     return null;
   }
 

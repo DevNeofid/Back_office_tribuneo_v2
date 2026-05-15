@@ -6,7 +6,6 @@ class AddressModel {
   String? country;
   num? lat;
   num? lng;
-  int? idUser;
   int? idEntity;
 
   AddressModel({
@@ -17,7 +16,6 @@ class AddressModel {
     this.country,
     this.lat,
     this.lng,
-    this.idUser,
     this.idEntity,
   });
 
@@ -37,7 +35,6 @@ class AddressModel {
     // print("### DEBUG ### -> lon ${json['lon']}");
     lng = json['lng'];
     // print("### DEBUG ### -> id_user ${json['id_user']}");
-    idUser = json['id_user'];
     // print("### DEBUG ### -> id_entity ${json['id_entity']}");
     idEntity = json['id_entity'];
   }
@@ -51,7 +48,6 @@ class AddressModel {
     data['country'] = country;
     data['lat'] = lat;
     data['lng'] = lng;
-    data['id_user'] = idUser;
     data['id_entity'] = idEntity;
     return data;
   }

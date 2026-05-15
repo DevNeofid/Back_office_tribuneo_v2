@@ -89,7 +89,7 @@ class PartnerRepository extends BaseRepository {
   Future updatePartner(EntityModel partner) async {
     String data = jsonEncode(partner.toJson());
     try {
-      return await _remoteData.put('$suffixe/${partner.id}', data);
+      return await _remoteData.put(suffixe, data, id: partner.id);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
@@ -130,11 +130,11 @@ class PartnerRepository extends BaseRepository {
     return result;
   }
 
-  Future<http.Response> addNewSector(String sectorName) async {
+  Future addNewSector(String sectorName) async {
     const String suffixeAS = 'activity-sectors';
     try {
-      dynamic res = await _remoteData.post(
-          suffixeAS, jsonEncode({'name': sectorName, 'description': ''}));
+      dynamic res =
+          await _remoteData.post(suffixeAS, jsonEncode({'name': sectorName}));
       return res;
     } catch (e) {
       return http.Response('Error: $e', 500);
@@ -152,7 +152,7 @@ class PartnerRepository extends BaseRepository {
 
   Future updateSectorPartner(Map data) async {
     String dataJson = jsonEncode(data);
-    const String suffixeSAS = 'activity-sectors';
+    const String suffixeSAS = 'activity-sectors/set';
     try {
       return await _remoteData.post(suffixeSAS, dataJson);
     } catch (e) {

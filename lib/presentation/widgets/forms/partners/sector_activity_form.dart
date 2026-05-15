@@ -9,7 +9,6 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class SectorCreationForm extends StatefulWidget {
   final EntityModel partner;
-  //final List<int> selectedIds = [1, 3];
   const SectorCreationForm({Key? key, required this.partner}) : super(key: key);
   @override
   SectorCreationFormState createState() => SectorCreationFormState();
@@ -23,6 +22,8 @@ class SectorCreationFormState extends State<SectorCreationForm> {
   late final Set<int> _selectedIds;
 
   bool isHovered = false;
+  bool _isSaving = false;
+  bool _isCreating = false;
 
   @override
   void initState() {
@@ -36,16 +37,20 @@ class SectorCreationFormState extends State<SectorCreationForm> {
 
   Future<void> refreshSector() async {
     dynamic data = await _partnerUseCase.getSectors();
-    setState(() {
-      _sectors = data;
-    });
+    if (mounted) {
+      setState(() {
+        _sectors = data;
+      });
+    }
   }
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      NavigatorState navigator = Navigator.of(context);
+      setState(() {
+        _isSaving = true;
+      });
 
       Map<String, dynamic> data = {
         'id_entity': widget.partner.id,
@@ -54,17 +59,22 @@ class SectorCreationFormState extends State<SectorCreationForm> {
 
       try {
         await _partnerUseCase.updateSectorPartner(data);
-        navigator.pop();
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
 
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Modification des secteurs d\'activité réussie'),
-          backgroundColor: Colors.green, // Optional: to change background color
+          backgroundColor: Colors.green,
         ));
       } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _isSaving = false;
+        });
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content:
               Text('Erreur lors de la modification des secteurs d\'activité'),
-          backgroundColor: Colors.red, // Optional: to change background color
+          backgroundColor: Colors.red,
         ));
       }
     }
@@ -73,18 +83,29 @@ class SectorCreationFormState extends State<SectorCreationForm> {
   Future<void> _addNewSector() async {
     String newSectorName = _newSectorController.text.trim();
     if (newSectorName.isNotEmpty) {
+      setState(() {
+        _isCreating = true;
+      });
       try {
         await _partnerUseCase.addNewSector(newSectorName);
         await refreshSector();
         _newSectorController.clear();
+        if (!mounted) return;
+        setState(() {
+          _isCreating = false;
+        });
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Le secteur d’activité a ajouté '),
-          backgroundColor: Colors.green, // Optional: to change background color
+          content: Text('Le secteur d’activité a été ajouté'),
+          backgroundColor: Colors.green,
         ));
       } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _isCreating = false;
+        });
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de l’ajout du secteur d’activité'),
-          backgroundColor: Colors.red, // Optional: to change background color
+          backgroundColor: Colors.red,
         ));
       }
     }
@@ -209,22 +230,39 @@ class SectorCreationFormState extends State<SectorCreationForm> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: kBlueStart,
                             foregroundColor: kWhite),
-                        onPressed: _addNewSector,
-                        child: const Text('Créer'),
+                        onPressed: _isCreating ? null : _addNewSector,
+                        child: _isCreating
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Créer'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 38.0),
                   Center(
-                    child: NeoButton(
-                      key: UniqueKey(),
-                      text: "Enregistrer",
-                      onPressed: _submitForm,
-                      fontSize: 16,
-                      foregroundColor: kPWhite,
-                      backgroundColor: kOrange,
-                      shadowColor: kBlue,
-                    ),
+                    child: _isSaving
+                        ? const SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: CircularProgressIndicator(
+                              color: kOrange,
+                            ),
+                          )
+                        : NeoButton(
+                            key: UniqueKey(),
+                            text: "Enregistrer",
+                            onPressed: _submitForm,
+                            fontSize: 16,
+                            foregroundColor: kPWhite,
+                            backgroundColor: kOrange,
+                            shadowColor: kBlue,
+                          ),
                   ),
                 ],
               ),

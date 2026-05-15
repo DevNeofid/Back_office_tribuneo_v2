@@ -30,16 +30,23 @@ class _AddressFormState extends State<AddressForm> {
 
   final AddressUseCase _addressUseCase = AddressUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isSaving = false;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
   }
 
   Future<void> addAddress() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    _formKey.currentState!.save();
+
+    setState(() {
+      _isSaving = true;
+    });
 
     Map<String, dynamic> addressMap = {
       'street': streetController.text,
@@ -52,25 +59,53 @@ class _AddressFormState extends State<AddressForm> {
     if (latController.text.isNotEmpty) {
       addressMap['lat'] = double.parse(latController.text.replaceAll(',', '.'));
     } else {
-      addressMap['lat'] = 0;
+      addressMap['lat'] = null;
     }
 
     if (lngController.text.isNotEmpty) {
       addressMap['lng'] = double.parse(lngController.text.replaceAll(',', '.'));
     } else {
-      addressMap['lng'] = 0;
+      addressMap['lng'] = null;
     }
 
     AddressModel a = AddressModel.fromJson(addressMap);
 
-    await _addressUseCase.addAddress(a);
-    navigatorKey.currentState?.pop();
-    return;
+    try {
+      await _addressUseCase.addAddress(a);
+      if (!mounted) return;
+
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ajout de l\'adresse réussi',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      navigatorKey.currentState?.pop(true);
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        _isSaving = false;
+      });
+
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erreur lors de l\'ajout de l\'adresse',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     streetController.dispose();
     zipController.dispose();
     cityController.dispose();
@@ -83,6 +118,9 @@ class _AddressFormState extends State<AddressForm> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+    // Optionnel : limite la largeur des inputs sur Desktop pour un meilleur design
+    double inputWidth = Responsive.isDesktop(context) ? 400 : double.infinity;
+
     return AlertDialog(
       backgroundColor: kTransparent,
       contentPadding: const EdgeInsets.all(0),
@@ -90,10 +128,8 @@ class _AddressFormState extends State<AddressForm> {
         key: _formKey,
         child: Stack(children: [
           SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.8,
             child: Container(
-              width: SizeConfig.screenWidth * 0.85,
+              width: SizeConfig.screenWidth * 0.4,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -102,12 +138,13 @@ class _AddressFormState extends State<AddressForm> {
               child: SingleChildScrollView(
                 child: Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Center(
                         child: SelectableText(
                           "Indiquer l'adresse de ce commerçant",
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,
                               letterSpacing: 0.3,
@@ -115,141 +152,103 @@ class _AddressFormState extends State<AddressForm> {
                               color: kOrange),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 30),
                       SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: streetController,
-                                hintText: 'Adresse',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 3 : 1,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: zipController,
-                                hintText: 'Code postal',
-                                keyboardType: TextInputType.number,
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateInt(value ?? '');
-                                },
-                                formatter:
-                                    FilteringTextInputFormatter.digitsOnly,
-                              ),
-                            ),
-                          ],
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: streetController,
+                          hintText: 'Adresse',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateText(value ?? '');
+                          },
                         ),
                       ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
+                      const SizedBox(height: 15),
                       SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: cityController,
-                                hintText: 'Ville',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: countryController,
-                                hintText: 'Pays',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                          ],
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: zipController,
+                          hintText: 'Code postal',
+                          keyboardType: TextInputType.number,
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateInt(value ?? '');
+                          },
+                          formatter: FilteringTextInputFormatter.digitsOnly,
                         ),
                       ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
+                      const SizedBox(height: 15),
                       SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: latController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true),
-                                hintText: 'lattitude',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validatePosition(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: lngController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true),
-                                hintText: 'Longitude',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validatePosition(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                          ],
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: cityController,
+                          hintText: 'Ville',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateText(value ?? '');
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: countryController,
+                          hintText: 'Pays',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            return FormValidator.validateText(value ?? '');
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: latController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          hintText: 'Lattitude',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return null;
+                            }
+                            return FormValidator.validatePosition(value);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: lngController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          hintText: 'Longitude',
+                          fillColor: kPWhite,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return null;
+                            }
+                            return FormValidator.validatePosition(value);
+                          },
                         ),
                       ),
                       SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          NeoButton(text: "Enregistrer", onPressed: addAddress),
-                        ],
-                      ),
+                      _isSaving
+                          ? const SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(
+                                color: kOrange,
+                              ),
+                            )
+                          : NeoButton(
+                              text: "Enregistrer",
+                              onPressed: addAddress,
+                            ),
                     ],
                   ),
                 ),

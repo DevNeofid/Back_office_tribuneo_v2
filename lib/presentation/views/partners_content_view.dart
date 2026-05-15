@@ -630,7 +630,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                           FontWeight.bold),
                                                   _partners[index]
                                                               .acceptDemat ==
-                                                          1
+                                                          true
                                                       ? 'Oui'
                                                       : 'Non',
                                                 ),
@@ -1228,7 +1228,17 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                                         .w400),
                                                       ),
                                                       SelectableText(
-                                                        'Numéro de compte comptabilité: ${_partners[index].bankInformations!.accountingNumber}',
+                                                        'Numéro de comptabilité: ${_partners[index].bankInformations!.accountingNumber}',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                                color: kBlack,
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400),
+                                                      ),
+                                                      SelectableText(
+                                                        'Numéro intracommunautaire: ${_partners[index].bankInformations!.intraCommunityVat}',
                                                         style:
                                                             GoogleFonts.poppins(
                                                                 color: kBlack,

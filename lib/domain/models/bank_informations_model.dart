@@ -7,6 +7,7 @@ class BankInformationsModel {
   String? officeCode;
   String? accountNumber;
   String? accountingNumber;
+  String? intraCommunityVat;
   int? idEntity;
 
   BankInformationsModel(
@@ -18,6 +19,7 @@ class BankInformationsModel {
       this.officeCode,
       this.accountNumber,
       this.accountingNumber,
+      this.intraCommunityVat,
       this.idEntity});
 
   BankInformationsModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class BankInformationsModel {
     officeCode = json['office_code'];
     accountNumber = json['account_number'];
     accountingNumber = json['accounting_number'];
+    intraCommunityVat = json['intracommunity_vat_number'];
     idEntity = json['id_entity'];
   }
 
@@ -42,6 +45,7 @@ class BankInformationsModel {
     data['office_code'] = officeCode;
     data['account_number'] = accountNumber;
     data['accounting_number'] = accountingNumber;
+    data['intracommunity_vat_number'] = intraCommunityVat;
     data['id_entity'] = idEntity;
     return data;
   }

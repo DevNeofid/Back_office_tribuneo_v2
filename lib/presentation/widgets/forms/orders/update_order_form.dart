@@ -44,6 +44,7 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   UrssafModel? _selectedUrssafEvent;
   late DateTime selectedExpiryDate;
   late DateTime oldExpiryDate;
+  bool _isSaving = false;
 
   @override
   initState() {
@@ -69,9 +70,15 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   }
 
   Future<void> sendModifiedOrder() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    _formKey.currentState!.save();
+
+    setState(() {
+      _isSaving = true;
+    });
 
     if (modifyItem.id != -1) {
       setState(() {
@@ -107,8 +114,16 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
       "id_entity": modifyItem.id
     });
     inspect(o);
-    _orderUseCase.updateOrder(o);
-    Navigator.pop(context);
+    try {
+      await _orderUseCase.updateOrder(o);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+    }
     return;
   }
 
@@ -444,9 +459,17 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          NeoButton(
-                              text: "Enregistrer",
-                              onPressed: sendModifiedOrder),
+                          _isSaving
+                              ? const SizedBox(
+                                  height: 40,
+                                  width: 40,
+                                  child: CircularProgressIndicator(
+                                    color: kOrange,
+                                  ),
+                                )
+                              : NeoButton(
+                                  text: "Enregistrer",
+                                  onPressed: sendModifiedOrder),
                         ],
                       ),
                     ],

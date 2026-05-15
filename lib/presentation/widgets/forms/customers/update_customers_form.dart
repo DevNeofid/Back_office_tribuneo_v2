@@ -33,6 +33,7 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
 
   final CustomerUseCase _customerUseCase = CustomerUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isSaving = false;
 
   @override
   initState() {
@@ -45,9 +46,15 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
   }
 
   Future<void> addCustomer() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    _formKey.currentState!.save();
+
+    setState(() {
+      _isSaving = true;
+    });
 
     EntityModel e = EntityModel.fromJson({
       "name": customerNameController.text,
@@ -61,17 +68,22 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
     inspect(e);
 
     try {
-      _customerUseCase.updateCustomer(e).then((value) {
-        Navigator.pop(context);
-        snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Modification du client réussie'),
-          backgroundColor: Colors.green, // Optional: to change background color
-        ));
-      });
+      await _customerUseCase.updateCustomer(e);
+      if (!mounted) return;
+      Navigator.pop(context);
+      snackbarKey.currentState?.showSnackBar(const SnackBar(
+        content: Text('Modification du client réussie'),
+        backgroundColor: Colors.green,
+      ));
     } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Erreur lors de la modification du client.'),
-        backgroundColor: Colors.red, // Optional: to change background color
+        backgroundColor: Colors.red,
       ));
     }
     return;
@@ -243,8 +255,16 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          NeoButton(
-                              text: "Enregistrer", onPressed: addCustomer),
+                          _isSaving
+                              ? const SizedBox(
+                                  height: 40,
+                                  width: 40,
+                                  child: CircularProgressIndicator(
+                                    color: kOrange,
+                                  ),
+                                )
+                              : NeoButton(
+                                  text: "Enregistrer", onPressed: addCustomer),
                         ],
                       ),
                     ],

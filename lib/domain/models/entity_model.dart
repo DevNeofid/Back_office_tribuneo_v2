@@ -53,17 +53,17 @@ class EntityModel {
     fundAmount = json['fund_amount'];
     //print("### DEBUG ### -> address ${json['address']}");
     acceptDemat = json['accept_demat'];
-    //print("### DEBUG ### -> bankInformations ${json['bankInformations']}");
+    //print("### DEBUG ### -> accept_demat ${json['accept_demat']}");
     address =
         json['address'] != null ? AddressModel.fromJson(json['address']) : null;
-    bankInformations = json['bankInformations'] != null
-        ? BankInformationsModel.fromJson(json['bankInformations'])
+    bankInformations = json['bank_informations'] != null
+        ? BankInformationsModel.fromJson(json['bank_informations'])
         : null;
-    activitySectors = json['activitySectors'] != null
-        ? (json['activitySectors'] as List)
+    activitySectors = json['activity_sectors'] != null
+        ? (json['activity_sectors'] as List)
             .map((sectorJson) => Sector.fromJson(sectorJson))
             .toList()
-        : null;
+        : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -81,10 +81,10 @@ class EntityModel {
       data['address'] = address!.toJson();
     }
     if (bankInformations != null) {
-      data['bankInformations'] = bankInformations!.toJson();
+      data['bank_informations'] = bankInformations!.toJson();
     }
     if (activitySectors != null) {
-      data['activitySectors'] =
+      data['activity_sectors'] =
           activitySectors!.map((sector) => sector.toJson()).toList();
     }
     return data;

@@ -8,14 +8,33 @@ class BankInformationsRepository {
   final String suffixe = 'bank-information';
 
   Future addBankInfo(BankInformationsModel bankInfo) async {
-    String data = jsonEncode(bankInfo.toJson());
-    await _remoteData.post(suffixe, data);
-    return;
+    try {
+      String data = jsonEncode(bankInfo.toJson());
+      final dynamic response = await _remoteData.post(suffixe, data);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return response;
+      } else {
+        throw Exception(
+            "Erreur lors de l'ajout des informations bancaires : ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception('Erreur API addBankInfo: $e');
+    }
   }
 
   Future updateBankInfo(BankInformationsModel bankInfo) async {
-    String data = jsonEncode(bankInfo.toJson());
-    await _remoteData.put(suffixe, data, id: bankInfo.idEntity);
-    return;
+    try {
+      String data = jsonEncode(bankInfo.toJson());
+      final dynamic response =
+          await _remoteData.put(suffixe, data, id: bankInfo.idEntity);
+      if (response.statusCode == 200) {
+        return response;
+      } else {
+        throw Exception(
+            "Erreur lors de la mise à jour des informations bancaires : ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception('Erreur API updateBankInfo: $e');
+    }
   }
 }
