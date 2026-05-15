@@ -150,69 +150,83 @@ class StatsContentViewState extends State<StatsContentView> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 16.0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: kWhite,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: kBlue),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _selectedButtonIndex,
-                      icon: const Icon(Icons.arrow_drop_down, color: kBlue),
-                      style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: kBlueEnd,
-                          fontWeight: FontWeight.w500),
-                      onChanged: (int? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedButtonIndex = newValue;
-                            _isChangingStat = true;
-                          });
-                          Future.delayed(const Duration(milliseconds: 600), () {
-                            if (mounted) {
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: kWhite,
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(color: kBlue),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: _selectedButtonIndex,
+                          icon: const Icon(Icons.arrow_drop_down, color: kBlue),
+                          style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: kBlueEnd,
+                              fontWeight: FontWeight.w500),
+                          onChanged: (int? newValue) {
+                            if (newValue != null) {
                               setState(() {
-                                _isChangingStat = false;
+                                _selectedButtonIndex = newValue;
+                                _isChangingStat = true;
+                              });
+                              Future.delayed(const Duration(milliseconds: 600),
+                                  () {
+                                if (mounted) {
+                                  setState(() {
+                                    _isChangingStat = false;
+                                  });
+                                }
                               });
                             }
-                          });
-                        }
-                      },
-                      items: [
-                        DropdownMenuItem(
-                            value: 0,
-                            child: Text('Comptes utilisateurs',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 1,
-                            child: Text('Montant total des partenaires',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 2,
-                            child: Text('Montant total du réseau',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 3,
-                            child: Text('Montant total des bons par clients',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 4,
-                            child: Text('Partenaires jamais connectés',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 5,
-                            child: Text('Somme des coupons expirés par client',
-                                style: GoogleFonts.poppins())),
-                        DropdownMenuItem(
-                            value: 6,
-                            child: Text('Partenaires sans transactions',
-                                style: GoogleFonts.poppins())),
-                      ],
+                          },
+                          items: [
+                            DropdownMenuItem(
+                                value: 0,
+                                child: Text('Comptes utilisateurs',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 1,
+                                child: Text('Montant total des partenaires',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 2,
+                                child: Text('Montant total du réseau',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 3,
+                                child: Text(
+                                    'Montant total des bons par clients',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 4,
+                                child: Text('Partenaires jamais connectés',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 5,
+                                child: Text(
+                                    'Somme des coupons expirés par client',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 6,
+                                child: Text('Partenaires sans transactions',
+                                    style: GoogleFonts.poppins())),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 16),
+                    ExportToCsvButton(
+                      filename: _currentFilename,
+                      fetchCsvData: _getCurrentCsvDownload,
+                      externalLoading: _isChangingStat,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -300,14 +314,6 @@ class StatsContentViewState extends State<StatsContentView> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: kBlue))
                   : _buildSelectedContent(),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
-              child: ExportToCsvButton(
-                filename: _currentFilename,
-                fetchCsvData: _getCurrentCsvDownload,
-                externalLoading: _isChangingStat,
-              ),
             ),
           ],
         ),

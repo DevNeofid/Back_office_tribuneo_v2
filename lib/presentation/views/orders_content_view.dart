@@ -82,7 +82,6 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         builder: (context) {
           return const OrderForm(idEntity: -1, entityName: '');
         });
-
     if (result == true) {
       _refreshOrders();
     }
@@ -722,6 +721,7 @@ class ShowPaymentState extends State<ShowPayment> {
   late OrderModel order;
   List<PaymentModel> _payments = [];
   bool _hasModifiedData = false;
+  bool _isSubmitting = false;
   final List<PaymentMethod> _paymentMethods = [
     PaymentMethod(1, "CASH"),
     PaymentMethod(2, "CHECK"),
@@ -851,20 +851,25 @@ class ShowPaymentState extends State<ShowPayment> {
   }
 
   Future _addPayment(double amount) async {
-    var inputFormat = DateFormat('dd/MM/yyyy');
-    var inputDate = inputFormat.parse(paymentDateController.text);
-    var outputFormat = DateFormat('yyyy-MM-dd');
-    String dateFormated = outputFormat.format(inputDate);
-    Map payment = {
-      'id_entity': order.idEntity,
-      'id_order': order.id,
-      'payment_date': dateFormated,
-      'amount': amount,
-      'id_payment_method': _selectedPaymentMethod!.id
-    };
-    await orderUseCase.addPayment(payment);
-    _hasModifiedData = true;
-    _refreshPayments();
+    setState(() => _isSubmitting = true);
+    try {
+      var inputFormat = DateFormat('dd/MM/yyyy');
+      var inputDate = inputFormat.parse(paymentDateController.text);
+      var outputFormat = DateFormat('yyyy-MM-dd');
+      String dateFormated = outputFormat.format(inputDate);
+      Map payment = {
+        'id_entity': order.idEntity,
+        'id_order': order.id,
+        'payment_date': dateFormated,
+        'amount': amount,
+        'id_payment_method': _selectedPaymentMethod!.id
+      };
+      await orderUseCase.addPayment(payment);
+      _hasModifiedData = true;
+      await _refreshPayments();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -896,6 +901,9 @@ class ShowPaymentState extends State<ShowPayment> {
                           child: Center(child: Text('Date'))),
                       Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(child: Text('Méthode'))),
+                      Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Montant'))),
                     ],
                   ),
@@ -908,6 +916,19 @@ class ShowPaymentState extends State<ShowPayment> {
                                   child: Center(
                                       child: Text(
                                           '${DateFormater().modifyDate(payment.paymentDate!.toString())}'))),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Center(
+                                      child: Text(traduction(
+                                    _paymentMethods
+                                        .firstWhere(
+                                          (m) =>
+                                              m.id == payment.idPaymentMethod,
+                                          orElse: () => PaymentMethod(0, ''),
+                                        )
+                                        .name,
+                                  )))),
                               Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8.0),
@@ -972,12 +993,24 @@ class ShowPaymentState extends State<ShowPayment> {
                       const SizedBox(width: 12),
                       Expanded(
                         flex: 1,
-                        child: NeoButton(
-                            width: 100,
-                            height: 40,
-                            onPressed: () =>
-                                _submitPayment(_paymentAmountController.text),
-                            text: "Valider"),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 40,
+                                child: Center(
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2.5, color: kOrange),
+                                  ),
+                                ),
+                              )
+                            : NeoButton(
+                                width: 100,
+                                height: 40,
+                                onPressed: () =>
+                                    _submitPayment(_paymentAmountController.text),
+                                text: "Valider"),
                       ),
                     ],
                   ),

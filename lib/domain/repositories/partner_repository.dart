@@ -133,8 +133,8 @@ class PartnerRepository extends BaseRepository {
   Future<http.Response> addNewSector(String sectorName) async {
     const String suffixeAS = 'activity-sectors';
     try {
-      dynamic res = await _remoteData.post(
-          suffixeAS, jsonEncode({'name': sectorName, 'description': ''}));
+      dynamic res =
+          await _remoteData.post(suffixeAS, jsonEncode({'name': sectorName}));
       return res;
     } catch (e) {
       return http.Response('Error: $e', 500);

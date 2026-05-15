@@ -155,7 +155,7 @@ class OrderSendModel {
   String? giftFrom;
   int? idUrssaf;
   String? giftReason;
-  int? fundQuantity;
+  double? fundQuantity;
   String? fundExpiryDate;
   List<OrderSendItems>? orderItems;
   int? idEntity;
@@ -203,7 +203,7 @@ class OrderSendModel {
 }
 
 class OrderSendItems {
-  int? amount;
+  double? amount;
   int? quantity;
   String? persoMsg;
 
