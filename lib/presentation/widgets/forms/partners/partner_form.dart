@@ -27,6 +27,7 @@ class _PartnerFormState extends State<PartnerForm> {
   TextEditingController partnerDescriptionController = TextEditingController();
 
   bool _checked = false;
+  bool _isLoading = false;
 
   final String entityType = 'partner';
   final String entityDescription = 'description';
@@ -40,43 +41,56 @@ class _PartnerFormState extends State<PartnerForm> {
   }
 
   Future<void> addPartner() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-    } else {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
 
-    EntityModel e = EntityModel.fromJson({
-      "name": partnerNameController.text,
-      "email": partnerMailController.text,
-      "siret": partnerSiretController.text,
-      "code": partnerCodeController.text,
-      "phone": partnerPhoneController.text,
-      "accept_demat": _checked ? 1 : 0,
-      "type": entityType,
+    setState(() {
+      _isLoading = true;
     });
 
-    inspect(e);
-
     try {
+      EntityModel e = EntityModel.fromJson({
+        "name": partnerNameController.text,
+        "email": partnerMailController.text,
+        "siret": partnerSiretController.text,
+        "code": partnerCodeController.text,
+        "phone": partnerPhoneController.text,
+        "accept_demat": _checked ? true : false,
+        "type": entityType,
+      });
+
+      inspect(e);
+
       await _partnerUseCase.addPartner(e);
+
       if (!mounted) return;
       Navigator.pop(context, true);
-      snackbarKey.currentState?.showSnackBar(SnackBar(
-        content: Text(
-          'Inscription du partenaire réussie',
-          style: GoogleFonts.poppins(color: Colors.white),
+
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Inscription du partenaire réussie',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
         ),
-        backgroundColor: Colors.green,
-      ));
-    } catch (e) {
-      snackbarKey.currentState?.showSnackBar(SnackBar(
-        content: Text(
-          'Erreur lors de l’inscription du partenaire',
-          style: GoogleFonts.poppins(color: Colors.white),
+      );
+    } catch (error) {
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erreur lors de l’inscription : $error',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.red,
-      ));
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -194,20 +208,29 @@ class _PartnerFormState extends State<PartnerForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context, false),
+                      onPressed: _isLoading
+                          ? null
+                          : () => Navigator.pop(context, false),
                       child: Text(
                         'Annuler',
                         style: GoogleFonts.poppins(
-                          color: kRed,
+                          color: _isLoading ? Colors.grey : kRed,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    NeoButton(
-                      text: "Enregistrer",
-                      onPressed: addPartner,
-                    ),
+                    _isLoading
+                        ? const Padding(
+                            padding: EdgeInsets.only(right: 40.0),
+                            child: CircularProgressIndicator(
+                              color: kOrange,
+                            ),
+                          )
+                        : NeoButton(
+                            text: "Enregistrer",
+                            onPressed: addPartner,
+                          ),
                   ],
                 ),
               ],

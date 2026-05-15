@@ -11,7 +11,6 @@ class CustomerRepository extends BaseRepository {
 
   final String suffixe = 'entity';
 
-  // Define constants for result keys
   static const int allCustomersKey = 0;
   static const int mapEntitiesKey = 1;
 
@@ -66,45 +65,46 @@ class CustomerRepository extends BaseRepository {
 
   Future addCustomer(EntityModel customer) async {
     String data = jsonEncode(customer.toJson());
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.post(suffixe, data);
+      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
     } catch (e) {
-      // Handle exceptions or log errors as appropriate
-      return http.Response(
-          'Error: $e', 500); // Return a response with a 500 status code
+      return http.Response('Error: $e', 500);
     }
   }
 
   Future updateCustomer(EntityModel customer) async {
     String data = jsonEncode(customer.toJson());
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.put('$suffixe/${customer.id}/update', data);
+      return await _remoteData.put('$suffixe/${customer.id}/update', data,
+          overrideTenant: tenant);
     } catch (e) {
-      // Handle exceptions or log errors as appropriate
-      return http.Response(
-          'Error: $e', 500); // Return a response with a 500 status code
+      return http.Response('Error: $e', 500);
     }
   }
 
   Future deleteCustomer(int id, String type) async {
+    String suffixeD = 'entity/customer';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.delete(suffixe, id);
+      return await _remoteData.delete(suffixeD, id, overrideTenant: tenant);
     } catch (e) {
-      // Handle exceptions or log errors as appropriate
-      return http.Response(
-          'Error: $e', 500); // Return a response with a 500 status code
+      return http.Response('Error: $e', 500);
     }
   }
 
   Future addEntityType(int id) async {
-    const String suffixe = 'entity_add_type';
+    const String suffixe = 'entity/add-type';
+    String tenant = await getTenantForCurrentNetwork();
     String data = jsonEncode({'id_entity': id, 'type': 'partner'});
     try {
-      return await _remoteData.post(suffixe, data);
+      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error adding entity type: $e');
       }
+      return http.Response('Error: $e', 500);
     }
   }
 }

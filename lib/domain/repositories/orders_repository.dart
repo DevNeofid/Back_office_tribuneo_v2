@@ -50,8 +50,6 @@ class OrderRepository extends BaseRepository {
     String tenant = await getTenantForCurrentNetwork();
     String currentSuffix = file != null ? "$suffixe/file" : suffixe;
 
-    OrderSendModel? res;
-
     if (file != null) {
       try {
         Map<String, dynamic> map = {
@@ -64,13 +62,13 @@ class OrderRepository extends BaseRepository {
             overrideTenant: tenant);
 
         if (response.statusCode == 201 || response.statusCode == 200) {
-          res = OrderSendModel.fromJson(response.data);
+          return OrderSendModel.fromJson(response.data);
         }
       } catch (e) {
         if (kDebugMode) {
           print('###DEBUG### Error: $e');
         }
-        res = null;
+        return null;
       }
     } else {
       try {
@@ -79,34 +77,32 @@ class OrderRepository extends BaseRepository {
             await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
 
         if (response.statusCode == 201 || response.statusCode == 200) {
-          res = OrderSendModel.fromJson(response.data);
+          return OrderSendModel.fromJson(response.data);
         }
       } catch (e) {
         if (kDebugMode) {
           print('###DEBUG### Error: $e');
         }
-        res = null;
+        return null;
       }
     }
-    return res;
+    return null;
   }
 
   Future updateOrder(OrderSendModel order) async {
-    OrderSendModel? res;
     String data = jsonEncode(order.toJson());
     try {
       dynamic request = await _remoteData.put(suffixe, data, id: order.id);
       if (request.statusCode == 200) {
         request = jsonDecode(request.body);
-        res = OrderSendModel.fromJson(request);
+        return OrderSendModel.fromJson(request);
       }
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
       }
-      res = null;
+      return null;
     }
-    return res;
   }
 
   Future deleteOrder(int id) async {

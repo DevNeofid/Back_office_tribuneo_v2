@@ -66,6 +66,7 @@ class _OrderFormState extends State<OrderForm> {
   late ValueNotifier<bool> _showHint;
   String alternativeBy = '';
   bool showImportView = false;
+  bool _isLoading = false;
 
   List<List<dynamic>>? csvData;
   List<List<dynamic>>? xlsxData;
@@ -213,24 +214,47 @@ class _OrderFormState extends State<OrderForm> {
       idEntity: entityId,
     );
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
+      var result;
       if (showImportView) {
-        await _orderUseCase.addOrder(order,
+        result = await _orderUseCase.addOrder(order,
             fileName: fileName, file: fileBase64);
       } else {
-        await _orderUseCase.addOrder(order);
+        result = await _orderUseCase.addOrder(order);
       }
-      navigatorKey.currentState?.pop();
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Ajout de la commande réussi'),
-        backgroundColor: Colors.green,
-      ));
+
+      if (!mounted) return;
+
+      if (!result.error) {
+        navigatorKey.currentState?.pop();
+        snackbarKey.currentState?.showSnackBar(const SnackBar(
+          content: Text('Ajout de la commande réussi'),
+          backgroundColor: Colors.green,
+        ));
+      } else {
+        if (kDebugMode) print("Erreur API: ${result.errorMessage}");
+        snackbarKey.currentState?.showSnackBar(SnackBar(
+          content: Text(
+              result.errorMessage ?? 'Erreur lors de l’ajout de la commande'),
+          backgroundColor: Colors.red,
+        ));
+      }
     } catch (e) {
-      if (kDebugMode) print("Erreur API: $e");
+      if (!mounted) return;
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Erreur lors de l’ajout de la commande'),
+        content: Text('Une erreur inattendue est survenue'),
         backgroundColor: Colors.red,
       ));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -412,7 +436,18 @@ class _OrderFormState extends State<OrderForm> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            NeoButton(text: "Enregistrer", onPressed: addOrder),
+                            _isLoading
+                                ? const SizedBox(
+                                    height: 40,
+                                    width: 40,
+                                    child: CircularProgressIndicator(
+                                      color: kOrange,
+                                    ),
+                                  )
+                                : NeoButton(
+                                    text: "Enregistrer",
+                                    onPressed: addOrder,
+                                  ),
                           ],
                         ),
                       ],

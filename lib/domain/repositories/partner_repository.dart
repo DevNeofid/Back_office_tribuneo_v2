@@ -78,8 +78,9 @@ class PartnerRepository extends BaseRepository {
 
   Future addPartner(EntityModel partner) async {
     String data = jsonEncode(partner.toJson());
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.post(suffixe, data);
+      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
@@ -88,7 +89,7 @@ class PartnerRepository extends BaseRepository {
   Future updatePartner(EntityModel partner) async {
     String data = jsonEncode(partner.toJson());
     try {
-      return await _remoteData.put('$suffixe/${partner.id}/update', data);
+      return await _remoteData.put('$suffixe/${partner.id}', data);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
@@ -160,12 +161,11 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future createQRCodeReceipt(int id) async {
-    const String suffixeQR = 'qrcgen_receipt';
-    Map<String, dynamic> data = {'id_entity': id};
-    String dataJson = jsonEncode(data);
+    const String suffixeQR = 'qrcode/receipt';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.post(suffixeQR, dataJson, bytesType: true);
+      dynamic response = await _remoteData.get(suffixeQR,
+          id: id, overrideTenant: tenant, bytesType: true);
       return response.data;
     } catch (e) {
       return http.Response('Error: $e', 500);
@@ -173,10 +173,11 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future createQRCode(int id) async {
-    const String suffixeQR = 'entity_first_login_gen';
+    const String suffixeQR = 'qrcode/first-login';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response =
-          await _remoteData.get(suffixeQR, id: id, bytesType: true);
+      dynamic response = await _remoteData.get(suffixeQR,
+          id: id, overrideTenant: tenant, bytesType: true);
       return response.data;
     } catch (e) {
       return http.Response('Error: $e', 500);
@@ -184,9 +185,11 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future createLink(int id) async {
-    const String suffixeL = 'entity_first_login_link';
+    const String suffixeL = 'entity/first-login-link';
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(suffixeL, id: id);
+      dynamic response =
+          await _remoteData.get(suffixeL, id: id, overrideTenant: tenant);
       return jsonDecode(response.data);
     } catch (e) {
       return http.Response('Error: $e', 500);
@@ -194,10 +197,12 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future addEntityType(int id) async {
-    const String suffixeET = 'entity_add_type';
+    const String suffixeET = 'entity/add-type';
+    String tenant = await getTenantForCurrentNetwork();
+    String data = jsonEncode({'id_entity': id, 'type': 'customer'});
     try {
-      dynamic response = await _remoteData.post(
-          suffixeET, jsonEncode({'id_entity': id, 'type': 'customer'}));
+      dynamic response =
+          await _remoteData.post(suffixeET, data, overrideTenant: tenant);
       return response;
     } catch (e) {
       return http.Response('Error: $e', 500);
