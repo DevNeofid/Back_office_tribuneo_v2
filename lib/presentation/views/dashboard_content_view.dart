@@ -107,7 +107,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
                       width: 180,
                       padding: const EdgeInsets.all(20),
                       transform: Matrix4.identity()
-                        ..scale(_hoveredIndex == 0 ? 1.03 : 1.0),
+                        ..scaleByDouble(_hoveredIndex == 0 ? 1.03 : 1.0, _hoveredIndex == 0 ? 1.03 : 1.0, 1.0, 1.0),
                       decoration: BoxDecoration(
                         color: kWhite,
                         borderRadius: BorderRadius.circular(10),
@@ -161,7 +161,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
                       width: 180,
                       padding: const EdgeInsets.all(20),
                       transform: Matrix4.identity()
-                        ..scale(_hoveredIndex == 1 ? 1.03 : 1.0),
+                        ..scaleByDouble(_hoveredIndex == 1 ? 1.03 : 1.0, _hoveredIndex == 1 ? 1.03 : 1.0, 1.0, 1.0),
                       decoration: BoxDecoration(
                         color: kWhite,
                         borderRadius: BorderRadius.circular(10),
@@ -215,7 +215,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
                       width: 180,
                       padding: const EdgeInsets.all(20),
                       transform: Matrix4.identity()
-                        ..scale(_hoveredIndex == 2 ? 1.03 : 1.0),
+                        ..scaleByDouble(_hoveredIndex == 2 ? 1.03 : 1.0, _hoveredIndex == 2 ? 1.03 : 1.0, 1.0, 1.0),
                       decoration: BoxDecoration(
                         color: kWhite,
                         borderRadius: BorderRadius.circular(10),
@@ -269,7 +269,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
                       width: 180,
                       padding: const EdgeInsets.all(20),
                       transform: Matrix4.identity()
-                        ..scale(_hoveredIndex == 3 ? 1.03 : 1.0),
+                        ..scaleByDouble(_hoveredIndex == 3 ? 1.03 : 1.0, _hoveredIndex == 3 ? 1.03 : 1.0, 1.0, 1.0),
                       decoration: BoxDecoration(
                         color: kWhite,
                         borderRadius: BorderRadius.circular(10),

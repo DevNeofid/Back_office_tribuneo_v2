@@ -4,8 +4,7 @@ import './storage_model.dart';
 class StorageService {
   final _secureStorage = const FlutterSecureStorage();
 
-  AndroidOptions _getAndroidOptions() =>
-      const AndroidOptions(encryptedSharedPreferences: true);
+  AndroidOptions _getAndroidOptions() => const AndroidOptions();
 
   Future<void> writeSecureData(StorageItem newItem) async {
     await _secureStorage.write(
