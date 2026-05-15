@@ -17,6 +17,7 @@ class SectorActivityViewState extends State<SectorActivityView> {
   final PartnerUseCase _partnerUseCase = PartnerUseCase();
   final TextEditingController _newSectorController = TextEditingController();
   late List<Sector> _sectors = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -34,20 +35,23 @@ class SectorActivityViewState extends State<SectorActivityView> {
   Future<void> _addNewSector() async {
     String newSectorName = _newSectorController.text.trim();
     if (newSectorName.isNotEmpty) {
+      setState(() => _isLoading = true);
       try {
         await _partnerUseCase.addNewSector(newSectorName);
         await refreshSector();
         _newSectorController.clear();
 
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Le secteur d’activité a été ajouté'),
+          content: Text("Le secteur d’activité a été ajouté"),
           backgroundColor: Colors.green,
         ));
       } catch (e) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de l’ajout du secteur d’activité'),
+          content: Text("Erreur lors de l’ajout du secteur d’activité"),
           backgroundColor: Colors.red,
         ));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -158,24 +162,37 @@ class SectorActivityViewState extends State<SectorActivityView> {
                     const SizedBox(width: 16.0),
                     SizedBox(
                       height: 52,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kOrange,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                        ),
-                        onPressed: _addNewSector,
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: Text(
-                          'Ajouter',
-                          style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14),
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const AspectRatio(
+                              aspectRatio: 1,
+                              child: Center(
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5, color: kOrange),
+                                ),
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: kOrange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 24),
+                              ),
+                              onPressed: _addNewSector,
+                              icon: const Icon(Icons.add, color: Colors.white),
+                              label: Text(
+                                'Ajouter',
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14),
+                              ),
+                            ),
                     ),
                   ],
                 ),

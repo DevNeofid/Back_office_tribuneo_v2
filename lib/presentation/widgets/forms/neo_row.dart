@@ -74,7 +74,7 @@ class NeoRowState extends State<NeoRow> {
                 ? const Padding(
                     padding: EdgeInsets.only(bottom: 6.0),
                     child: Text(
-                      "Le message personnalisé va remplacer la raison URSAF",
+                      "Le message personnalisé va remplacer la raison URSSAF",
                       style: TextStyle(color: kBlue, fontSize: 12),
                     ),
                   )
@@ -95,8 +95,11 @@ class NeoRowState extends State<NeoRow> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   return FormValidator.validateValueByFund(
-                      int.parse(value?.toString() ?? '0'));
+                      double.parse(value?.toString() ?? '0'));
                 },
+                // Limite l'entrée aux chiffres avec virgule uniquement
+                formatter: FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d{0,2}')),
               ),
             ),
             const SizedBox(width: 16), // Espacement fixe et raisonnable
@@ -116,16 +119,12 @@ class NeoRowState extends State<NeoRow> {
             ),
             const SizedBox(width: 16), // Espacement fixe et raisonnable
             Expanded(
-              flex:
-                  3, // Donne un peu plus de place à ce champ qui a un texte plus long
+              flex: 3,
               child: NeoInput(
                 controller: widget.persoMsgController,
                 hintText: 'Message personnalisé',
                 keyboardType: TextInputType.text,
                 fillColor: kPWhite,
-                validator: (value) {
-                  return FormValidator.validateText(value?.toString() ?? '');
-                },
               ),
             ),
           ],

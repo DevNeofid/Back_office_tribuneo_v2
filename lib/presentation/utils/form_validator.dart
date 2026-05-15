@@ -41,8 +41,8 @@ class FormValidator {
     return null;
   }
 
-  static String? validateValueByFund(int value) {
-    if (value < 1) {
+  static String? validateValueByFund(double value) {
+    if (value <= 0) {
       return '🚩 Le montant des fonds non valide';
     }
     return null;

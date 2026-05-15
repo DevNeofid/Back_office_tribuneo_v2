@@ -17,12 +17,11 @@ class DocumentUseCase {
     );
   }
 
-  Future downloadFileInvoice(int id, {String? prefixe}) async {
-    return await documentRepository.downloadFileInvoice(id, prefixe: prefixe);
+  Future<Map<String, dynamic>?> downloadFileInvoice(int id) async {
+    return await documentRepository.downloadFileInvoice(id);
   }
 
-  Future downloadFileFees(String transactionNumber, {String? prefixe}) async {
-    return await documentRepository.downloadFileFees(transactionNumber,
-        prefixe: prefixe);
+  Future downloadFileFees(String transactionNumber) async {
+    return await documentRepository.downloadFileFees(transactionNumber);
   }
 }

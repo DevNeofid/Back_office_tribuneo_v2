@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:csv/csv.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:excel/excel.dart' as ex;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +66,6 @@ class _OrderFormState extends State<OrderForm> {
   bool showImportView = false;
   bool _isLoading = false;
 
-  List<List<dynamic>>? csvData;
-  List<List<dynamic>>? xlsxData;
   String? fileName;
   String fileBase64 = '';
 
@@ -83,9 +79,9 @@ class _OrderFormState extends State<OrderForm> {
     neorow.add(NeoRow());
     selectedDate = DateTime.now();
     orderDateController.text =
-        "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+        "${selectedDate.day}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}";
     expiryDateController.text =
-        "${selectedDate.day}/${selectedDate.month}/${selectedDate.year + 1}";
+        "${selectedDate.day}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year + 1}";
     giftFromController.addListener(
         (() => _printLatestValue('Gift From', giftFromController)));
     urssafController.addListener(
@@ -120,7 +116,7 @@ class _OrderFormState extends State<OrderForm> {
 
   Future<void> addOrder() async {
     List<Map<String, dynamic>> funds = [];
-    int fundQuantity = 0;
+    double fundQuantity = 0;
     selectedFile = showImportView ? selectedFile : null;
 
     if (!_formKey.currentState!.validate()) {
@@ -163,26 +159,20 @@ class _OrderFormState extends State<OrderForm> {
         return;
       }
 
-      if (selectedFile!.extension == 'csv' && csvData == null) {
+      if (selectedFile!.bytes == null || selectedFile!.bytes!.isEmpty) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Veuillez importer un fichier CSV valide'),
-          backgroundColor: Colors.red,
-        ));
-        return;
-      } else if (selectedFile!.extension == 'xlsx' && xlsxData == null) {
-        snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Veuillez importer un fichier XLSX valide'),
+          content: Text('Veuillez importer un fichier valide'),
           backgroundColor: Colors.red,
         ));
         return;
       }
     } else {
       for (var i = 0; i < neorow.length; i++) {
-        int tmpQuantity = int.parse(neorow[i].fundNumberController.text);
+        double tmpQuantity = double.parse(neorow[i].fundNumberController.text);
         fundQuantity += tmpQuantity;
         String persoMsg = neorow[i].persoMsgController.text;
         funds.add({
-          "amount": int.parse(neorow[i].fundValueController.text),
+          "amount": double.parse(neorow[i].fundValueController.text),
           "quantity": tmpQuantity,
           "perso_msg": persoMsg.isEmpty ? giftReason : persoMsg,
         });
@@ -228,25 +218,19 @@ class _OrderFormState extends State<OrderForm> {
       }
 
       if (!mounted) return;
-
-      if (!result.error) {
-        navigatorKey.currentState?.pop();
+      if (result == true) {
+        Navigator.of(context).pop(true);
         snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Ajout de la commande réussi'),
+          content: Text("Ajout de la commande réussi"),
           backgroundColor: Colors.green,
         ));
       } else {
-        if (kDebugMode) print("Erreur API: ${result.errorMessage}");
-        snackbarKey.currentState?.showSnackBar(SnackBar(
-          content: Text(
-              result.errorMessage ?? 'Erreur lors de l’ajout de la commande'),
-          backgroundColor: Colors.red,
-        ));
+        throw Exception("Failed to add order");
       }
     } catch (e) {
       if (!mounted) return;
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Une erreur inattendue est survenue'),
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text("Erreur lors de l’ajout de la commande"),
         backgroundColor: Colors.red,
       ));
     } finally {
@@ -278,27 +262,14 @@ class _OrderFormState extends State<OrderForm> {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv', 'xlsx'],
+      withData: true,
     );
 
     if (result != null) {
-      selectedFile = result.files.first;
-      fileName = selectedFile?.name;
-
-      if (selectedFile!.name.endsWith('.csv')) {
-        final csvContent = utf8.decode(selectedFile!.bytes!);
-        setState(() {
-          csvData = const CsvDecoder().convert(csvContent);
-        });
-        print("Données CSV stockées : $csvData");
-      } else if (selectedFile!.name.endsWith('.xlsx')) {
-        var excel = ex.Excel.decodeBytes(selectedFile!.bytes!);
-        setState(() {
-          xlsxData = excel.tables[excel.tables.keys.first]?.rows;
-        });
-        print("Données XLSX stockées : $xlsxData");
-      }
-
-      print("Fichier sélectionné : $fileName");
+      setState(() {
+        selectedFile = result.files.first;
+        fileName = selectedFile?.name;
+      });
     }
   }
 
@@ -313,10 +284,7 @@ class _OrderFormState extends State<OrderForm> {
     setState(() {
       selectedFile = null;
       fileName = null;
-      csvData = null;
-      xlsxData = null;
     });
-    print("Stockage du fichier nettoyé.");
   }
 
   @override
@@ -810,11 +778,8 @@ class _OrderFormState extends State<OrderForm> {
                 width: 342,
                 child: NeoInput(
                   controller: alternativeByController,
-                  hintText: 'Personnalisation offert par',
+                  hintText: 'Personnalisation offert par (optionnel)',
                   fillColor: Colors.white,
-                  validator: (value) {
-                    return FormValidator.validateText(value ?? '');
-                  },
                 ),
               ),
             ),

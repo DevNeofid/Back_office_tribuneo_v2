@@ -45,48 +45,50 @@ class OrderRepository extends BaseRepository {
     return orders;
   }
 
-  Future<OrderSendModel?> addOrders(OrderSendModel order,
+  Future<bool> addOrders(OrderSendModel order,
       {String? fileName, dynamic file}) async {
     String tenant = await getTenantForCurrentNetwork();
     String currentSuffix = file != null ? "$suffixe/file" : suffixe;
 
     if (file != null) {
       try {
-        Map<String, dynamic> map = {
-          "other_data": jsonEncode(order.toJson()),
+        String data = jsonEncode({
           "file_name": fileName,
-          "file_bytes": file
-        };
+          "file_bytes": file,
+          "other_data": order.toJson(),
+        });
 
-        dynamic response = await _remoteData.postWithFile(currentSuffix, map,
-            overrideTenant: tenant);
+        dynamic response =
+            await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
 
         if (response.statusCode == 201 || response.statusCode == 200) {
-          return OrderSendModel.fromJson(response.data);
+          return true;
+        } else {
+          return false;
         }
       } catch (e) {
         if (kDebugMode) {
           print('###DEBUG### Error: $e');
         }
-        return null;
+        return false;
       }
     } else {
       try {
         String data = jsonEncode(order);
         dynamic response =
             await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
-
         if (response.statusCode == 201 || response.statusCode == 200) {
-          return OrderSendModel.fromJson(response.data);
+          return true;
+        } else {
+          return false;
         }
       } catch (e) {
         if (kDebugMode) {
           print('###DEBUG### Error: $e');
         }
-        return null;
+        return false;
       }
     }
-    return null;
   }
 
   Future updateOrder(OrderSendModel order) async {

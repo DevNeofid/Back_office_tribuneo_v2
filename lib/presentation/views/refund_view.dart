@@ -140,11 +140,14 @@ class _RefoundShopViewState extends State<RefoundShopView> {
             const SizedBox(height: 50),
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(kOrange),
+                backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.disabled)) {
+                    return Colors.grey.shade400;
+                  }
+                  return kOrange;
+                }),
               ),
-              onPressed: () {
-                _refundShop();
-              },
+              onPressed: _refund.isEmpty ? null : _refundShop,
               child: const Text('Déclencher un remboursement'),
             ),
             const SizedBox(height: 50),
