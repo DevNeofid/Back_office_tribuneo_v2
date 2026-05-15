@@ -34,44 +34,38 @@ abstract class BaseRepository {
   }
 
   Future<String> getTenantByNetworkId(int? idNetwork) async {
-    const String fallbackTenant = 'tribuneo_cci04';
-
-    try {
-      final String? savedNetworksJson = await storage.readSecureData(
-        'network',
-      );
-      if (savedNetworksJson == null || savedNetworksJson.isEmpty) {
-        return fallbackTenant;
-      }
-
-      final dynamic decoded = jsonDecode(savedNetworksJson);
-      if (decoded is! List) {
-        return fallbackTenant;
-      }
-
-      for (final dynamic network in decoded) {
-        if (network is! Map) continue;
-
-        final Map<String, dynamic> networkMap = Map<String, dynamic>.from(
-          network,
-        );
-        final int? currentId = int.tryParse(networkMap['id']?.toString() ?? '');
-
-        if (currentId == idNetwork) {
-          final String dbName =
-              (networkMap['db_name'] ?? networkMap['dbName'] ?? '')
-                  .toString()
-                  .trim();
-          if (dbName.isNotEmpty) {
-            return dbName;
-          }
-          break;
-        }
-      }
-    } catch (_) {
-      // Fallback si le stockage est absent/corrompu.
+    if (idNetwork == null) {
+      throw Exception('id_network introuvable dans la session utilisateur');
     }
 
-    return fallbackTenant;
+    final String? savedNetworksJson = await storage.readSecureData('network');
+    if (savedNetworksJson == null || savedNetworksJson.isEmpty) {
+      throw Exception('Liste des réseaux absente du stockage local');
+    }
+
+    final dynamic decoded = jsonDecode(savedNetworksJson);
+
+    final List<dynamic> networks =
+        decoded is List ? decoded : (decoded is Map ? [decoded] : []);
+
+    if (networks.isEmpty) {
+      throw Exception('Format de la liste des réseaux invalide');
+    }
+
+    for (final dynamic network in networks) {
+      if (network is! Map) continue;
+      final Map<String, dynamic> networkMap =
+          Map<String, dynamic>.from(network);
+      final int? currentId = int.tryParse(networkMap['id']?.toString() ?? '');
+      if (currentId == idNetwork) {
+        final String dbName =
+            (networkMap['db_name'] ?? networkMap['dbName'] ?? '')
+                .toString()
+                .trim();
+        if (dbName.isNotEmpty) return dbName;
+      }
+    }
+
+    throw Exception('Aucun tenant trouvé pour id_network $idNetwork');
   }
 }
