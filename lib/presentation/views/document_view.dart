@@ -47,12 +47,14 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
       String? name = order.entityName;
       name = name!.replaceAll(' ', '_');
       String? number = order.orderNumber;
-      dynamic response = await _documentUseCase
-          .downloadFileInvoice(order.idOrder!, prefixe: 'invoice_purchase');
-      List<dynamic> listDynamic = response;
+      final result = await _documentUseCase.downloadFileInvoice(order.idOrder!);
+      if (result == null) throw Exception('Download failed');
+      List<dynamic> listDynamic = result['data'];
+      final String fileName =
+          result['filename'] ?? '${name}_$number';
 
       FileDownloader.downloadLargeFile(
-          listDynamic, '${name}_$number', 'application/pdf',
+          listDynamic, fileName, 'application/pdf',
           fileExtension: 'pdf');
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
@@ -74,8 +76,7 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
       String? name = fee.entityName;
       name = name?.replaceAll(' ', '_') ?? 'Frais';
       dynamic response = await _documentUseCase.downloadFileFees(
-          fee.transactionNumber ?? '',
-          prefixe: 'proof_of_receipt');
+          fee.transactionNumber ?? '');
       List<dynamic> listDynamic = response;
 
       FileDownloader.downloadLargeFile(listDynamic, name, 'application/zip',

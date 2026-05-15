@@ -86,14 +86,22 @@ class DocumentRepository extends BaseRepository {
     return PaginatedResult<InvoiceModel>(items: invoices, total: total);
   }
 
-  Future downloadFileInvoice(int id, {String? prefixe}) async {
-    prefixe ??= suffixe;
+  Future<Map<String, dynamic>?> downloadFileInvoice(int id) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
       dynamic response = await _remoteData.post(
-          prefixe, '{"id_order": $id, "justDownload": 1}',
-          bytesType: true);
+          'accounting/invoice/order', '{"id_order": $id, "justDownload": 1}',
+          overrideTenant: tenant, bytesType: true);
       if (response.statusCode == 200) {
-        return response.data;
+        final contentDisposition =
+            response.headers.value('content-disposition');
+        String? apiFilename;
+        if (contentDisposition != null) {
+          final match = RegExp(r'filename="?([^";]+)"?', caseSensitive: false)
+              .firstMatch(contentDisposition);
+          apiFilename = match?.group(1)?.trim();
+        }
+        return {'data': response.data, 'filename': apiFilename};
       } else {
         return null;
       }
@@ -102,12 +110,13 @@ class DocumentRepository extends BaseRepository {
     }
   }
 
-  Future downloadFileFees(String transactionNumber, {String? prefixe}) async {
-    prefixe ??= suffixe;
+  Future downloadFileFees(String transactionNumber) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      dynamic response = await _remoteData.get(prefixe,
-          queryParams: {'transaction_number': transactionNumber},
-          bytesType: true);
+      dynamic response = await _remoteData.get(
+          'accounting/proof-of-receipt/$transactionNumber',
+          bytesType: true,
+          overrideTenant: tenant);
       if (response.statusCode == 200) {
         return response.data;
       } else {
