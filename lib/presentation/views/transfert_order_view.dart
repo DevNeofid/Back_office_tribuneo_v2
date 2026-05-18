@@ -134,7 +134,7 @@ class _TranferOrderViewState extends State<TranferOrderView> {
                         DataColumn(
                           label: Expanded(
                             child: Center(
-                              child: Text('Montant conservé',
+                              child: Text('Frais de gestion',
                                   textAlign: TextAlign.center),
                             ),
                           ),

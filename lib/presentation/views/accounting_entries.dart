@@ -62,10 +62,10 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
 
       FileDownloader.downloadLargeFile(listDynamic, name!, 'application/zip',
           fileExtension: 'zip');
+      _dataSource.refreshDatasource();
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content:
-              Text('Erreur lors de la génération des écritures comptables.')));
+          content: Text('Aucune écritures comptables disponibles.')));
     } finally {
       navigatorKey.currentState?.pop();
     }

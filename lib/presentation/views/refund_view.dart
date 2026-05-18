@@ -86,10 +86,23 @@ class _RefoundShopViewState extends State<RefoundShopView> {
 
       FileDownloader.downloadLargeFile(listDynamic, fileName, 'application/zip',
           fileExtension: 'zip');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Remboursement traite avec succes.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (error) {
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content:
-              Text('Erreur lors de la génération des ordres de virement.')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors du traitement du remboursement.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       _refreshData();
       navigatorKey.currentState?.pop();
@@ -101,8 +114,7 @@ class _RefoundShopViewState extends State<RefoundShopView> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const LoadingDialog(
-            loadingText: 'Généreration des documents...');
+        return const LoadingDialog(loadingText: 'Génération des documents...');
       },
     );
     try {
