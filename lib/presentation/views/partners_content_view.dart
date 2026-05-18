@@ -178,35 +178,91 @@ class PartnersContentViewState extends State<PartnersContentView>
 
   Future<void> _getPartnerLink(EntityModel partner) async {
     String name = partner.name!;
-    await _partnerUseCase.createLink(partner.id!).then((value) {
-      String link = value['link'];
+
+    await _partnerUseCase.createLink(partner.id!, sendMail: false).then((link) {
       showDialog(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Votre lien pour $name'),
-              content: SelectableText(link),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Fermer'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+          builder: (BuildContext dialogContext) {
+            bool isChecked = false;
+            return StatefulBuilder(builder: (context, setState) {
+              return AlertDialog(
+                title: Text('Votre lien pour $name'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: SelectableText(link)),
+                        IconButton(
+                          icon: const Icon(Icons.copy),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: link));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Lien copié !'),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isChecked,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              isChecked = value ?? false;
+                            });
+                          },
+                        ),
+                        const Text('Envoyé par mail'),
+                      ],
+                    ),
+                  ],
                 ),
-                TextButton(
-                  child: const Text('Copier le lien'),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: link));
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lien copié !'),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('Fermer'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    onPressed: isChecked
+                        ? () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            final navigator = Navigator.of(context);
+
+                            try {
+                              await _partnerUseCase.createLink(partner.id!,
+                                  sendMail: true);
+
+                              navigator.pop();
+
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Lien envoyé par mail avec succès !'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } catch (e) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur lors de l\'envoi : $e'),
+                                  backgroundColor: Colors.red, // Optionnel
+                                ),
+                              );
+                            }
+                          }
+                        : null,
+                    child: const Text('Envoyer'),
+                  ),
+                ],
+              );
+            });
           });
     });
   }
@@ -477,80 +533,69 @@ class PartnersContentViewState extends State<PartnersContentView>
                 ),
               ],
             ),
-            Column(
-              children: [
-                SizedBox(
-                  width: SizeConfig.screenWidth * 0.1,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      iconColor: kBlue,
-                      focusColor: kGrey,
-                      hintText: 'Rechercher...',
-                      hintStyle: GoogleFonts.roboto(fontSize: 20),
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: kBlue, width: 2.0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: search,
+            SizedBox(
+              width: SizeConfig.screenWidth * 0.1,
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  iconColor: kBlue,
+                  focusColor: kGrey,
+                  hintText: 'Rechercher...',
+                  hintStyle: GoogleFonts.roboto(fontSize: 20),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: kBlue, width: 2.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                SizedBox(
-                  height: 25,
-                  width: SizeConfig.screenWidth * 0.4,
-                  child: Center(
-                    child: ListView.builder(
-                      shrinkWrap: false,
-                      scrollDirection: Axis.horizontal,
-                      itemCount: sortedEntities.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        String letter = availableFilters[index];
-                        return Container(
-                          padding: const EdgeInsets.all(0),
-                          width: 30,
-                          margin: const EdgeInsets.only(right: 1.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _lastSearch = '';
-                                searchController.clear();
-                                _filter = letter;
-                                _lastFilter = letter;
-                                _partners = sortedEntities[_filter]
-                                    as List<EntityModel>;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.all(10),
-                              backgroundColor:
-                                  _filter == letter ? kOrange : kBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                            ),
-                            child: SizedBox(
-                                width: 25,
-                                child: Text(
-                                  letter.toUpperCase(),
-                                  style: const TextStyle(color: kWhite),
-                                )),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            )
+                onChanged: search,
+              ),
+            ),
           ],
+        ),
+        const SizedBox(
+          height: 40,
+        ),
+        SizedBox(
+          width: SizeConfig.screenWidth * 0.8,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 4.0,
+            runSpacing: 8.0,
+            children: availableFilters.map((letter) {
+              return Container(
+                padding: const EdgeInsets.all(0),
+                width: 35,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _lastSearch = '';
+                      searchController.clear();
+                      _filter = letter;
+                      _lastFilter = letter;
+                      _partners = sortedEntities[_filter] as List<EntityModel>;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(5),
+                    backgroundColor: _filter == letter ? kOrange : kBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      letter.toUpperCase(),
+                      style: const TextStyle(color: kWhite),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
         const SizedBox(
           height: 20,

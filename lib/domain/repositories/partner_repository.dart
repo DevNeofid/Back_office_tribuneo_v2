@@ -184,15 +184,24 @@ class PartnerRepository extends BaseRepository {
     }
   }
 
-  Future createLink(int id) async {
+  Future<String> createLink(int id, {bool sendMail = false}) async {
     const String suffixeL = 'entity/first-login-link';
     String tenant = await getTenantForCurrentNetwork();
+
+    Map<String, dynamic>? queryParams =
+        sendMail ? {'sending_email': true} : null;
+
     try {
-      dynamic response =
-          await _remoteData.get(suffixeL, id: id, overrideTenant: tenant);
-      return jsonDecode(response.data);
+      dynamic response = await _remoteData.get(
+        suffixeL,
+        id: id,
+        overrideTenant: tenant,
+        queryParams: queryParams,
+      );
+      String extractedLink = response.data['data']['first_login_link'];
+      return extractedLink;
     } catch (e) {
-      return http.Response('Error: $e', 500);
+      throw Exception('Erreur lors de la génération du lien : $e');
     }
   }
 

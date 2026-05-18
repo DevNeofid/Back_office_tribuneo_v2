@@ -49,8 +49,8 @@ class PartnerUseCase {
     return await partnerRepository.createQRCode(id);
   }
 
-  Future createLink(int id) async {
-    return await partnerRepository.createLink(id);
+  Future createLink(int id, {bool sendMail = false}) async {
+    return await partnerRepository.createLink(id, sendMail: sendMail);
   }
 
   Future addEntityType(int id) async {
