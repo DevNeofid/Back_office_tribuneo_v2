@@ -122,4 +122,34 @@ class FormValidator {
     }
     return null;
   }
+
+  static String? validateIban(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '🚩 IBAN requis';
+    }
+    final cleanValue = value.replaceAll(' ', '').toUpperCase();
+
+    final regex = RegExp(r'^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$');
+
+    if (!regex.hasMatch(cleanValue)) {
+      return '🚩 Numéro IBAN invalide';
+    }
+
+    return null;
+  }
+
+  static String? validateBic(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '🚩 BIC requis';
+    }
+    final cleanValue = value.replaceAll(' ', '').toUpperCase();
+
+    final regex = RegExp(r'^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$');
+
+    if (!regex.hasMatch(cleanValue)) {
+      return '🚩 Code BIC invalide';
+    }
+
+    return null;
+  }
 }

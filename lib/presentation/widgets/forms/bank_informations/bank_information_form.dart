@@ -28,6 +28,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
   TextEditingController officeCode = TextEditingController();
   TextEditingController accountNumber = TextEditingController();
   TextEditingController accountingNumber = TextEditingController();
+  TextEditingController intraComNumber = TextEditingController();
 
   final BankInformationsUseCase _bankInformationsUseCase =
       BankInformationsUseCase();
@@ -57,19 +58,45 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
     BankInformationsModel b = BankInformationsModel(
       iban: iban.text.replaceAll(' ', ''),
       bic: bic.text,
-      key: key.text,
-      bankCode: bankCode.text,
-      officeCode: officeCode.text,
-      accountNumber: accountNumber.text,
-      accountingNumber: accountingNumber.text,
+      key: key.text.trim().isEmpty ? null : key.text.trim(),
+      bankCode: bankCode.text.trim().isEmpty ? null : bankCode.text.trim(),
+      officeCode:
+          officeCode.text.trim().isEmpty ? null : officeCode.text.trim(),
+      accountNumber:
+          accountNumber.text.trim().isEmpty ? null : accountNumber.text.trim(),
+      accountingNumber: accountingNumber.text.trim().isEmpty
+          ? null
+          : accountingNumber.text.trim(),
+      intraCommunityVat: intraComNumber.text.trim().isEmpty
+          ? null
+          : intraComNumber.text.trim(),
       idEntity: widget.entity.id,
     );
+
     try {
       await _bankInformationsUseCase.addBankInfo(b);
       if (!mounted) return;
-      Navigator.pop(context);
+
+      Navigator.pop(context, true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Informations bancaires ajoutées avec succès'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur lors de l\'ajout des informations bancaires'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+
       setState(() {
         _isSaving = false;
       });
@@ -106,6 +133,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
     officeCode.dispose();
     accountNumber.dispose();
     accountingNumber.dispose();
+    intraComNumber.dispose();
     super.dispose();
   }
 
@@ -139,7 +167,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                     children: <Widget>[
                       Center(
                         child: SelectableText(
-                          "Indiquer les informations bancaire de ce commerçant",
+                          "Indiquer les informations bancaires de ce commerçant",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,
@@ -157,7 +185,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                             hintText: 'Iban',
                             fillColor: kPWhite,
                             validator: (value) {
-                              return FormValidator.validateText(value ?? '');
+                              return FormValidator.validateIban(value ?? '');
                             },
                           ),
                         ),
@@ -169,7 +197,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                             hintText: 'BIC',
                             fillColor: kPWhite,
                             validator: (value) {
-                              return FormValidator.validateText(value ?? '');
+                              return FormValidator.validateBic(value ?? '');
                             },
                           ),
                         ),
@@ -180,9 +208,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                             controller: key,
                             hintText: 'Clé RIB',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateText(value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -192,9 +218,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                             controller: bankCode,
                             hintText: 'Code établissement',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateText(value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -206,10 +230,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                                 decimal: true),
                             hintText: 'Code guichet',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validatePosition(
-                                  value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -221,10 +242,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                                 decimal: true),
                             hintText: 'Numéro de compte',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validatePosition(
-                                  value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -237,10 +255,19 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                               decimal: true),
                           hintText: 'Numéro de compte comptabilité',
                           fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateAccounting(
-                                value ?? '');
-                          },
+                          validator: (value) => null,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: inputWidth,
+                        child: NeoInput(
+                          controller: intraComNumber,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          hintText: 'Numéro intracommunautaire',
+                          fillColor: kPWhite,
+                          validator: (value) => null,
                         ),
                       ),
                       SizedBox(height: SizeConfig.screenHeight * 0.04),

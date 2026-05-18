@@ -49,7 +49,9 @@ class _CustomerFormState extends State<CustomerForm> {
       "name": customerNameController.text,
       "email": customerMailController.text,
       "siret": customerSiretController.text,
-      "code": customerCodeController.text,
+      "code": customerCodeController.text.trim().isEmpty
+          ? null
+          : customerCodeController.text.trim(),
       "phone": customerPhoneController.text,
       "type": entityType,
     });
@@ -173,9 +175,7 @@ class _CustomerFormState extends State<CustomerForm> {
                   controller: customerCodeController,
                   hintText: 'Code du client',
                   fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateCode(value ?? '');
-                  },
+                  validator: (value) => null,
                 ),
                 const SizedBox(height: 40),
                 Row(

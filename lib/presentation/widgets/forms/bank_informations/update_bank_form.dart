@@ -72,33 +72,43 @@ class _UpadateBankInformationsFormState
       id: widget.entity.bankInformations?.id,
       iban: iban.text.replaceAll(' ', ''),
       bic: bic.text,
-      key: key.text,
-      bankCode: bankCode.text,
-      officeCode: officeCode.text,
-      accountNumber: accountNumber.text,
-      accountingNumber: accountingNumber.text,
-      intraCommunityVat: intraComNumber.text,
+      key: key.text.trim().isEmpty ? null : key.text.trim(),
+      bankCode: bankCode.text.trim().isEmpty ? null : bankCode.text.trim(),
+      officeCode:
+          officeCode.text.trim().isEmpty ? null : officeCode.text.trim(),
+      accountNumber:
+          accountNumber.text.trim().isEmpty ? null : accountNumber.text.trim(),
+      accountingNumber: accountingNumber.text.trim().isEmpty
+          ? null
+          : accountingNumber.text.trim(),
+      intraCommunityVat: intraComNumber.text.trim().isEmpty
+          ? null
+          : intraComNumber.text.trim(),
       idEntity: widget.entity.id,
     );
 
     try {
       await _bankInformationsUseCase.updateBankInfo(b);
       if (!mounted) return;
-      Navigator.pop(context);
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content: Text('Modification des informations bancaires réussie'),
-        backgroundColor: Colors.green,
-      ));
+      Navigator.pop(context, true);
+      snackbarKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('Modification des informations bancaires réussie'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isSaving = false;
       });
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content:
-            Text('Erreur lors de la modification des informations bancaires'),
-        backgroundColor: Colors.red,
-      ));
+      snackbarKey.currentState?.showSnackBar(
+        const SnackBar(
+          content:
+              Text('Erreur lors de la modification des informations bancaires'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
     return;
   }
@@ -210,9 +220,7 @@ class _UpadateBankInformationsFormState
                             controller: key,
                             hintText: 'Clé RIB',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateText(value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -222,9 +230,7 @@ class _UpadateBankInformationsFormState
                             controller: bankCode,
                             hintText: 'Code établissement',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateText(value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -236,10 +242,7 @@ class _UpadateBankInformationsFormState
                                 decimal: true),
                             hintText: 'Code guichet',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validatePosition(
-                                  value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -251,10 +254,7 @@ class _UpadateBankInformationsFormState
                                 decimal: true),
                             hintText: 'Numéro de compte',
                             fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validatePosition(
-                                  value ?? '');
-                            },
+                            validator: (value) => null,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -267,10 +267,7 @@ class _UpadateBankInformationsFormState
                               decimal: true),
                           hintText: 'Numéro de comptabilité',
                           fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateAccounting(
-                                value ?? '');
-                          },
+                          validator: (value) => null,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -282,10 +279,7 @@ class _UpadateBankInformationsFormState
                               decimal: true),
                           hintText: 'Numéro intra communautaire',
                           fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateIntraComNumber(
-                                value ?? '');
-                          },
+                          validator: (value) => null,
                         ),
                       ),
                       SizedBox(height: SizeConfig.screenHeight * 0.04),

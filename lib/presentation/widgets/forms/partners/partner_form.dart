@@ -53,7 +53,9 @@ class _PartnerFormState extends State<PartnerForm> {
         "name": partnerNameController.text,
         "email": partnerMailController.text,
         "siret": partnerSiretController.text,
-        "code": partnerCodeController.text,
+        "code": partnerCodeController.text.trim().isEmpty
+            ? null
+            : partnerCodeController.text.trim(),
         "phone": partnerPhoneController.text,
         "accept_demat": _checked ? true : false,
         "type": entityType,
@@ -159,7 +161,10 @@ class _PartnerFormState extends State<PartnerForm> {
                 NeoInput(
                   controller: partnerSiretController,
                   hintText: 'Siret du partenaire',
+                  keyboardType: TextInputType.number,
                   fillColor: kPWhite,
+                  maxLength: 14,
+                  formatter: FilteringTextInputFormatter.digitsOnly,
                   validator: (value) {
                     return FormValidator.validateSiret(value ?? '');
                   },
@@ -180,9 +185,7 @@ class _PartnerFormState extends State<PartnerForm> {
                   controller: partnerCodeController,
                   hintText: 'Code du partenaire',
                   fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateCode(value ?? '');
-                  },
+                  validator: (value) => null,
                 ),
                 const SizedBox(height: 20),
                 CheckboxListTile(

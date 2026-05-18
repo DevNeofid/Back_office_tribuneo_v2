@@ -15,6 +15,7 @@ class NeoInput extends StatelessWidget {
   final InputBorder border;
   final String? Function(String?)? validator;
   final TextInputFormatter? formatter;
+  final int? maxLength;
 
   const NeoInput({
     Key? key,
@@ -32,6 +33,7 @@ class NeoInput extends StatelessWidget {
     this.textColor = kBlack,
     this.validator,
     this.formatter,
+    this.maxLength,
   }) : super(key: key);
 
   @override
@@ -41,7 +43,10 @@ class NeoInput extends StatelessWidget {
       readOnly: readOnly,
       keyboardType: keyboardType,
       validator: validator,
-      inputFormatters: (formatter != null) ? [formatter!] : null,
+      inputFormatters: [
+        if (formatter != null) formatter!,
+        if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+      ],
       decoration: InputDecoration(
           hintText: hintText,
           hintStyle: GoogleFonts.poppins(
