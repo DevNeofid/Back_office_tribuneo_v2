@@ -177,7 +177,8 @@ class CustomersContentViewState extends State<CustomersContentView>
   }
 
   Future<void> _deleteCustomer(EntityModel customer) async {
-    final bool? shouldRefresh = await showDialog<bool>(
+    // final bool? shouldRefresh =
+    await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -193,17 +194,19 @@ class CustomersContentViewState extends State<CustomersContentView>
               ),
               TextButton(
                 child: const Text('Désactiver'),
-                onPressed: () {
-                  _customerUseCase.deleteCustomer(customer.id!, customer.type!);
+                onPressed: () async {
+                  await _customerUseCase.deleteCustomer(
+                      customer.id!, customer.type!);
                   Navigator.of(context).pop(true);
                 },
               ),
             ],
           );
-        });
-    if (shouldRefresh == true) {
-      _refreshCustomers();
-    }
+        }).then((value) {
+      if (value == true) {
+        _refreshCustomers();
+      }
+    });
   }
 
   void search(String text) {
@@ -376,80 +379,67 @@ class CustomersContentViewState extends State<CustomersContentView>
                 ),
               ],
             ),
-            Column(
-              children: [
-                SizedBox(
-                  width: SizeConfig.screenWidth * 0.1,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      iconColor: kBlue,
-                      focusColor: kGrey,
-                      hintText: 'Rechercher...',
-                      hintStyle: GoogleFonts.roboto(fontSize: 20),
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: kBlue, width: 2.0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onChanged: search,
+            SizedBox(
+              width: SizeConfig.screenWidth * 0.1,
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  iconColor: kBlue,
+                  focusColor: kGrey,
+                  hintText: 'Rechercher...',
+                  hintStyle: GoogleFonts.roboto(fontSize: 20),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: kBlue, width: 2.0),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                SizedBox(
-                  height: 25,
-                  width: SizeConfig.screenWidth * 0.4,
-                  child: Center(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      itemCount: sortedEntities.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        String letter = availableFilters[index];
-                        return Container(
-                          padding: const EdgeInsets.all(0),
-                          width: 30,
-                          margin: const EdgeInsets.only(right: 1.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _lastSearch = '';
-                                searchController.clear();
-                                _filter = letter;
-                                _lastFilter = letter;
-                                _customers = sortedEntities[_filter]
-                                    as List<EntityModel>;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.all(10),
-                              backgroundColor:
-                                  _filter == letter ? kOrange : kBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                            ),
-                            child: SizedBox(
-                                width: 25,
-                                child: Text(
-                                  letter.toUpperCase(),
-                                  style: const TextStyle(color: kWhite),
-                                )),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            )
+                onChanged: search,
+              ),
+            ),
           ],
+        ),
+        const SizedBox(height: 40),
+        SizedBox(
+          width: SizeConfig.screenWidth * 0.8,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 4.0,
+            runSpacing: 8.0,
+            children: availableFilters.map((letter) {
+              return Container(
+                padding: const EdgeInsets.all(0),
+                width: 35,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _lastSearch = '';
+                      searchController.clear();
+                      _filter = letter;
+                      _lastFilter = letter;
+                      _customers = sortedEntities[_filter] as List<EntityModel>;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(5),
+                    backgroundColor: _filter == letter ? kOrange : kBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      letter.toUpperCase(),
+                      style: const TextStyle(color: kWhite),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
         const SizedBox(height: 20),
         SizedBox(
