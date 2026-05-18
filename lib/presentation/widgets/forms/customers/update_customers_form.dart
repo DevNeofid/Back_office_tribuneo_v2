@@ -70,7 +70,7 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
     try {
       await _customerUseCase.updateCustomer(e);
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pop(context, true);
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Modification du client réussie'),
         backgroundColor: Colors.green,
@@ -103,177 +103,114 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+
+    double formWidth = Responsive.isMobile(context)
+        ? SizeConfig.screenWidth * 0.9
+        : SizeConfig.screenWidth * 0.4;
+
     return AlertDialog(
       backgroundColor: kTransparent,
       contentPadding: const EdgeInsets.all(0),
       content: Form(
         key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.8,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: SizedBox(
+          width: formWidth,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+              color: kPLGrey2,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Center(
+                    child: SelectableText(
+                      "Modifier le client",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                          fontSize: Responsive.isMobile(context) ? 22 : 28,
+                          letterSpacing: 0.3,
+                          fontWeight: FontWeight.w600,
+                          color: kOrange),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  NeoInput(
+                    controller: customerNameController,
+                    hintText: 'Nom du client',
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  NeoInput(
+                    controller: customerMailController,
+                    hintText: 'Email du client',
+                    keyboardType: TextInputType.emailAddress,
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  NeoInput(
+                    controller: customerSiretController,
+                    hintText: 'Siret du client',
+                    keyboardType: TextInputType.number,
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      return FormValidator.validateSiret(value ?? '');
+                    },
+                    formatter: FilteringTextInputFormatter.digitsOnly,
+                    maxLength: 14,
+                  ),
+                  const SizedBox(height: 16),
+                  NeoInput(
+                    controller: customerPhoneController,
+                    hintText: 'Téléphone du client',
+                    keyboardType: TextInputType.phone,
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      return FormValidator.validatePhoneNumber(value ?? '');
+                    },
+                    formatter: FilteringTextInputFormatter.digitsOnly,
+                  ),
+                  const SizedBox(height: 16),
+                  NeoInput(
+                    controller: customerCodeController,
+                    hintText: 'Code du client',
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      return FormValidator.validateCode(value ?? '');
+                    },
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                        child: SelectableText(
-                          "Modifier le client",
-                          style: GoogleFonts.poppins(
-                              fontSize: 32,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w600,
-                              color: kOrange),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: customerNameController,
-                                hintText: 'Nom du client',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
+                    children: [
+                      _isSaving
+                          ? const SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(
+                                color: kOrange,
                               ),
+                            )
+                          : NeoButton(
+                              text: "Enregistrer",
+                              onPressed: addCustomer,
                             ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 3 : 1,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: customerMailController,
-                                hintText: 'Email du client',
-                                keyboardType: TextInputType.text,
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateText(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: customerSiretController,
-                                hintText: 'Siret du client',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateSiret(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: customerPhoneController,
-                                hintText: 'Téléphone du client',
-                                keyboardType: TextInputType.number,
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validatePhoneNumber(
-                                      value ?? '');
-                                },
-                                formatter:
-                                    FilteringTextInputFormatter.digitsOnly,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.02),
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: NeoInput(
-                                controller: customerCodeController,
-                                hintText: 'Code du client',
-                                fillColor: kPWhite,
-                                validator: (value) {
-                                  return FormValidator.validateCode(
-                                      value ?? '');
-                                },
-                              ),
-                            ),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 4 : 2,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                            const Expanded(
-                              flex: 2,
-                              child: SizedBox(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _isSaving
-                              ? const SizedBox(
-                                  height: 40,
-                                  width: 40,
-                                  child: CircularProgressIndicator(
-                                    color: kOrange,
-                                  ),
-                                )
-                              : NeoButton(
-                                  text: "Enregistrer", onPressed: addCustomer),
-                        ],
-                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
-        ]),
+        ),
       ),
     );
   }

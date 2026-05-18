@@ -77,8 +77,8 @@ class CustomerRepository extends BaseRepository {
     String data = jsonEncode(customer.toJson());
     String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.put('$suffixe/${customer.id}/update', data,
-          overrideTenant: tenant);
+      return await _remoteData.put(
+          suffixe, id: customer.id, data, overrideTenant: tenant);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
