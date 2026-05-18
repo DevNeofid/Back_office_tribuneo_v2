@@ -30,7 +30,7 @@ class BankInformationsRepository extends BaseRepository {
     try {
       String data = jsonEncode(bankInfo.toJson());
       final dynamic response = await _remoteData.put(suffixe, data,
-          id: bankInfo.idEntity, overrideTenant: tenant);
+          id: bankInfo.id, overrideTenant: tenant);
       if (response.statusCode == 200) {
         return response;
       } else {

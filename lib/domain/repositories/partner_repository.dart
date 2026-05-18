@@ -218,4 +218,24 @@ class PartnerRepository extends BaseRepository {
       return http.Response('Error: $e', 500);
     }
   }
+
+  Future<EntityModel?> getPartnerBySiret(String siret) async {
+    String tenant = await getTenantForCurrentNetwork();
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/siret',
+        overrideTenant: tenant,
+        queryParams: {'siret': siret},
+      );
+      Map<String, dynamic> jsonResponse = response.data;
+      if (jsonResponse.containsKey('data') && jsonResponse['data'] != null) {
+        return EntityModel.fromJson(jsonResponse['data']);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la recherche du SIRET $siret : $e');
+    }
+  }
 }

@@ -15,6 +15,10 @@ class PartnerUseCase {
     return await partnerRepository.getPartners();
   }
 
+  Future<EntityModel?> getPartnerBySiret(String siret) async {
+    return await partnerRepository.getPartnerBySiret(siret);
+  }
+
   Future updatePartner(EntityModel partner) async {
     dynamic res = await partnerRepository.updatePartner(partner);
     return res;
