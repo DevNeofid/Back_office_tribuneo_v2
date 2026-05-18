@@ -332,8 +332,8 @@ class PartnersContentViewState extends State<PartnersContentView>
               ),
               TextButton(
                 child: const Text('Valider'),
-                onPressed: () {
-                  _partnerUseCase.addEntityType(partner.id!);
+                onPressed: () async {
+                  await _partnerUseCase.addEntityType(partner.id!);
                   Navigator.of(context).pop(true);
                 },
               ),
@@ -404,8 +404,9 @@ class PartnersContentViewState extends State<PartnersContentView>
               ),
               TextButton(
                 child: const Text('Désactiver'),
-                onPressed: () {
-                  _partnerUseCase.deletePartner(partner.id!, partner.type!);
+                onPressed: () async {
+                  await _partnerUseCase.deletePartner(
+                      partner.id!, partner.type!);
                   Navigator.of(context).pop(true);
                 },
               ),

@@ -96,8 +96,9 @@ class PartnerRepository extends BaseRepository {
   }
 
   Future deletePartner(int id, String type) async {
+    String tenant = await getTenantForCurrentNetwork();
     try {
-      return await _remoteData.delete(suffixe, id);
+      return await _remoteData.delete(suffixe, id, overrideTenant: tenant);
     } catch (e) {
       return http.Response('Error: $e', 500);
     }
