@@ -6,23 +6,23 @@ class CustomerUseCase {
 
   CustomerUseCase();
 
-  Future<void> addCustomer(EntityModel customer) async {
-    await customerRepository.addCustomer(customer);
+  Future<dynamic> addCustomer(EntityModel customer) async {
+    return await customerRepository.addCustomer(customer);
   }
 
-  Future<void> addEntityType(int id) async {
-    await customerRepository.addEntityType(id);
+  Future<dynamic> addEntityType(int id) async {
+    return await customerRepository.addEntityType(id);
   }
 
-  Future<void> updateCustomer(EntityModel customer) async {
-    await customerRepository.updateCustomer(customer);
+  Future<dynamic> updateCustomer(EntityModel customer) async {
+    return await customerRepository.updateCustomer(customer);
   }
 
   Future<Map<int, dynamic>> getCustomers() async {
     return await customerRepository.getCustomers();
   }
 
-  Future<void> deleteCustomer(int id, String type) async {
-    await customerRepository.deleteCustomer(id, type);
+  Future<dynamic> deleteCustomer(int id, String type) async {
+    return await customerRepository.deleteCustomer(id, type);
   }
 }

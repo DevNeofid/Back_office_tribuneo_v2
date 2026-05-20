@@ -1,110 +1,101 @@
 import 'dart:convert';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 
 class CustomerRepository extends BaseRepository {
   final ApiClient _remoteData = ApiClient();
-
   final String suffixe = 'entity';
 
   static const int allCustomersKey = 0;
   static const int mapEntitiesKey = 1;
 
   Future<Map<int, dynamic>> getCustomers() async {
-    Map<int, dynamic> result = {};
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response = await _remoteData.get(suffixe,
+        queryParams: {
+          'entity_type': 'customer',
+          'full_infos': 'true',
+          'sorted_by_letter': 'true'
+        },
+        overrideTenant: tenant);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Erreur lors de la récupération des clients (Code ${response.statusCode})');
+    }
+
     Map<String, List<EntityModel>> mapEntities = {};
     List<EntityModel> allCustomers = [];
-    String tenant = await getTenantForCurrentNetwork();
-    try {
-      dynamic response = await _remoteData.get(suffixe,
-          queryParams: {
-            'entity_type': 'customer',
-            'full_infos': 'true',
-            'sorted_by_letter': 'true'
-          },
-          overrideTenant: tenant);
-      if (response.statusCode == 200) {
-        if (kDebugMode) {
-          print('###DEBUG### date after response: ${DateTime.now()}');
-        }
-        Map<String, dynamic> itemsMap = response.data['data']['items'];
+    Map<String, dynamic> itemsMap = response.data['data']['items'];
 
-        itemsMap.forEach((letterKey, customersList) {
-          List<EntityModel> letterCustomers = [];
-          for (var customerJson in customersList) {
-            EntityModel p = EntityModel.fromJson(customerJson);
-            letterCustomers.add(p);
-            allCustomers.add(p);
-          }
+    itemsMap.forEach((letterKey, customersList) {
+      List<EntityModel> letterCustomers = [];
+      for (var customerJson in customersList) {
+        EntityModel p = EntityModel.fromJson(customerJson);
+        letterCustomers.add(p);
+        allCustomers.add(p);
+      }
+      mapEntities[letterKey] = letterCustomers;
+    });
 
-          mapEntities[letterKey] = letterCustomers;
-        });
-      } else {
-        if (kDebugMode) {
-          print('Error getting customers: ${response.statusCode}');
-        }
-      }
-      result.addAll(
-        {
-          allCustomersKey: allCustomers,
-          mapEntitiesKey: mapEntities,
-        },
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        print('###DEBUG### Error in getCustomers: $e');
-      }
-      result = {};
-    }
-    return result;
+    return {
+      allCustomersKey: allCustomers,
+      mapEntitiesKey: mapEntities,
+    };
   }
 
   Future addCustomer(EntityModel customer) async {
     String data = jsonEncode(customer.toJson());
     String tenant = await getTenantForCurrentNetwork();
-    try {
-      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
-    } catch (e) {
-      return http.Response('Error: $e', 500);
+    dynamic response =
+        await _remoteData.post(suffixe, data, overrideTenant: tenant);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+          'Erreur lors de l\'ajout du client (Code ${response.statusCode}) : ${response.data}');
     }
+    return response.data;
   }
 
   Future updateCustomer(EntityModel customer) async {
     String data = jsonEncode(customer.toJson());
     String tenant = await getTenantForCurrentNetwork();
-    try {
-      return await _remoteData.put(
-          suffixe, id: customer.id, data, overrideTenant: tenant);
-    } catch (e) {
-      return http.Response('Error: $e', 500);
+    dynamic response = await _remoteData.put(suffixe, data,
+        id: customer.id, overrideTenant: tenant);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Erreur lors de la mise à jour du client (Code ${response.statusCode}) : ${response.data}');
     }
+    return response.data;
   }
 
   Future deleteCustomer(int id, String type) async {
     String suffixeD = 'entity/customer';
     String tenant = await getTenantForCurrentNetwork();
-    try {
-      return await _remoteData.delete(suffixeD, id, overrideTenant: tenant);
-    } catch (e) {
-      return http.Response('Error: $e', 500);
+    dynamic response =
+        await _remoteData.delete(suffixeD, id, overrideTenant: tenant);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Erreur lors de la suppression du client (Code ${response.statusCode}) : ${response.data}');
     }
+    return response.data;
   }
 
   Future addEntityType(int id) async {
-    const String suffixe = 'entity/add-type';
+    const String suffixeET = 'entity/add-type';
     String tenant = await getTenantForCurrentNetwork();
     String data = jsonEncode({'id_entity': id, 'type': 'partner'});
-    try {
-      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
-    } catch (e) {
-      if (kDebugMode) {
-        print('###DEBUG### Error adding entity type: $e');
-      }
-      return http.Response('Error: $e', 500);
+
+    dynamic response =
+        await _remoteData.post(suffixeET, data, overrideTenant: tenant);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+          'Erreur lors du changement de type (Code ${response.statusCode}) : ${response.data}');
     }
+    return response.data;
   }
 }

@@ -15,6 +15,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/part
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/sector_activity_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/update_partner_info_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
 
 enum QrBoxItem { itemOne, itemTwo, itemThree }
@@ -273,16 +274,42 @@ class PartnersContentViewState extends State<PartnersContentView>
       useSafeArea: true,
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (BuildContext dialogContext) {
         return CheckSiretDialog(
           onPartnerNotFound: (siret) {
             _addPartner(initialSiret: siret);
           },
+          onPartnerRejected: () {
+            snackbarKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Ajout annulé',
+                  style: GoogleFonts.poppins(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
           onPartnerAccepted: (partner) async {
             try {
-              await _partnerUseCase.addPartner(partner);
+              EntityModel cleanPartner = EntityModel.fromJson({
+                "name": partner.name,
+                "email": partner.email,
+                "siret": partner.siret,
+                "phone": partner.phone,
+                "accept_demat": partner.acceptDemat ?? false,
+                "type": "partner",
+              });
+
+              dynamic response = await _partnerUseCase.addPartner(cleanPartner);
+
+              if (response != null && response.toString().contains('error')) {
+                throw Exception('L\'API a refusé les données du partenaire');
+              }
+
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
+
+              snackbarKey.currentState?.showSnackBar(
                 SnackBar(
                   content: Text(
                     'Partenaire ajouté avec succès !',
@@ -294,7 +321,8 @@ class PartnersContentViewState extends State<PartnersContentView>
               _refreshPartners();
             } catch (e) {
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
+
+              snackbarKey.currentState?.showSnackBar(
                 SnackBar(
                   content: Text(
                     'Erreur lors de l\'ajout du partenaire : $e',

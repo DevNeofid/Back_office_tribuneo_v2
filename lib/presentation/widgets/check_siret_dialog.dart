@@ -12,11 +12,13 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 class CheckSiretDialog extends StatefulWidget {
   final Function(EntityModel partner) onPartnerAccepted;
   final Function(String siret) onPartnerNotFound;
+  final Function() onPartnerRejected;
 
   const CheckSiretDialog({
     super.key,
     required this.onPartnerAccepted,
     required this.onPartnerNotFound,
+    required this.onPartnerRejected,
   });
 
   @override
@@ -195,7 +197,10 @@ class _CheckSiretDialogState extends State<CheckSiretDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.onPartnerRejected();
+                },
                 child: Text(
                   'Non',
                   style: GoogleFonts.poppins(

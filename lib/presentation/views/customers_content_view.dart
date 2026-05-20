@@ -13,6 +13,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/cus
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/update_customers_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -132,16 +133,38 @@ class CustomersContentViewState extends State<CustomersContentView>
       useSafeArea: true,
       context: context,
       barrierDismissible: false,
-      builder: (context) {
+      builder: (BuildContext dialogContext) {
         return CheckSiretDialog(
           onPartnerNotFound: (siret) {
             _addCustomer(initialSiret: siret);
           },
-          onPartnerAccepted: (customer) async {
+          onPartnerRejected: () {
+            snackbarKey.currentState?.showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Ajout annulé',
+                  style: GoogleFonts.poppins(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
+          onPartnerAccepted: (partner) async {
             try {
-              await _customerUseCase.addCustomer(customer);
+              EntityModel cleanCustomer = EntityModel.fromJson({
+                "name": partner.name,
+                "email": partner.email,
+                "siret": partner.siret,
+                "phone": partner.phone,
+                "accept_demat": partner.acceptDemat ?? false,
+                "type": "customer",
+              });
+
+              await _customerUseCase.addCustomer(cleanCustomer);
+
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
+
+              snackbarKey.currentState?.showSnackBar(
                 SnackBar(
                   content: Text(
                     'Client ajouté avec succès !',
@@ -153,7 +176,8 @@ class CustomersContentViewState extends State<CustomersContentView>
               _refreshCustomers();
             } catch (e) {
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
+
+              snackbarKey.currentState?.showSnackBar(
                 SnackBar(
                   content: Text(
                     'Erreur lors de l\'ajout du client : $e',
