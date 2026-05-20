@@ -553,17 +553,17 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                                 )),
                                 DataCell(Center(
                                   child: SizedBox(
-                                    width: isCompact ? 130 : 190,
+                                    width: isCompact ? 120 : 170,
                                     child: Tooltip(
-                                      message: globalNetworkName != 'VDPC'
-                                          ? (order.giftReason ?? '')
-                                          : (order.orderItems?[0].persoMsg ??
-                                              ''),
+                                      message: order.orderItems != null
+                                          ? order.orderItems!
+                                              .map((e) => e.persoMsg)
+                                              .join(', ')
+                                          : '',
                                       child: Text(
-                                        globalNetworkName != 'VDPC'
-                                            ? (order.giftReason ?? '')
-                                            : (order.orderItems?[0].persoMsg ??
-                                                ''),
+                                        order.giftReason != null
+                                            ? order.giftReason!
+                                            : '',
                                         textAlign: TextAlign.center,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
@@ -1008,8 +1008,8 @@ class ShowPaymentState extends State<ShowPayment> {
                             : NeoButton(
                                 width: 100,
                                 height: 40,
-                                onPressed: () =>
-                                    _submitPayment(_paymentAmountController.text),
+                                onPressed: () => _submitPayment(
+                                    _paymentAmountController.text),
                                 text: "Valider"),
                       ),
                     ],
