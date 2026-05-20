@@ -71,17 +71,16 @@ class CustomerRepository extends BaseRepository {
     return response.data;
   }
 
-  Future deleteCustomer(int id, String type) async {
+  Future<bool> deleteCustomer(int id, String type) async {
     String suffixeD = 'entity/customer';
     String tenant = await getTenantForCurrentNetwork();
     dynamic response =
         await _remoteData.delete(suffixeD, id, overrideTenant: tenant);
 
     if (response.statusCode != 200) {
-      throw Exception(
-          'Erreur lors de la suppression du client (Code ${response.statusCode}) : ${response.data}');
+      return false;
     }
-    return response.data;
+    return true;
   }
 
   Future addEntityType(int id) async {

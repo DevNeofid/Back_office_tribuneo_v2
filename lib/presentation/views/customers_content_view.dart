@@ -289,9 +289,30 @@ class CustomersContentViewState extends State<CustomersContentView>
               TextButton(
                 child: const Text('Désactiver'),
                 onPressed: () async {
-                  await _customerUseCase.deleteCustomer(
+                  bool deleted = await _customerUseCase.deleteCustomer(
                       customer.id!, customer.type!);
                   Navigator.of(context).pop(true);
+                  if (deleted) {
+                    snackbarKey.currentState?.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Client désactivé avec succès !',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    snackbarKey.currentState?.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Erreur lors de la désactivation du client, au moins une commande associée n'est pas totalement payée.",
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
               ),
             ],

@@ -6,6 +6,7 @@ import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dar
 import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
 
@@ -16,33 +17,74 @@ class OrderRepository extends BaseRepository {
   String suffixe = 'order';
   final String suffixeQ = 'qrcode/gen';
 
-  Future<List<OrderModel>> getOrders() async {
+  Future<PaginatedResult<OrderModel>> getOrders({
+    int limit = 50,
+    int offset = 0,
+    String? search,
+  }) async {
     String tenant = await getTenantForCurrentNetwork();
     List<OrderModel> orders = [];
+    int total = 0;
     try {
-      dynamic response = await _remoteData.get(suffixe, overrideTenant: tenant);
+      final Map<String, dynamic> queryParams = {
+        'limit': limit,
+        'offset': offset,
+        if (search != null && search.isNotEmpty) 'search': search,
+      };
+      dynamic response = await _remoteData.get(
+        suffixe,
+        overrideTenant: tenant,
+        queryParams: queryParams,
+      );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseBody = response.data;
-
-        if (responseBody.containsKey('data') &&
-            responseBody['data'] is Map &&
-            responseBody['data'].containsKey('items')) {
-          final List<dynamic> itemsList = responseBody['data']['items'];
-
-          for (var order in itemsList) {
-            orders.add(OrderModel.fromJson(order as Map<String, dynamic>));
-          }
+        final dynamic responseMap = response.data;
+        final List<dynamic> items =
+            (responseMap['data']?['items'] as List<dynamic>?) ?? [];
+        total = _extractTotal(responseMap, items.length);
+        for (var order in items) {
+          orders.add(OrderModel.fromJson(order as Map<String, dynamic>));
         }
-      } else {
-        orders = [];
       }
     } catch (e) {
       if (kDebugMode) {
         print('Error: $e');
       }
       orders = [];
+      total = 0;
     }
-    return orders;
+    return PaginatedResult<OrderModel>(items: orders, total: total);
+  }
+
+  int _extractTotal(dynamic response, int fallback) {
+    if (response is! Map) return fallback;
+
+    int? parse(dynamic value) {
+      if (value is int) return value;
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    final dynamic data = response['data'];
+    if (data is Map) {
+      final dynamic pagination = data['pagination'];
+      final dynamic meta = data['meta'];
+      final candidates = [
+        data['total'],
+        data['count'],
+        data['total_items'],
+        if (pagination is Map) pagination['total'],
+        if (pagination is Map) pagination['count'],
+        if (meta is Map) meta['total'],
+        if (meta is Map) meta['count'],
+      ];
+
+      for (final candidate in candidates) {
+        final parsed = parse(candidate);
+        if (parsed != null) return parsed;
+      }
+    }
+
+    return 0;
   }
 
   Future<bool> addOrders(OrderSendModel order,
@@ -107,20 +149,15 @@ class OrderRepository extends BaseRepository {
     }
   }
 
-  Future deleteOrder(int id) async {
+  Future<bool> deleteOrder(int id) async {
     String tenant = await getTenantForCurrentNetwork();
-    try {
+
       dynamic request =
           await _remoteData.delete(suffixe, id, overrideTenant: tenant);
       if (request.statusCode == 200) {
         return true;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('###DEBUG### Error: $e');
-      }
       return false;
-    }
   }
 
   Future<List<UrssafModel>> getUrssaf() async {
@@ -240,17 +277,15 @@ class OrderRepository extends BaseRepository {
     }
   }
 
-  Future getInvoiceInfos(int idOrder) async {
-    String suffixe = 'invoice_info';
+  Future<String> getInvoiceInfos(int idOrder) async {
+    String suffixe = 'accounting/invoice/comment';
     String tenant = await getTenantForCurrentNetwork();
     try {
       dynamic response =
           await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
       if (response.statusCode == 200) {
-        var res = jsonDecode(response.data);
-        Map<String, dynamic> invoiceInfos = {
-          'comment': res['comment'],
-        };
+        var res = response.data;
+        String invoiceInfos = res['data']['comment'];
         return invoiceInfos;
       } else {
         throw Exception('Failed to load invoice');
@@ -261,7 +296,7 @@ class OrderRepository extends BaseRepository {
   }
 
   Future createInvoice(Map invoice) async {
-    String suffixe = 'invoice_purchase';
+    String suffixe = 'accounting/invoice/order';
     String data = jsonEncode(invoice);
     String tenant = await getTenantForCurrentNetwork();
     try {

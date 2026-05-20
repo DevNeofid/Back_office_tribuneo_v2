@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -29,50 +29,21 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   final TextEditingController _searchController = TextEditingController();
   final OrderUseCase _orderUseCase = OrderUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
-  List<OrderModel> _orders = [];
-  List<OrderModel> _allOrders = [];
-  SampleItem? selectedMenu;
-  SampleItem2? selectedMenu2;
-  bool _isLoading = false;
+  late final OrderDataSource _dataSource;
 
   @override
   void initState() {
     super.initState();
-    _refreshOrders();
-  }
-
-  _refreshOrders() async {
-    setState(() {
-      _isLoading = true;
-    });
-    _orders = [];
-    await _orderUseCase.getOrders().then((value) {
-      setState(() {
-        _orders = value
-            .map((e) => OrderModel(
-                  id: e.id,
-                  orderNumber: e.orderNumber,
-                  giftFrom: e.giftFrom,
-                  giftReason: e.giftReason,
-                  idUrssaf: e.idUrssaf,
-                  fundQuantity: e.fundQuantity,
-                  totalAmount: e.totalAmount,
-                  paid: e.paid,
-                  idEntity: e.idEntity,
-                  orderItems: e.orderItems,
-                  fundExpiryDate: e.fundExpiryDate,
-                  createdDate: e.createdDate,
-                  updatedDate: e.updatedDate,
-                ))
-            .toList();
-        _isLoading = false;
-      });
-      _allOrders = List.from(_orders);
-    }).catchError((error) {
-      setState(() {
-        _isLoading = false;
-      });
-    });
+    _dataSource = OrderDataSource(
+      orderUseCase: _orderUseCase,
+      onShowPayments: _showPayments,
+      onCreateQRCode: _createQRCode,
+      onCreateCsv: _createCsv,
+      onCreateDeliveryNote: _createDeliveryNote,
+      onCreateInvoice: _createInvoice,
+      onCreateSummary: _createSummary,
+      onDelete: _deleteOrder,
+    );
   }
 
   Future<void> _addOrder() async {
@@ -83,7 +54,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
           return const OrderForm(idEntity: -1, entityName: '');
         });
     if (result == true) {
-      _refreshOrders();
+      _dataSource.refreshDatasource();
     }
   }
 
@@ -182,12 +153,12 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         });
 
     if (result == true) {
-      _refreshOrders();
+      _dataSource.refreshDatasource();
     }
   }
 
   Future<void> _createInvoice(OrderModel order) async {
-    Map infos = {};
+    String infos = '';
     try {
       infos = await _orderUseCase.getInvoiceInfos(order.id!);
     } catch (error) {
@@ -215,7 +186,8 @@ class _OrdersContentViewState extends State<OrdersContentView> {
 
     Map<String, dynamic> invoice = {
       'id_order': order.id,
-      'comment': additionalInfo
+      'comment': additionalInfo,
+      'justDownload': 0,
     };
     try {
       dynamic res = await _orderUseCase.createInvoice(invoice);
@@ -228,7 +200,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
           listDynamic, 'Facture_${name}_$number', 'application/pdf',
           fileExtension: 'pdf');
 
-      _refreshOrders();
+      _dataSource.refreshDatasource();
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de la génération du PDF.')));
@@ -265,17 +237,17 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     }
   }
 
-  Future<String?> _showAdditionalInfoDialog(Map invoiceInfos) async {
+  Future<String?> _showAdditionalInfoDialog(String invoiceInfos) async {
     String? additionalInfo;
     TextEditingController textEditingController =
-        TextEditingController(text: invoiceInfos['comment']);
+        TextEditingController(text: invoiceInfos);
 
     bool? dialogResult = await showDialog<bool>(
       context: navigatorKey.currentState!.context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-              'Voulez-vous ajouter des informations supplémentaires?'),
+              'Voulez-vous ajouter des informations supplémentaires ?'),
           content: SizedBox(
             width: 500,
             height: 200,
@@ -365,8 +337,19 @@ class _OrdersContentViewState extends State<OrdersContentView> {
               TextButton(
                 child: const Text('Supprimer'),
                 onPressed: () async {
-                  await _orderUseCase.deleteOrder(id);
-                  Navigator.of(context).pop(true);
+                  bool deleted = await _orderUseCase.deleteOrder(id);
+                  if (deleted) {
+                    Navigator.of(context).pop(true);
+                    snackbarKey.currentState?.showSnackBar(const SnackBar(
+                        content: Text('Commande supprimée avec succès.'),
+                        backgroundColor: kGreen));
+                  } else {
+                    Navigator.of(context).pop(true);
+                    snackbarKey.currentState?.showSnackBar(const SnackBar(
+                        content: Text(
+                            'Erreur lors de la suppression de la commande, au moins un utilisateur a scanné son bon sur cette commande.'),
+                        backgroundColor: kRed));
+                  }
                 },
               ),
             ],
@@ -374,34 +357,16 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         });
 
     if (result == true) {
-      _refreshOrders();
-    }
-  }
-
-  void _filterOrders(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        _orders = List.from(_allOrders);
-      });
-    } else {
-      List<OrderModel> filteredOrders = [];
-      for (var order in _allOrders) {
-        if (order.orderNumber!.toLowerCase().contains(query.toLowerCase()) ||
-            order.giftFrom!.toLowerCase().contains(query.toLowerCase()) ||
-            order.giftReason!.toLowerCase().contains(query.toLowerCase())) {
-          filteredOrders.add(order);
-        }
-      }
-
-      setState(() {
-        _orders = filteredOrders;
-      });
+      _dataSource.refreshDatasource();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+    final bool isCompact = MediaQuery.of(context).size.width < 1500;
+    _dataSource.isCompact = isCompact;
+
     return Column(
       children: [
         Text('Ajouter une commande', style: GoogleFonts.poppins(fontSize: 20)),
@@ -437,265 +402,352 @@ class _OrdersContentViewState extends State<OrdersContentView> {
               ),
             ),
             onChanged: (value) {
-              _filterOrders(value);
+              _dataSource.updateSearch(value);
             },
           ),
         ),
         const SizedBox(height: 50),
-        Builder(builder: (context) {
-          final bool isCompact = MediaQuery.of(context).size.width < 1500;
-
-          return _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Container(
-                  decoration: BoxDecoration(
-                    color: kWhite,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: kBlue.withValues(alpha: 0.07),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+        ValueListenableBuilder<int>(
+          valueListenable: _dataSource.currentPageItemCount,
+          builder: (context, itemCount, _) {
+            final double tableHeight =
+                54.0 + (itemCount.clamp(1, 50) * 53.0) + 70.0;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              height: tableHeight,
+              decoration: BoxDecoration(
+                color: kWhite,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: kBlue.withValues(alpha: 0.07),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: isCompact ? 980 : 1180,
-                        ),
-                        child: DataTable(
-                          columnSpacing: isCompact ? 16 : 22,
-                          horizontalMargin: isCompact ? 10 : 14,
-                          dividerThickness: 0.6,
-                          dataRowMinHeight: 50,
-                          dataRowMaxHeight: 56,
-                          headingRowHeight: 54,
-                          headingTextStyle: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: kWhite,
-                          ),
-                          dataTextStyle: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: kBlueEnd,
-                          ),
-                          headingRowColor: WidgetStateProperty.all(kBlue),
-                          columns: const [
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('N°',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Offert par',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Occasion',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Qté',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Payé',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Facturé',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Création',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Expiration',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Gestion',
-                                        textAlign: TextAlign.center))),
-                            DataColumn(
-                                label: Expanded(
-                                    child: Text('Edition',
-                                        textAlign: TextAlign.center))),
-                          ],
-                          rows: _orders.asMap().entries.map((entry) {
-                            final order = entry.value;
-                            final index = entry.key;
-                            final isEvenRow = index % 2 == 0;
-                            final bool isPaid = order.paid == order.totalAmount;
-                            return DataRow(
-                              cells: [
-                                DataCell(Center(
-                                    child: SelectableText(
-                                        order.orderNumber ?? '',
-                                        textAlign: TextAlign.center))),
-                                DataCell(Center(
-                                  child: SizedBox(
-                                    width: isCompact ? 120 : 170,
-                                    child: Tooltip(
-                                      message: order.giftFrom ?? '',
-                                      child: Text(
-                                        order.giftFrom ?? '',
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                  ),
-                                )),
-                                DataCell(Center(
-                                  child: SizedBox(
-                                    width: isCompact ? 120 : 170,
-                                    child: Tooltip(
-                                      message: order.orderItems != null
-                                          ? order.orderItems!
-                                              .map((e) => e.persoMsg)
-                                              .join(', ')
-                                          : '',
-                                      child: Text(
-                                        order.giftReason != null
-                                            ? order.giftReason!
-                                            : '',
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                  ),
-                                )),
-                                DataCell(Center(
-                                    child: Text(
-                                        order.fundQuantity?.toString() ?? '',
-                                        textAlign: TextAlign.center))),
-                                DataCell(Center(
-                                    child: Text(
-                                  (order.paid ?? 0).toStringAsFixed(2),
-                                  textAlign: TextAlign.center,
-                                  style:
-                                      TextStyle(color: isPaid ? kGreen : kRed),
-                                ))),
-                                DataCell(Center(
-                                    child: Text(
-                                  (order.totalAmount ?? 0).toStringAsFixed(2),
-                                  textAlign: TextAlign.center,
-                                  style:
-                                      TextStyle(color: isPaid ? kGreen : kRed),
-                                ))),
-                                DataCell(Center(
-                                    child: Text(
-                                        DateFormater().modifyDate(
-                                                order.createdDate!.date!) ??
-                                            '',
-                                        textAlign: TextAlign.center))),
-                                DataCell(Center(
-                                    child: Text(
-                                        DateFormater().modifyDate(
-                                                order.fundExpiryDate!.date!) ??
-                                            '',
-                                        textAlign: TextAlign.center))),
-                                DataCell(
-                                  Center(
-                                    child: PopupMenuButton<SampleItem>(
-                                      icon: const Icon(
-                                          Icons.call_to_action_outlined),
-                                      initialValue: selectedMenu,
-                                      onSelected: (SampleItem item) {
-                                        if (item == SampleItem.itemOne) {
-                                          _showPayments(order);
-                                        } else if (item == SampleItem.itemTwo) {
-                                          _createQRCode(order);
-                                        } else if (item ==
-                                            SampleItem.itemThree) {
-                                          _createCsv(order);
-                                        } else if (item ==
-                                            SampleItem.itemFour) {
-                                          _createDeliveryNote(order);
-                                        } else if (item ==
-                                            SampleItem.itemFive) {
-                                          _createInvoice(order);
-                                        } else if (item == SampleItem.itemSix) {
-                                          _createSummary(order);
-                                        }
-                                      },
-                                      itemBuilder: (BuildContext context) =>
-                                          <PopupMenuEntry<SampleItem>>[
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemOne,
-                                          child: Text('Paiements'),
-                                        ),
-                                        const PopupMenuDivider(),
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemTwo,
-                                          child: Text('Générer les QR Code'),
-                                        ),
-                                        const PopupMenuDivider(),
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemThree,
-                                          child: Text('Générer le CSV'),
-                                        ),
-                                        const PopupMenuDivider(),
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemFour,
-                                          child: Text(
-                                              'Générer le bon de livraison'),
-                                        ),
-                                        const PopupMenuDivider(),
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemFive,
-                                          child: Text('Générer la Facture'),
-                                        ),
-                                        const PopupMenuDivider(),
-                                        const PopupMenuItem<SampleItem>(
-                                          value: SampleItem.itemSix,
-                                          child:
-                                              Text('Générer le récapitulatif'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Center(
-                                    child: PopupMenuButton<SampleItem2>(
-                                      initialValue: selectedMenu2,
-                                      onSelected: (SampleItem2 item) {
-                                        if (item == SampleItem2.itemTwo) {
-                                          _deleteOrder(order.id!);
-                                        }
-                                      },
-                                      itemBuilder: (BuildContext context) =>
-                                          <PopupMenuEntry<SampleItem2>>[
-                                        const PopupMenuItem<SampleItem2>(
-                                          value: SampleItem2.itemTwo,
-                                          child: Text('Supprimer'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              color: isEvenRow
-                                  ? WidgetStateProperty.all(kWhite)
-                                  : WidgetStateProperty.all(
-                                      kLBlue.withValues(alpha: 0.10)),
-                            );
-                          }).toList(),
-                        ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    dataTableTheme: DataTableThemeData(
+                      headingRowColor: WidgetStateProperty.all(kBlue),
+                      headingTextStyle: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: kWhite,
                       ),
+                      dataTextStyle: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: kBlueEnd,
+                      ),
+                      dividerThickness: 0.6,
+                      dataRowMinHeight: 50,
+                      dataRowMaxHeight: 56,
+                      headingRowHeight: 54,
                     ),
                   ),
-                );
-        }),
+                  child: AsyncPaginatedDataTable2(
+                    wrapInCard: false,
+                    columnSpacing: isCompact ? 16 : 22,
+                    horizontalMargin: isCompact ? 10 : 14,
+                    minWidth: isCompact ? 980 : 1180,
+                    rowsPerPage: 50,
+                    showCheckboxColumn: false,
+                    loading: const Center(
+                      child: CircularProgressIndicator(color: kBlue),
+                    ),
+                    columns: const [
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child:
+                                    Text('N°', textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.L,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Offert par',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.L,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Occasion',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child:
+                                    Text('Qté', textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child:
+                                    Text('Payé', textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Facturé',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.M,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Création',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.M,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Expiration',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Gestion',
+                                    textAlign: TextAlign.center))),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.S,
+                        label: Expanded(
+                            child: Center(
+                                child: Text('Edition',
+                                    textAlign: TextAlign.center))),
+                      ),
+                    ],
+                    source: _dataSource,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ],
     );
+  }
+}
+
+class OrderDataSource extends AsyncDataTableSource {
+  final OrderUseCase _orderUseCase;
+  final void Function(OrderModel) onShowPayments;
+  final void Function(OrderModel) onCreateQRCode;
+  final void Function(OrderModel) onCreateCsv;
+  final void Function(OrderModel) onCreateDeliveryNote;
+  final void Function(OrderModel) onCreateInvoice;
+  final void Function(OrderModel) onCreateSummary;
+  final void Function(int) onDelete;
+  List<OrderModel> _cachedOrders = [];
+  bool _needsReload = true;
+  String _searchQuery = '';
+  bool isCompact = false;
+  final ValueNotifier<int> currentPageItemCount = ValueNotifier<int>(50);
+
+  OrderDataSource({
+    required OrderUseCase orderUseCase,
+    required this.onShowPayments,
+    required this.onCreateQRCode,
+    required this.onCreateCsv,
+    required this.onCreateDeliveryNote,
+    required this.onCreateInvoice,
+    required this.onCreateSummary,
+    required this.onDelete,
+  }) : _orderUseCase = orderUseCase;
+
+  void updateSearch(String query) {
+    _searchQuery = query;
+    super.refreshDatasource();
+  }
+
+  @override
+  void refreshDatasource() {
+    _needsReload = true;
+    super.refreshDatasource();
+  }
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    if (_needsReload) {
+      final result = await _orderUseCase.getOrders(limit: 10000, offset: 0);
+      _cachedOrders = result.items;
+      _needsReload = false;
+    }
+
+    final String query = _searchQuery.toLowerCase();
+    final List<OrderModel> filtered = query.isEmpty
+        ? _cachedOrders
+        : _cachedOrders
+            .where((o) =>
+                (o.orderNumber?.toLowerCase().contains(query) ?? false) ||
+                (o.giftFrom?.toLowerCase().contains(query) ?? false) ||
+                (o.giftReason?.toLowerCase().contains(query) ?? false))
+            .toList();
+
+    final List<OrderModel> pageItems =
+        filtered.skip(startIndex).take(limit).toList();
+
+    final List<DataRow> rows = [];
+    for (int i = 0; i < pageItems.length; i++) {
+      final order = pageItems[i];
+      final int rowIndex = startIndex + i;
+      final isEvenRow = rowIndex % 2 == 0;
+      final bool isPaid = order.paid == order.totalAmount;
+      final double cellWidth = isCompact ? 120.0 : 170.0;
+
+      rows.add(DataRow(
+        color: isEvenRow
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(
+              child: SelectableText(order.orderNumber ?? '',
+                  textAlign: TextAlign.center))),
+          DataCell(Center(
+            child: SizedBox(
+              width: cellWidth,
+              child: Tooltip(
+                message: order.giftFrom ?? '',
+                child: Text(
+                  order.giftFrom ?? '',
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          )),
+          DataCell(Center(
+            child: SizedBox(
+              width: cellWidth,
+              child: Tooltip(
+                message: order.orderItems != null
+                    ? order.orderItems!.map((e) => e.persoMsg).join(', ')
+                    : '',
+                child: Text(
+                  order.giftReason ?? '',
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          )),
+          DataCell(Center(
+              child: Text(order.fundQuantity?.toString() ?? '',
+                  textAlign: TextAlign.center))),
+          DataCell(Center(
+              child: Text(
+            (order.paid ?? 0).toStringAsFixed(2),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: isPaid ? kGreen : kRed),
+          ))),
+          DataCell(Center(
+              child: Text(
+            (order.totalAmount ?? 0).toStringAsFixed(2),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: isPaid ? kGreen : kRed),
+          ))),
+          DataCell(Center(
+              child: Text(
+                  DateFormater().modifyDate(order.createdDate!.date!) ?? '',
+                  textAlign: TextAlign.center))),
+          DataCell(Center(
+              child: Text(
+                  DateFormater().modifyDate(order.fundExpiryDate!.date!) ?? '',
+                  textAlign: TextAlign.center))),
+          DataCell(
+            Center(
+              child: PopupMenuButton<SampleItem>(
+                icon: const Icon(Icons.call_to_action_outlined),
+                onSelected: (SampleItem item) {
+                  if (item == SampleItem.itemOne) {
+                    onShowPayments(order);
+                  } else if (item == SampleItem.itemTwo) {
+                    onCreateQRCode(order);
+                  } else if (item == SampleItem.itemThree) {
+                    onCreateCsv(order);
+                  } else if (item == SampleItem.itemFour) {
+                    onCreateDeliveryNote(order);
+                  } else if (item == SampleItem.itemFive) {
+                    onCreateInvoice(order);
+                  } else if (item == SampleItem.itemSix) {
+                    onCreateSummary(order);
+                  }
+                },
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<SampleItem>>[
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemOne,
+                    child: Text('Paiements'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemTwo,
+                    child: Text('Générer les QR Code'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemThree,
+                    child: Text('Générer le CSV'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemFour,
+                    child: Text('Générer le bon de livraison'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemFive,
+                    child: Text('Générer la Facture'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemSix,
+                    child: Text('Générer le récapitulatif'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          DataCell(
+            Center(
+              child: PopupMenuButton<SampleItem2>(
+                onSelected: (SampleItem2 item) {
+                  if (item == SampleItem2.itemTwo) {
+                    onDelete(order.id!);
+                  }
+                },
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<SampleItem2>>[
+                  const PopupMenuItem<SampleItem2>(
+                    value: SampleItem2.itemTwo,
+                    child: Text('Supprimer'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ));
+    }
+
+    currentPageItemCount.value = pageItems.length;
+
+    return AsyncRowsResponse(filtered.length, rows);
   }
 }
 

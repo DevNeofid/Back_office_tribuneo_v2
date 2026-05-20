@@ -22,7 +22,7 @@ class CustomerUseCase {
     return await customerRepository.getCustomers();
   }
 
-  Future<dynamic> deleteCustomer(int id, String type) async {
+  Future<bool> deleteCustomer(int id, String type) async {
     return await customerRepository.deleteCustomer(id, type);
   }
 }

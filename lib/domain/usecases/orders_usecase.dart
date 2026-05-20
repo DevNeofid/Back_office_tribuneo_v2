@@ -1,4 +1,5 @@
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/orders_repository.dart';
@@ -19,11 +20,16 @@ class OrderUseCase {
     return await orderRepository.updateOrder(order);
   }
 
-  Future<List<OrderModel>> getOrders() async {
-    return await orderRepository.getOrders();
+  Future<PaginatedResult<OrderModel>> getOrders({
+    int limit = 50,
+    int offset = 0,
+    String? search,
+  }) async {
+    return await orderRepository.getOrders(
+        limit: limit, offset: offset, search: search);
   }
 
-  Future<void> deleteOrder(int id) async {
+  Future<bool> deleteOrder(int id) async {
     return await orderRepository.deleteOrder(id);
   }
 
@@ -49,7 +55,7 @@ class OrderUseCase {
     return await orderRepository.addPayment(payment);
   }
 
-  Future getInvoiceInfos(int orderId) async {
+  Future<String> getInvoiceInfos(int orderId) async {
     return await orderRepository.getInvoiceInfos(orderId);
   }
 
