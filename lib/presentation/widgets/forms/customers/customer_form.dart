@@ -13,7 +13,9 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dar
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class CustomerForm extends StatefulWidget {
-  const CustomerForm({Key? key}) : super(key: key);
+  final String? initialSiret;
+
+  const CustomerForm({super.key, this.initialSiret});
   @override
   State<CustomerForm> createState() => _CustomerFormState();
 }
@@ -34,8 +36,11 @@ class _CustomerFormState extends State<CustomerForm> {
   bool _isSaving = false;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
+    if (widget.initialSiret != null) {
+      customerSiretController.text = widget.initialSiret!;
+    }
   }
 
   Future<void> addCustomer() async {
@@ -48,7 +53,9 @@ class _CustomerFormState extends State<CustomerForm> {
     EntityModel e = EntityModel.fromJson({
       "name": customerNameController.text,
       "email": customerMailController.text,
-      "siret": customerSiretController.text,
+      "siret": customerSiretController.text.trim().isEmpty
+          ? null
+          : customerSiretController.text.trim(),
       "code": customerCodeController.text.trim().isEmpty
           ? null
           : customerCodeController.text.trim(),
@@ -156,7 +163,10 @@ class _CustomerFormState extends State<CustomerForm> {
                   hintText: 'Siret du client',
                   fillColor: kPWhite,
                   validator: (value) {
-                    return FormValidator.validateSiret(value ?? '');
+                    if (value == null || value.trim().isEmpty) {
+                      return null;
+                    }
+                    return FormValidator.validateSiret(value);
                   },
                 ),
                 const SizedBox(height: 20),

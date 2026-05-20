@@ -15,6 +15,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/part
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/sector_activity_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/update_partner_info_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
 
 enum QrBoxItem { itemOne, itemTwo, itemThree }
 
@@ -252,7 +253,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                               messenger.showSnackBar(
                                 SnackBar(
                                   content: Text('Erreur lors de l\'envoi : $e'),
-                                  backgroundColor: Colors.red, // Optionnel
+                                  backgroundColor: Colors.red,
                                 ),
                               );
                             }
@@ -267,12 +268,54 @@ class PartnersContentViewState extends State<PartnersContentView>
     });
   }
 
-  Future<void> _addPartner() async {
+  Future<void> _checkSiretAndAddPartner() async {
+    await showDialog(
+      useSafeArea: true,
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return CheckSiretDialog(
+          onPartnerNotFound: (siret) {
+            _addPartner(initialSiret: siret);
+          },
+          onPartnerAccepted: (partner) async {
+            try {
+              await _partnerUseCase.addPartner(partner);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Partenaire ajouté avec succès !',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              _refreshPartners();
+            } catch (e) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Erreur lors de l\'ajout du partenaire : $e',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _addPartner({String? initialSiret}) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return const PartnerForm();
+          return PartnerForm(initialSiret: initialSiret);
         });
     if (shouldRefresh == true) {
       _refreshPartners();
@@ -441,7 +484,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                 backgroundColor: WidgetStateProperty.all(kOrange),
                 iconColor: WidgetStateProperty.all(kWhite),
               ),
-              onPressed: () => _addPartner(),
+              onPressed: () => _checkSiretAndAddPartner(),
               child: const Icon(Icons.add)),
         ),
         const SizedBox(
@@ -642,195 +685,188 @@ class PartnersContentViewState extends State<PartnersContentView>
                                   ),
                                 ),
                                 child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20),
-                                          child: SelectableText(
-                                            _partners[index].name!,
-                                            style: GoogleFonts.roboto(
-                                                fontSize: 20),
-                                          ),
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20),
+                                        child: SelectableText(
+                                          _partners[index].name!,
+                                          style:
+                                              GoogleFonts.roboto(fontSize: 20),
                                         ),
                                       ),
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 40),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  style: GoogleFonts.roboto(
-                                                      fontSize: 15),
-                                                  'Accepte la dématérialisation : ',
-                                                ),
-                                                Text(
-                                                  style: GoogleFonts.roboto(
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                  _partners[index]
-                                                              .acceptDemat ==
-                                                          true
-                                                      ? 'Oui'
-                                                      : 'Non',
-                                                ),
-                                              ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 40),
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                style: GoogleFonts.roboto(
+                                                    fontSize: 15),
+                                                'Accepte la dématérialisation : ',
+                                              ),
+                                              Text(
+                                                style: GoogleFonts.roboto(
+                                                    fontSize: 15,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                _partners[index].acceptDemat ==
+                                                        true
+                                                    ? 'Oui'
+                                                    : 'Non',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 25,
+                                        ),
+                                        PopupMenuButton<QrBoxItem>(
+                                          initialValue: selectedMenuQr,
+                                          icon: const Icon(Icons.qr_code),
+                                          tooltip: 'Menu Qrcode',
+                                          onSelected: (QrBoxItem item) {
+                                            switch (item) {
+                                              case QrBoxItem.itemOne:
+                                                _getPartnerReceiptQR(
+                                                    _partners[index]);
+                                                break;
+                                              case QrBoxItem.itemTwo:
+                                                _getPartnerQR(_partners[index]);
+                                                break;
+                                              case QrBoxItem.itemThree:
+                                                _getPartnerLink(
+                                                    _partners[index]);
+                                                break;
+                                            }
+                                          },
+                                          itemBuilder: (BuildContext context) =>
+                                              <PopupMenuEntry<QrBoxItem>>[
+                                            const PopupMenuItem<QrBoxItem>(
+                                              value: QrBoxItem.itemOne,
+                                              child: Text(
+                                                  'Générer le QR Code de réception'),
                                             ),
-                                          ),
-                                          const SizedBox(
-                                            width: 25,
-                                          ),
-                                          PopupMenuButton<QrBoxItem>(
-                                            initialValue: selectedMenuQr,
-                                            icon: const Icon(Icons.qr_code),
-                                            tooltip: 'Menu Qrcode',
-                                            onSelected: (QrBoxItem item) {
-                                              switch (item) {
-                                                case QrBoxItem.itemOne:
-                                                  _getPartnerReceiptQR(
-                                                      _partners[index]);
-                                                  break;
-                                                case QrBoxItem.itemTwo:
-                                                  _getPartnerQR(
-                                                      _partners[index]);
-                                                  break;
-                                                case QrBoxItem.itemThree:
-                                                  _getPartnerLink(
-                                                      _partners[index]);
-                                                  break;
-                                              }
-                                            },
-                                            itemBuilder:
-                                                (BuildContext context) =>
-                                                    <PopupMenuEntry<QrBoxItem>>[
-                                              const PopupMenuItem<QrBoxItem>(
-                                                value: QrBoxItem.itemOne,
-                                                child: Text(
-                                                    'Générer le QR Code de réception'),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              const PopupMenuItem<QrBoxItem>(
-                                                value: QrBoxItem.itemTwo,
-                                                child: Text(
-                                                    'Générer le QR Code de première connexion'),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              const PopupMenuItem<QrBoxItem>(
-                                                value: QrBoxItem.itemThree,
-                                                child: Text(
-                                                    'Générer le lien de première connexion'),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            width: 25,
-                                          ),
-                                          PopupMenuButton<EditBoxItem>(
-                                            tooltip: 'Menu Edition',
-                                            initialValue: selectedMenuEdit,
-                                            icon: const Icon(
-                                                Icons.call_to_action_outlined),
-                                            onSelected: (EditBoxItem item) {
-                                              switch (item) {
-                                                case EditBoxItem.itemOne:
-                                                  _genUpdate(_partners[index]);
-                                                  break;
-                                                case EditBoxItem.itemTwo:
-                                                  _addActivity(
-                                                      _partners[index]);
-                                                  break;
-                                                case EditBoxItem.itemThree:
-                                                  _partners[index].address !=
-                                                          null
-                                                      ? _addressUpdate(
-                                                          _partners[index])
-                                                      : _addAddress(
-                                                          _partners[index].id!);
-                                                  break;
-                                                case EditBoxItem.itemFour:
-                                                  _partners[index]
-                                                              .bankInformations !=
-                                                          null
-                                                      ? _bankInformationsUpdate(
-                                                          _partners[index])
-                                                      : _addBankInformations(
-                                                          _partners[index]);
-                                                  break;
-                                              }
-                                            },
-                                            itemBuilder: (BuildContext
-                                                    context) =>
-                                                <PopupMenuEntry<EditBoxItem>>[
-                                              const PopupMenuItem<EditBoxItem>(
-                                                value: EditBoxItem.itemOne,
-                                                child: Text(
-                                                    'Editer informations générales'),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              const PopupMenuItem<EditBoxItem>(
-                                                value: EditBoxItem.itemTwo,
-                                                child: Text(
-                                                    'Editer secteurs d\'activité'),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              const PopupMenuItem<EditBoxItem>(
-                                                value: EditBoxItem.itemThree,
-                                                child:
-                                                    Text('Editer l\'adresse'),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              const PopupMenuItem<EditBoxItem>(
-                                                value: EditBoxItem.itemFour,
-                                                child: Text(
-                                                    'Editer informations bancaires'),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(
-                                            width: 25,
-                                          ),
-                                          PopupMenuButton<MenuBoxItem>(
-                                            tooltip: 'Afficher le Menu',
-                                            initialValue: selectedMenu,
-                                            onSelected: (MenuBoxItem item) {
-                                              switch (item) {
-                                                case MenuBoxItem.itemOne:
-                                                  _addEntityType(
-                                                      _partners[index]);
-                                                  break;
-                                                case MenuBoxItem.itemTwo:
-                                                  _deletePartner(
-                                                      _partners[index]);
-                                                  break;
-                                              }
-                                              setState(() {
-                                                selectedMenu = item;
-                                              });
-                                            },
-                                            itemBuilder: (BuildContext
-                                                    context) =>
-                                                <PopupMenuEntry<MenuBoxItem>>[
-                                              const PopupMenuItem<MenuBoxItem>(
-                                                value: MenuBoxItem.itemOne,
-                                                child: Text(
-                                                    'Dupliquer ce Partenaire en Client'),
-                                              ),
-                                              const PopupMenuItem<MenuBoxItem>(
-                                                value: MenuBoxItem.itemTwo,
-                                                child: Text(
-                                                    'Désactiver ce partenaire'),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ]),
+                                            const PopupMenuDivider(),
+                                            const PopupMenuItem<QrBoxItem>(
+                                              value: QrBoxItem.itemTwo,
+                                              child: Text(
+                                                  'Générer le QR Code de première connexion'),
+                                            ),
+                                            const PopupMenuDivider(),
+                                            const PopupMenuItem<QrBoxItem>(
+                                              value: QrBoxItem.itemThree,
+                                              child: Text(
+                                                  'Générer le lien de première connexion'),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          width: 25,
+                                        ),
+                                        PopupMenuButton<EditBoxItem>(
+                                          tooltip: 'Menu Edition',
+                                          initialValue: selectedMenuEdit,
+                                          icon: const Icon(
+                                              Icons.call_to_action_outlined),
+                                          onSelected: (EditBoxItem item) {
+                                            switch (item) {
+                                              case EditBoxItem.itemOne:
+                                                _genUpdate(_partners[index]);
+                                                break;
+                                              case EditBoxItem.itemTwo:
+                                                _addActivity(_partners[index]);
+                                                break;
+                                              case EditBoxItem.itemThree:
+                                                _partners[index].address != null
+                                                    ? _addressUpdate(
+                                                        _partners[index])
+                                                    : _addAddress(
+                                                        _partners[index].id!);
+                                                break;
+                                              case EditBoxItem.itemFour:
+                                                _partners[index]
+                                                            .bankInformations !=
+                                                        null
+                                                    ? _bankInformationsUpdate(
+                                                        _partners[index])
+                                                    : _addBankInformations(
+                                                        _partners[index]);
+                                                break;
+                                            }
+                                          },
+                                          itemBuilder: (BuildContext context) =>
+                                              <PopupMenuEntry<EditBoxItem>>[
+                                            const PopupMenuItem<EditBoxItem>(
+                                              value: EditBoxItem.itemOne,
+                                              child: Text(
+                                                  'Editer informations générales'),
+                                            ),
+                                            const PopupMenuDivider(),
+                                            const PopupMenuItem<EditBoxItem>(
+                                              value: EditBoxItem.itemTwo,
+                                              child: Text(
+                                                  'Editer secteurs d\'activité'),
+                                            ),
+                                            const PopupMenuDivider(),
+                                            const PopupMenuItem<EditBoxItem>(
+                                              value: EditBoxItem.itemThree,
+                                              child: Text('Editer l\'adresse'),
+                                            ),
+                                            const PopupMenuDivider(),
+                                            const PopupMenuItem<EditBoxItem>(
+                                              value: EditBoxItem.itemFour,
+                                              child: Text(
+                                                  'Editer informations bancaires'),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          width: 25,
+                                        ),
+                                        PopupMenuButton<MenuBoxItem>(
+                                          tooltip: 'Afficher le Menu',
+                                          initialValue: selectedMenu,
+                                          onSelected: (MenuBoxItem item) {
+                                            switch (item) {
+                                              case MenuBoxItem.itemOne:
+                                                _addEntityType(
+                                                    _partners[index]);
+                                                break;
+                                              case MenuBoxItem.itemTwo:
+                                                _deletePartner(
+                                                    _partners[index]);
+                                                break;
+                                            }
+                                            setState(() {
+                                              selectedMenu = item;
+                                            });
+                                          },
+                                          itemBuilder: (BuildContext context) =>
+                                              <PopupMenuEntry<MenuBoxItem>>[
+                                            const PopupMenuItem<MenuBoxItem>(
+                                              value: MenuBoxItem.itemOne,
+                                              child: Text(
+                                                  'Dupliquer ce Partenaire en Client'),
+                                            ),
+                                            const PopupMenuItem<MenuBoxItem>(
+                                              value: MenuBoxItem.itemTwo,
+                                              child: Text(
+                                                  'Désactiver ce partenaire'),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                               const Divider(
                                 height: 0,

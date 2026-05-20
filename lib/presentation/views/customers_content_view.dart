@@ -12,13 +12,14 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informat
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/customer_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/update_customers_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
 enum FirstBoxItem { itemOne, itemTwo, itemThree }
 
 class CustomersContentView extends StatefulWidget {
-  CustomersContentView({super.key});
+  const CustomersContentView({super.key});
 
   @override
   State<CustomersContentView> createState() => CustomersContentViewState();
@@ -98,12 +99,82 @@ class CustomersContentViewState extends State<CustomersContentView>
     });
   }
 
-  Future<void> _addCustomer() async {
+  Future<void> _askCustomerType() async {
+    final bool? isIndividual = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Ajouter un client'),
+          content: const Text('Ce client est il un particulier ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Non'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Oui'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (isIndividual == true) {
+      _addCustomer();
+    } else if (isIndividual == false) {
+      _checkSiretAndAddCustomer();
+    }
+  }
+
+  Future<void> _checkSiretAndAddCustomer() async {
+    await showDialog(
+      useSafeArea: true,
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return CheckSiretDialog(
+          onPartnerNotFound: (siret) {
+            _addCustomer(initialSiret: siret);
+          },
+          onPartnerAccepted: (customer) async {
+            try {
+              await _customerUseCase.addCustomer(customer);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Client ajouté avec succès !',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              _refreshCustomers();
+            } catch (e) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Erreur lors de l\'ajout du client : $e',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _addCustomer({String? initialSiret}) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return const CustomerForm();
+          return CustomerForm(initialSiret: initialSiret);
         });
     if (shouldRefresh == true) {
       _refreshCustomers();
@@ -177,7 +248,6 @@ class CustomersContentViewState extends State<CustomersContentView>
   }
 
   Future<void> _deleteCustomer(EntityModel customer) async {
-    // final bool? shouldRefresh =
     await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
@@ -294,7 +364,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                 backgroundColor: WidgetStateProperty.all(kOrange),
                 iconColor: WidgetStateProperty.all(kWhite),
               ),
-              onPressed: () => _addCustomer(),
+              onPressed: () => _askCustomerType(),
               child: const Icon(Icons.add)),
         ),
         const SizedBox(height: 20),
@@ -479,121 +549,118 @@ class CustomersContentViewState extends State<CustomersContentView>
                                 ),
                               ),
                               child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20),
-                                        child: SelectableText(
-                                          _customers[index].name!,
-                                          style:
-                                              GoogleFonts.roboto(fontSize: 20),
-                                        ),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
+                                      child: SelectableText(
+                                        _customers[index].name!,
+                                        style: GoogleFonts.roboto(fontSize: 20),
                                       ),
                                     ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          onPressed: () {
-                                            _addOrder(_customers[index].id!,
-                                                _customers[index].name!);
-                                          },
-                                          hoverColor: Colors.transparent
-                                              .withValues(alpha: 0),
-                                          icon: const Icon(Icons.list_alt,
-                                              color: kBlack),
-                                        ),
-                                        const SizedBox(
-                                          width: 25,
-                                        ),
-                                        PopupMenuButton<FirstBoxItem>(
-                                          initialValue: firstBoxSelectedMenu,
-                                          icon: const Icon(
-                                              Icons.call_to_action_outlined),
-                                          onSelected: (FirstBoxItem item) {
-                                            switch (item) {
-                                              case FirstBoxItem.itemOne:
-                                                _genUpdate(_customers[index]);
-                                                break;
-                                              case FirstBoxItem.itemTwo:
-                                                _customers[index].address !=
-                                                        null
-                                                    ? _addressUpdate(
-                                                        _customers[index])
-                                                    : _addAddress(
-                                                        _customers[index].id!);
-                                                break;
-                                              case FirstBoxItem.itemThree:
-                                                _customers[index]
-                                                            .bankInformations !=
-                                                        null
-                                                    ? _bankInformationsUpdate(
-                                                        _customers[index])
-                                                    : _addBankInformations(
-                                                        _customers[index]);
-                                                break;
-                                            }
-                                          },
-                                          itemBuilder: (BuildContext context) =>
-                                              <PopupMenuEntry<FirstBoxItem>>[
-                                            const PopupMenuItem<FirstBoxItem>(
-                                              value: FirstBoxItem.itemOne,
-                                              child: Text(
-                                                  'Editer informations générales'),
-                                            ),
-                                            const PopupMenuDivider(),
-                                            const PopupMenuItem<FirstBoxItem>(
-                                              value: FirstBoxItem.itemTwo,
-                                              child: Text('Editer l\'adresse'),
-                                            ),
-                                            const PopupMenuDivider(),
-                                            const PopupMenuItem<FirstBoxItem>(
-                                              value: FirstBoxItem.itemThree,
-                                              child: Text(
-                                                  'Editer informations bancaires'),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(
-                                          width: 25,
-                                        ),
-                                        PopupMenuButton<SampleItem>(
-                                          initialValue: selectedMenu,
-                                          onSelected: (SampleItem item) {
-                                            switch (item) {
-                                              case SampleItem.itemOne:
-                                                _addEntityType(
-                                                    _customers[index]);
-                                                break;
-                                              case SampleItem.itemTwo:
-                                                _deleteCustomer(
-                                                    _customers[index]);
-                                                break;
-                                            }
-                                            setState(() {
-                                              selectedMenu = item;
-                                            });
-                                          },
-                                          itemBuilder: (BuildContext context) =>
-                                              <PopupMenuEntry<SampleItem>>[
-                                            const PopupMenuItem<SampleItem>(
-                                              value: SampleItem.itemOne,
-                                              child: Text(
-                                                  'Dupliquer ce Client en Partenaire'),
-                                            ),
-                                            const PopupMenuItem<SampleItem>(
-                                              value: SampleItem.itemTwo,
-                                              child:
-                                                  Text('Désactiver ce client'),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ]),
+                                  ),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          _addOrder(_customers[index].id!,
+                                              _customers[index].name!);
+                                        },
+                                        hoverColor: Colors.transparent
+                                            .withValues(alpha: 0),
+                                        icon: const Icon(Icons.list_alt,
+                                            color: kBlack),
+                                      ),
+                                      const SizedBox(
+                                        width: 25,
+                                      ),
+                                      PopupMenuButton<FirstBoxItem>(
+                                        initialValue: firstBoxSelectedMenu,
+                                        icon: const Icon(
+                                            Icons.call_to_action_outlined),
+                                        onSelected: (FirstBoxItem item) {
+                                          switch (item) {
+                                            case FirstBoxItem.itemOne:
+                                              _genUpdate(_customers[index]);
+                                              break;
+                                            case FirstBoxItem.itemTwo:
+                                              _customers[index].address != null
+                                                  ? _addressUpdate(
+                                                      _customers[index])
+                                                  : _addAddress(
+                                                      _customers[index].id!);
+                                              break;
+                                            case FirstBoxItem.itemThree:
+                                              _customers[index]
+                                                          .bankInformations !=
+                                                      null
+                                                  ? _bankInformationsUpdate(
+                                                      _customers[index])
+                                                  : _addBankInformations(
+                                                      _customers[index]);
+                                              break;
+                                          }
+                                        },
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<FirstBoxItem>>[
+                                          const PopupMenuItem<FirstBoxItem>(
+                                            value: FirstBoxItem.itemOne,
+                                            child: Text(
+                                                'Editer informations générales'),
+                                          ),
+                                          const PopupMenuDivider(),
+                                          const PopupMenuItem<FirstBoxItem>(
+                                            value: FirstBoxItem.itemTwo,
+                                            child: Text('Editer l\'adresse'),
+                                          ),
+                                          const PopupMenuDivider(),
+                                          const PopupMenuItem<FirstBoxItem>(
+                                            value: FirstBoxItem.itemThree,
+                                            child: Text(
+                                                'Editer informations bancaires'),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(
+                                        width: 25,
+                                      ),
+                                      PopupMenuButton<SampleItem>(
+                                        initialValue: selectedMenu,
+                                        onSelected: (SampleItem item) {
+                                          switch (item) {
+                                            case SampleItem.itemOne:
+                                              _addEntityType(_customers[index]);
+                                              break;
+                                            case SampleItem.itemTwo:
+                                              _deleteCustomer(
+                                                  _customers[index]);
+                                              break;
+                                          }
+                                          setState(() {
+                                            selectedMenu = item;
+                                          });
+                                        },
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<SampleItem>>[
+                                          const PopupMenuItem<SampleItem>(
+                                            value: SampleItem.itemOne,
+                                            child: Text(
+                                                'Dupliquer ce Client en Partenaire'),
+                                          ),
+                                          const PopupMenuItem<SampleItem>(
+                                            value: SampleItem.itemTwo,
+                                            child: Text('Désactiver ce client'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                             const Divider(
                               height: 0,
@@ -684,6 +751,49 @@ class CustomersContentViewState extends State<CustomersContentView>
                                               ),
                                               SelectableText(
                                                 'siret: ${_customers[index].siret}',
+                                                style: GoogleFonts.poppins(
+                                                    color: kBlack,
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w400),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const VerticalDivider(
+                                        width: 1,
+                                        color: kGrey,
+                                        thickness: 1,
+                                        indent: 10,
+                                        endIndent: 10,
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 15),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              SelectableText(
+                                                'Coordonnées GPS:',
+                                                style: GoogleFonts.poppins(
+                                                  color: kBlack,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              SelectableText(
+                                                'lat: ${_customers[index].address?.lat ?? "Non renseigné"}',
+                                                style: GoogleFonts.poppins(
+                                                    color: kBlack,
+                                                    fontSize: 16,
+                                                    fontWeight:
+                                                        FontWeight.w400),
+                                              ),
+                                              SelectableText(
+                                                'long: ${_customers[index].address?.lng ?? "Non renseigné"}',
                                                 style: GoogleFonts.poppins(
                                                     color: kBlack,
                                                     fontSize: 16,

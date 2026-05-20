@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +12,10 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dar
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class PartnerForm extends StatefulWidget {
-  const PartnerForm({Key? key}) : super(key: key);
+  final String? initialSiret;
+
+  const PartnerForm({super.key, this.initialSiret});
+
   @override
   State<PartnerForm> createState() => _PartnerFormState();
 }
@@ -36,8 +38,11 @@ class _PartnerFormState extends State<PartnerForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
-  initState() {
+  void initState() {
     super.initState();
+    if (widget.initialSiret != null) {
+      partnerSiretController.text = widget.initialSiret!;
+    }
   }
 
   Future<void> addPartner() async {
