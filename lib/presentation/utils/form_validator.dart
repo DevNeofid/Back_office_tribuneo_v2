@@ -10,6 +10,20 @@ class FormValidator {
     return null;
   }
 
+  static String? validateMail(String? value) {
+    if (value == null || value.isEmpty) {
+      return '🚩 Please enter an email address.';
+    }
+    Pattern pattern =
+        r"^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)$";
+    RegExp regex = RegExp(pattern as String);
+    if (!regex.hasMatch(value)) {
+      return '🚩 Please enter a valid email address.';
+    } else {
+      return null;
+    }
+  }
+
   static String? validatePhoneNumber(String value) {
     RegExp regex = RegExp(r'^0[1-9]\d{8}$');
     if (!regex.hasMatch(value.trim())) {
