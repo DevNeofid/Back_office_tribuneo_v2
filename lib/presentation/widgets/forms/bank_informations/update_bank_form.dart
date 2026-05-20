@@ -193,6 +193,7 @@ class _UpadateBankInformationsFormState
                         SizedBox(
                           width: inputWidth,
                           child: NeoInput(
+                            maxLength: 34,
                             controller: iban,
                             hintText: 'Iban',
                             fillColor: kPWhite,
@@ -205,6 +206,7 @@ class _UpadateBankInformationsFormState
                         SizedBox(
                           width: inputWidth,
                           child: NeoInput(
+                            maxLength: 11,
                             controller: bic,
                             hintText: 'BIC',
                             fillColor: kPWhite,
@@ -274,6 +276,7 @@ class _UpadateBankInformationsFormState
                       SizedBox(
                         width: inputWidth,
                         child: NeoInput(
+                          maxLength: 13,
                           controller: intraComNumber,
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),

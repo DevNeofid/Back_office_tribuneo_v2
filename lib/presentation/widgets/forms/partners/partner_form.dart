@@ -159,7 +159,7 @@ class _PartnerFormState extends State<PartnerForm> {
                   keyboardType: TextInputType.emailAddress,
                   fillColor: kPWhite,
                   validator: (value) {
-                    return FormValidator.validateText(value ?? '');
+                    return FormValidator.validateMail(value ?? '');
                   },
                 ),
                 const SizedBox(height: 20),

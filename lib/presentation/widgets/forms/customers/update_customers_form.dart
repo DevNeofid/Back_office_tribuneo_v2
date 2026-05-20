@@ -153,7 +153,7 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
                     keyboardType: TextInputType.emailAddress,
                     fillColor: kPWhite,
                     validator: (value) {
-                      return FormValidator.validateText(value ?? '');
+                      return FormValidator.validateMail(value ?? '');
                     },
                   ),
                   const SizedBox(height: 16),

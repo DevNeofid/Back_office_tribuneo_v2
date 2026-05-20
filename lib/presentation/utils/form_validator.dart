@@ -110,6 +110,9 @@ class FormValidator {
 
     final regex = RegExp(r'^FR[A-Z0-9]{2}\d{9}$');
 
+    if (cleanValue.length < 13) {
+      return '🚩 Numéro de Intra-Com invalide';
+    }
     if (!regex.hasMatch(cleanValue)) {
       return '🚩 Numéro Intra-Com invalide';
     }
@@ -145,6 +148,9 @@ class FormValidator {
 
     final regex = RegExp(r'^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$');
 
+    if (cleanValue.length < 34) {
+      return '🚩 Numéro d\'Iban invalide';
+    }
     if (!regex.hasMatch(cleanValue)) {
       return '🚩 Numéro IBAN invalide';
     }
@@ -160,6 +166,9 @@ class FormValidator {
 
     final regex = RegExp(r'^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$');
 
+    if (cleanValue.length < 11) {
+      return '🚩 Numéro de BIC invalide';
+    }
     if (!regex.hasMatch(cleanValue)) {
       return '🚩 Code BIC invalide';
     }

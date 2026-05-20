@@ -14,8 +14,9 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class CustomerForm extends StatefulWidget {
   final String? initialSiret;
+  final bool? isIndividual;
 
-  const CustomerForm({super.key, this.initialSiret});
+  const CustomerForm({super.key, this.initialSiret, this.isIndividual});
   @override
   State<CustomerForm> createState() => _CustomerFormState();
 }
@@ -50,18 +51,23 @@ class _CustomerFormState extends State<CustomerForm> {
       return;
     }
 
-    EntityModel e = EntityModel.fromJson({
+    bool isIndividual = widget.isIndividual ?? false;
+
+    Map<String, dynamic> customerData = {
       "name": customerNameController.text,
       "email": customerMailController.text,
-      "siret": customerSiretController.text.trim().isEmpty
-          ? null
-          : customerSiretController.text.trim(),
+      "phone": customerPhoneController.text,
       "code": customerCodeController.text.trim().isEmpty
           ? null
           : customerCodeController.text.trim(),
-      "phone": customerPhoneController.text,
       "type": entityType,
-    });
+    };
+
+    if (!isIndividual && customerSiretController.text.trim().isNotEmpty) {
+      customerData["siret"] = customerSiretController.text.trim();
+    }
+
+    EntityModel e = EntityModel.fromJson(customerData);
 
     inspect(e);
 
@@ -110,6 +116,7 @@ class _CustomerFormState extends State<CustomerForm> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+    bool isIndividual = widget.isIndividual ?? false;
 
     return AlertDialog(
       backgroundColor: kTransparent,
@@ -154,21 +161,23 @@ class _CustomerFormState extends State<CustomerForm> {
                   keyboardType: TextInputType.emailAddress,
                   fillColor: kPWhite,
                   validator: (value) {
-                    return FormValidator.validateText(value ?? '');
+                    return FormValidator.validateMail(value ?? '');
                   },
                 ),
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: customerSiretController,
-                  hintText: 'Siret du client',
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return null;
-                    }
-                    return FormValidator.validateSiret(value);
-                  },
-                ),
+                if (!isIndividual) ...[
+                  const SizedBox(height: 20),
+                  NeoInput(
+                    controller: customerSiretController,
+                    hintText: 'Siret du client',
+                    fillColor: kPWhite,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return null;
+                      }
+                      return FormValidator.validateSiret(value);
+                    },
+                  ),
+                ],
                 const SizedBox(height: 20),
                 NeoInput(
                   controller: customerPhoneController,

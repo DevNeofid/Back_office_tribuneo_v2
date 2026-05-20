@@ -122,7 +122,7 @@ class CustomersContentViewState extends State<CustomersContentView>
     );
 
     if (isIndividual == true) {
-      _addCustomer();
+      _addCustomer(isIndividual: true);
     } else if (isIndividual == false) {
       _checkSiretAndAddCustomer();
     }
@@ -136,7 +136,7 @@ class CustomersContentViewState extends State<CustomersContentView>
       builder: (BuildContext dialogContext) {
         return CheckSiretDialog(
           onPartnerNotFound: (siret) {
-            _addCustomer(initialSiret: siret);
+            _addCustomer(initialSiret: siret, isIndividual: false);
           },
           onPartnerRejected: () {
             snackbarKey.currentState?.showSnackBar(
@@ -149,19 +149,18 @@ class CustomersContentViewState extends State<CustomersContentView>
               ),
             );
           },
-          onPartnerAccepted: (partner) async {
+          onPartnerAccepted: (customer) async {
             try {
               EntityModel cleanCustomer = EntityModel.fromJson({
-                "name": partner.name,
-                "email": partner.email,
-                "siret": partner.siret,
-                "phone": partner.phone,
-                "accept_demat": partner.acceptDemat ?? false,
+                "name": customer.name,
+                "email": customer.email,
+                "siret": customer.siret,
+                "phone": customer.phone,
+                "accept_demat": customer.acceptDemat ?? false,
                 "type": "customer",
               });
 
               await _customerUseCase.addCustomer(cleanCustomer);
-
               if (!mounted) return;
 
               snackbarKey.currentState?.showSnackBar(
@@ -193,12 +192,13 @@ class CustomersContentViewState extends State<CustomersContentView>
     );
   }
 
-  Future<void> _addCustomer({String? initialSiret}) async {
+  Future<void> _addCustomer({String? initialSiret, bool? isIndividual}) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return CustomerForm(initialSiret: initialSiret);
+          return CustomerForm(
+              initialSiret: initialSiret, isIndividual: isIndividual);
         });
     if (shouldRefresh == true) {
       _refreshCustomers();
