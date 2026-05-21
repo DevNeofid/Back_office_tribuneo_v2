@@ -12,13 +12,13 @@ class FormValidator {
 
   static String? validateMail(String? value) {
     if (value == null || value.isEmpty) {
-      return '🚩 Please enter an email address.';
+      return '🚩 Veuillez entrer une adresse email valide';
     }
     Pattern pattern =
         r"^[a-zA-Z0-9.!#$%&'+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9-]+)$";
     RegExp regex = RegExp(pattern as String);
     if (!regex.hasMatch(value)) {
-      return '🚩 Please enter a valid email address.';
+      return '🚩 Veuillez entrer une adresse email valide';
     } else {
       return null;
     }

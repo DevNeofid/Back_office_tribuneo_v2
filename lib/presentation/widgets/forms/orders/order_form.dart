@@ -36,6 +36,7 @@ class _OrderFormState extends State<OrderForm> {
   TextEditingController giftFromController = TextEditingController();
   TextEditingController urssafController = TextEditingController();
   late TextEditingController alternativeByController = TextEditingController();
+  TextEditingController searchController = TextEditingController();
   InputDatePickerFormField orderDateControllerDP = InputDatePickerFormField(
       initialDate: DateTime.now(),
       firstDate: DateTime(
@@ -303,6 +304,7 @@ class _OrderFormState extends State<OrderForm> {
     alternativeByController.dispose();
     _selectedCustomerValue.dispose();
     _showHint.dispose();
+    searchController.dispose();
     super.dispose();
   }
 
@@ -691,9 +693,50 @@ class _OrderFormState extends State<OrderForm> {
                                       .id;
                                 });
                               },
+                              dropdownSearchData: DropdownSearchData(
+                                searchController: searchController,
+                                searchBarWidgetHeight: 50,
+                                searchBarWidget: Container(
+                                  height: 50,
+                                  padding: const EdgeInsets.only(
+                                    top: 8,
+                                    bottom: 4,
+                                    right: 8,
+                                    left: 8,
+                                  ),
+                                  child: TextFormField(
+                                    expands: true,
+                                    maxLines: null,
+                                    controller: searchController,
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 8,
+                                      ),
+                                      hintText: 'Rechercher une entité...',
+                                      hintStyle: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                searchMatchFn: (item, searchValue) {
+                                  return item.value
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(searchValue.toLowerCase());
+                                },
+                              ),
                               onMenuStateChange: (isOpen) {
                                 if (!isOpen) {
                                   giftFromController.clear();
+                                  searchController.clear();
                                 }
                               },
                             ),
