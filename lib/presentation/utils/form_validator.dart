@@ -148,7 +148,7 @@ class FormValidator {
 
     final regex = RegExp(r'^[A-Z]{2}\d{2}[A-Z0-9]{1,30}$');
 
-    if (cleanValue.length < 34) {
+    if (cleanValue.length != 27) {
       return '🚩 Numéro d\'Iban invalide';
     }
     if (!regex.hasMatch(cleanValue)) {
