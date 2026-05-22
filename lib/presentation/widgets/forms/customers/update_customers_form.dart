@@ -39,8 +39,8 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
   initState() {
     customerNameController.text = widget.entity!.name!;
     customerMailController.text = widget.entity!.email!;
-    customerSiretController.text = widget.entity!.siret!;
-    customerCodeController.text = widget.entity!.code!;
+    customerSiretController.text = widget.entity?.siret ?? '';
+    customerCodeController.text = widget.entity?.code ?? '';
     customerPhoneController.text = widget.entity!.phone!;
     super.initState();
   }
@@ -184,9 +184,6 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
                     controller: customerCodeController,
                     hintText: 'Code du client',
                     fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validateCode(value ?? '');
-                    },
                   ),
                   const SizedBox(height: 30),
                   Row(
