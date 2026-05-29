@@ -758,98 +758,44 @@ class CustomersContentViewState extends State<CustomersContentView>
                               child: TabBarView(
                                 controller: tabController,
                                 children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              SelectableText(
-                                                'Informations personnelles:',
-                                                style: GoogleFonts.poppins(
-                                                  color: kBlack,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              SelectableText(
-                                                'email: ${_customers[index].email}',
-                                                style: GoogleFonts.poppins(
-                                                    color: kBlack,
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                              SelectableText(
-                                                'phone: ${_customers[index].phone}',
-                                                style: GoogleFonts.poppins(
-                                                    color: kBlack,
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                              SelectableText(
-                                                'siret: ${_customers[index].siret}',
-                                                style: GoogleFonts.poppins(
-                                                    color: kBlack,
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                            ],
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 15),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SelectableText(
+                                          'Informations personnelles:',
+                                          style: GoogleFonts.poppins(
+                                            color: kBlack,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ),
-                                      const VerticalDivider(
-                                        width: 1,
-                                        color: kGrey,
-                                        thickness: 1,
-                                        indent: 10,
-                                        endIndent: 10,
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 10, horizontal: 15),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              SelectableText(
-                                                'Coordonnées GPS:',
-                                                style: GoogleFonts.poppins(
-                                                  color: kBlack,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              SelectableText(
-                                                'lat: ${_customers[index].address?.lat ?? "Non renseigné"}',
-                                                style: GoogleFonts.poppins(
-                                                    color: kBlack,
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                              SelectableText(
-                                                'long: ${_customers[index].address?.lng ?? "Non renseigné"}',
-                                                style: GoogleFonts.poppins(
-                                                    color: kBlack,
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.w400),
-                                              ),
-                                            ],
-                                          ),
+                                        SelectableText(
+                                          'email: ${_customers[index].email}',
+                                          style: GoogleFonts.poppins(
+                                              color: kBlack,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400),
                                         ),
-                                      ),
-                                    ],
+                                        SelectableText(
+                                          'phone: ${_customers[index].phone}',
+                                          style: GoogleFonts.poppins(
+                                              color: kBlack,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                        SelectableText(
+                                          'siret: ${_customers[index].siret}',
+                                          style: GoogleFonts.poppins(
+                                              color: kBlack,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   _customers[index].address != null
                                       ? Row(
@@ -986,19 +932,30 @@ class CustomersContentViewState extends State<CustomersContentView>
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  SelectableText(
-                                                    'Numéro de compte comptabilité: ${_customers[index].bankInformations!.accountingNumber}',
-                                                    style: GoogleFonts.poppins(
-                                                        color: kBlack,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w400),
-                                                  ),
-                                                ],
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 15),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    SelectableText(
+                                                      'Numéro de compte comptabilité: ${_customers[index].bankInformations!.accountingNumber ?? "Non renseigné"}',
+                                                      style: GoogleFonts.poppins(
+                                                          color: kBlack,
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400),
+                                                    ),
+                                                    SelectableText(
+                                                      'N° TVA intracommunautaire: ${_customers[index].bankInformations!.intraCommunityVat ?? "Non renseigné"}',
+                                                      style: GoogleFonts.poppins(
+                                                          color: kBlack,
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.w400),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ],

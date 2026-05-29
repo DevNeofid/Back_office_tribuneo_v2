@@ -152,12 +152,12 @@ class OrderRepository extends BaseRepository {
   Future<bool> deleteOrder(int id) async {
     String tenant = await getTenantForCurrentNetwork();
 
-      dynamic request =
-          await _remoteData.delete(suffixe, id, overrideTenant: tenant);
-      if (request.statusCode == 200) {
-        return true;
-      }
-      return false;
+    dynamic request =
+        await _remoteData.delete(suffixe, id, overrideTenant: tenant);
+    if (request.statusCode == 200) {
+      return true;
+    }
+    return false;
   }
 
   Future<List<UrssafModel>> getUrssaf() async {
@@ -285,7 +285,7 @@ class OrderRepository extends BaseRepository {
           await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
       if (response.statusCode == 200) {
         var res = response.data;
-        String invoiceInfos = res['data']['comment'];
+        String invoiceInfos = res['data']['comment'] ?? '';
         return invoiceInfos;
       } else {
         throw Exception('Failed to load invoice');

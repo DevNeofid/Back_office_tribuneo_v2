@@ -436,6 +436,7 @@ class _SideMenuState extends State<SideMenu> {
                                         padding: const EdgeInsets.only(
                                             top: 10.0, bottom: 2.0),
                                         icon: Stack(
+                                          clipBehavior: Clip.none,
                                           children: [
                                             Icon(
                                               widget.menuItemsInfos[index]![
@@ -444,6 +445,23 @@ class _SideMenuState extends State<SideMenu> {
                                                   ? kBlue
                                                   : kLBlue,
                                             ),
+                                            if (widget.showRefundNotification &&
+                                                widget.menuItemsInfos[index]![
+                                                        'name'] ==
+                                                    'refund')
+                                              Positioned(
+                                                right: -4,
+                                                top: -4,
+                                                child: Container(
+                                                  width: 10,
+                                                  height: 10,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                    color: Colors.red,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         ),
                                         onPressed: null,

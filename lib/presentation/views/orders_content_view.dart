@@ -745,7 +745,9 @@ class OrderDataSource extends AsyncDataTableSource {
       ));
     }
 
-    currentPageItemCount.value = pageItems.length;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      currentPageItemCount.value = pageItems.length;
+    });
 
     return AsyncRowsResponse(filtered.length, rows);
   }
