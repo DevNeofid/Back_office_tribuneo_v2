@@ -79,10 +79,10 @@ class _OrderFormState extends State<OrderForm> {
     _showHint = ValueNotifier(false);
     neorow.add(NeoRow());
     selectedDate = DateTime.now();
-    orderDateController.text =
-        "${selectedDate.day}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year}";
-    expiryDateController.text =
-        "${selectedDate.day}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.year + 1}";
+    selectedExpiryDate =
+        DateTime(selectedDate.year + 1, selectedDate.month, selectedDate.day);
+    orderDateController.text = _getDisplayableDate(selectedDate);
+    expiryDateController.text = _getDisplayableDate(selectedExpiryDate);
     giftFromController.addListener(
         (() => _printLatestValue('Gift From', giftFromController)));
     urssafController.addListener(
@@ -345,10 +345,7 @@ class _OrderFormState extends State<OrderForm> {
   }
 
   String _getDisplayableDate(DateTime date) {
-    String day = date.day > 9 ? date.day.toString() : "0${date.day.toString()}";
-    String month =
-        date.month > 9 ? date.month.toString() : "0${date.month.toString()}";
-    return "$day/$month/${date.year}";
+    return DateFormat('dd/MM/yyyy').format(date);
   }
 
   @override
