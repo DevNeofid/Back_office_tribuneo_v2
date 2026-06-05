@@ -13,9 +13,8 @@ class ApiClient {
   int? _currentIdNetwork;
 
   ApiClient() : dio = Dio() {
-    dio.options.validateStatus = (status) {
-      return status != null && status < 504;
-    };
+    dio.options.validateStatus = (status) => status != null && status < 504;
+    dio.options.extra['withCredentials'] = true;
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (request, handler) {
         return handler.next(request);
