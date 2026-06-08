@@ -76,10 +76,11 @@ class PartnerRepository extends BaseRepository {
     return response.data;
   }
 
-  Future<bool> deletePartner(int id, String type) async {
+  Future<bool> deletePartner(int id) async {
     String tenant = await getTenantForCurrentNetwork();
+    String suffixePartner = 'entity/$id/type/2';
     dynamic response =
-        await _remoteData.delete(suffixe, id, overrideTenant: tenant);
+        await _remoteData.delete(suffixePartner, null, overrideTenant: tenant);
 
     if (response.statusCode != 200) {
       return false;

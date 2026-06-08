@@ -487,7 +487,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                 onPressed: () async {
                   try {
                     bool deleted = await _partnerUseCase.deletePartner(
-                        partner.id!, partner.type!);
+                        partner.id!);
                     Navigator.of(context).pop(true);
                     if (deleted) {
                       snackbarKey.currentState?.showSnackBar(

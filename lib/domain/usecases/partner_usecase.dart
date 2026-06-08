@@ -24,8 +24,8 @@ class PartnerUseCase {
     return res;
   }
 
-  Future<bool> deletePartner(int id, String type) async {
-    bool res = await partnerRepository.deletePartner(id, type);
+  Future<bool> deletePartner(int id) async {
+    bool res = await partnerRepository.deletePartner(id);
     return res;
   }
 
