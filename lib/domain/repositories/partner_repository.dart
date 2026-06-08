@@ -161,7 +161,7 @@ class PartnerRepository extends BaseRepository {
     return response.data;
   }
 
-  Future<String> createLink(int id, {bool sendMail = false}) async {
+  Future<String?> createLink(int id, {bool sendMail = false}) async {
     const String suffixeL = 'entity/first-login-link';
     String tenant = await getTenantForCurrentNetwork();
 
@@ -178,7 +178,7 @@ class PartnerRepository extends BaseRepository {
     if (response.statusCode != 200) {
       throw Exception('Erreur lien connexion : ${response.statusCode}');
     }
-    return response.data['data']['first_login_link'];
+    return response.data['data']['first_login_link'] as String?;
   }
 
   Future addEntityType(int id) async {
