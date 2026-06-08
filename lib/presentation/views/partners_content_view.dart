@@ -412,6 +412,15 @@ class PartnersContentViewState extends State<PartnersContentView>
           );
         });
     if (shouldRefresh == true) {
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Partenaire dupliqué en client avec succès !',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
       _refreshPartners();
     }
   }
@@ -476,9 +485,42 @@ class PartnersContentViewState extends State<PartnersContentView>
               TextButton(
                 child: const Text('Désactiver'),
                 onPressed: () async {
-                  await _partnerUseCase.deletePartner(
-                      partner.id!, partner.type!);
-                  Navigator.of(context).pop(true);
+                  try {
+                    bool deleted = await _partnerUseCase.deletePartner(
+                        partner.id!, partner.type!);
+                    Navigator.of(context).pop(true);
+                    if (deleted) {
+                      snackbarKey.currentState?.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Partenaire désactivé avec succès !',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      snackbarKey.currentState?.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Erreur lors de la désactivation du partenaire.',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    snackbarKey.currentState?.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Erreur lors de la désactivation du partenaire : $e',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
               ),
             ],

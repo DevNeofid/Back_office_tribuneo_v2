@@ -272,9 +272,9 @@ class CustomersContentViewState extends State<CustomersContentView>
   }
 
   Future<void> _deleteCustomer(EntityModel customer) async {
-    await showDialog<bool>(
+    final bool? shouldRefresh = await showDialog<bool>(
         context: context,
-        builder: (BuildContext context) {
+        builder: (BuildContext dialogContext) {
           return AlertDialog(
             title: const Text('Désactiver le partenaire'),
             content:
@@ -283,30 +283,43 @@ class CustomersContentViewState extends State<CustomersContentView>
               TextButton(
                 child: const Text('Annuler'),
                 onPressed: () {
-                  Navigator.of(context).pop(false);
+                  Navigator.of(dialogContext).pop(false);
                 },
               ),
               TextButton(
                 child: const Text('Désactiver'),
                 onPressed: () async {
-                  bool deleted = await _customerUseCase.deleteCustomer(
-                      customer.id!, customer.type!);
-                  Navigator.of(context).pop(true);
-                  if (deleted) {
-                    snackbarKey.currentState?.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Client désactivé avec succès !',
-                          style: GoogleFonts.poppins(color: Colors.white),
+                  try {
+                    bool deleted = await _customerUseCase.deleteCustomer(
+                        customer.id!, customer.type!);
+                    Navigator.of(dialogContext).pop(true);
+                    if (deleted) {
+                      snackbarKey.currentState?.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Client désactivé avec succès !',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.green,
                         ),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
+                      );
+                    } else {
+                      snackbarKey.currentState?.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Erreur lors de la désactivation du client, au moins une commande associée n'est pas totalement payée.",
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    Navigator.of(dialogContext).pop(true);
                     snackbarKey.currentState?.showSnackBar(
                       SnackBar(
                         content: Text(
-                          "Erreur lors de la désactivation du client, au moins une commande associée n'est pas totalement payée.",
+                          'Erreur lors de la désactivation : $e',
                           style: GoogleFonts.poppins(color: Colors.white),
                         ),
                         backgroundColor: Colors.red,
@@ -317,11 +330,10 @@ class CustomersContentViewState extends State<CustomersContentView>
               ),
             ],
           );
-        }).then((value) {
-      if (value == true) {
-        _refreshCustomers();
-      }
-    });
+        });
+    if (shouldRefresh == true) {
+      _refreshCustomers();
+    }
   }
 
   void search(String text) {
