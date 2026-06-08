@@ -75,7 +75,8 @@ class PartnersContentViewState extends State<PartnersContentView>
     super.dispose();
   }
 
-  Future<void> _refreshPartners() async {
+  Future<void> _refreshPartners({bool withDelay = false}) async {
+    if (withDelay) await Future.delayed(const Duration(milliseconds: 700));
     setState(() {
       _isLoading = true;
     });
@@ -318,7 +319,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                   backgroundColor: Colors.green,
                 ),
               );
-              _refreshPartners();
+              _refreshPartners(withDelay: true);
             } catch (e) {
               if (!mounted) return;
 
@@ -346,7 +347,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           return PartnerForm(initialSiret: initialSiret);
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -358,7 +359,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           return AddressForm(idPartner: id);
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -370,7 +371,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           return BankInformationsForm(entity: partner);
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -382,7 +383,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           return SectorCreationForm(partner: partner);
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -421,7 +422,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           backgroundColor: Colors.green,
         ),
       );
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -435,7 +436,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -449,7 +450,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -463,7 +464,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 
@@ -527,7 +528,7 @@ class PartnersContentViewState extends State<PartnersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshPartners();
+      _refreshPartners(withDelay: true);
     }
   }
 

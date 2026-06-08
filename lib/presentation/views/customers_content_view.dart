@@ -69,7 +69,8 @@ class CustomersContentViewState extends State<CustomersContentView>
     super.dispose();
   }
 
-  Future<void> _refreshCustomers() async {
+  Future<void> _refreshCustomers({bool withDelay = false}) async {
+    if (withDelay) await Future.delayed(const Duration(milliseconds: 700));
     setState(() {
       _isLoading = true;
     });
@@ -172,7 +173,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                   backgroundColor: Colors.green,
                 ),
               );
-              _refreshCustomers();
+              _refreshCustomers(withDelay: true);
             } catch (e) {
               if (!mounted) return;
 
@@ -201,7 +202,7 @@ class CustomersContentViewState extends State<CustomersContentView>
               initialSiret: initialSiret, isIndividual: isIndividual);
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -213,7 +214,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           return OrderForm(idEntity: entityId, entityName: entityName);
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -225,7 +226,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           return AddressForm(idPartner: id);
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -237,7 +238,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           return BankInformationsForm(entity: customer);
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -267,7 +268,16 @@ class CustomersContentViewState extends State<CustomersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Client dupliqué en partenaire avec succès !',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -332,7 +342,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -369,7 +379,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -383,7 +393,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
@@ -397,7 +407,7 @@ class CustomersContentViewState extends State<CustomersContentView>
           );
         });
     if (shouldRefresh == true) {
-      _refreshCustomers();
+      _refreshCustomers(withDelay: true);
     }
   }
 
