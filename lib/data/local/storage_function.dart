@@ -27,6 +27,11 @@ class StorageFunction {
     await _storage.deleteSecureDataFromKey('email');
     await _storage.deleteSecureDataFromKey('lastname');
     await _storage.deleteSecureDataFromKey('network');
+    await _storage.deleteSecureDataFromKey('jwt_exp');
+  }
+
+  Future<void> saveJwtExp(int expTimestamp) async {
+    await _storage.writeSecureData(StorageItem('jwt_exp', expTimestamp.toString()));
   }
 
   Future<void> saveLogin(String login) async {

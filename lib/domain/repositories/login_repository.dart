@@ -71,6 +71,12 @@ class LoginRepository extends BaseRepository {
           await storageFunction.saveUserIdNetwork(idNetwork.toString());
         }
 
+        if (dataMap['access_exp'] != null) {
+          await storageFunction.saveJwtExp(
+            (dataMap['access_exp'] as num).toInt(),
+          );
+        }
+
         return UserModel.fromJson(userData);
       } else {
         throw ApiException(
