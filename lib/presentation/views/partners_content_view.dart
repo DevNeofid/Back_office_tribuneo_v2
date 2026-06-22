@@ -727,6 +727,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                         .toLowerCase()
                         .startsWith(_filter.toLowerCase())) {
                       return DefaultTabController(
+                        key: ValueKey(neoCurrentIndex),
                         initialIndex: neoCurrentIndex,
                         length: 3,
                         child: Container(

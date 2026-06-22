@@ -587,6 +587,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                   itemCount: _customers.length,
                   itemBuilder: (BuildContext context, int index) {
                     return DefaultTabController(
+                      key: ValueKey(neoCurrentIndex),
                       initialIndex: neoCurrentIndex,
                       length: 3,
                       child: Container(
@@ -735,7 +736,6 @@ class CustomersContentViewState extends State<CustomersContentView>
                               thickness: 1,
                             ),
                             TabBar(
-                              controller: tabController,
                               indicatorColor: kLBlue,
                               indicator: const BoxDecoration(
                                 color: kLBlue,
@@ -778,7 +778,6 @@ class CustomersContentViewState extends State<CustomersContentView>
                             SizedBox(
                               height: 140,
                               child: TabBarView(
-                                controller: tabController,
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
