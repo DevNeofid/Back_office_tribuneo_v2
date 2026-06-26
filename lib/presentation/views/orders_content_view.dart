@@ -203,7 +203,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       _dataSource.refreshDatasource();
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de la génération du PDF.')));
+          content: Text('Erreur : Pensez à vérifier que votre client a une adresse de renseignée ?'),));
     } finally {
       navigatorKey.currentState?.pop();
     }
