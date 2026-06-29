@@ -203,7 +203,9 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       _dataSource.refreshDatasource();
     } catch (error) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur : Pensez à vérifier que votre client a une adresse de renseignée ?'),));
+        content: Text(
+            'Erreur : Pensez à vérifier que votre client a une adresse de renseignée ?'),
+      ));
     } finally {
       navigatorKey.currentState?.pop();
     }
@@ -782,6 +784,7 @@ class ShowPaymentState extends State<ShowPayment> {
     PaymentMethod(3, "BANK_TRANSFER"),
     PaymentMethod(4, "ONLINE_PAYMENT"),
     PaymentMethod(5, "CREDIT_AND_DEBIT_CARDS"),
+    PaymentMethod(6, "ADMINISTRATIVE_MANDATE"),
   ];
   final TextEditingController paymentDateController = TextEditingController();
   final TextEditingController _paymentAmountController =
@@ -811,6 +814,7 @@ class ShowPaymentState extends State<ShowPayment> {
     if (payment == 'BANK_TRANSFER') return 'Virement';
     if (payment == 'ONLINE_PAYMENT') return 'Paiement en ligne';
     if (payment == 'CREDIT_AND_DEBIT_CARDS') return 'Carte bancaire';
+    if (payment == 'ADMINISTRATIVE_MANDATE') return 'Mandat administratif';
     return '';
   }
 
@@ -885,7 +889,7 @@ class ShowPaymentState extends State<ShowPayment> {
           return AlertDialog(
             title: const Text('Confirmation'),
             content: Text(
-                'Vous allez envoyer un paiement de ${_paymentAmountController.text} à la date du ${_getDisplayableDate(selectedDate)} ?'),
+                'Vous allez envoyer un paiement de ${_paymentAmountController.text} € à la date du ${_getDisplayableDate(selectedDate)} ?'),
             actions: <Widget>[
               TextButton(
                   child: const Text('Annuler'),

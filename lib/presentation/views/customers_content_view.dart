@@ -795,21 +795,21 @@ class CustomersContentViewState extends State<CustomersContentView>
                                           ),
                                         ),
                                         SelectableText(
-                                          'email: ${_customers[index].email}',
+                                          'Email: ${_customers[index].email}',
                                           style: GoogleFonts.poppins(
                                               color: kBlack,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w400),
                                         ),
                                         SelectableText(
-                                          'phone: ${_customers[index].phone}',
+                                          'Tel: ${_customers[index].phone}',
                                           style: GoogleFonts.poppins(
                                               color: kBlack,
                                               fontSize: 16,
                                               fontWeight: FontWeight.w400),
                                         ),
                                         SelectableText(
-                                          'siret: ${_customers[index].siret}',
+                                          'Siret: ${_customers[index].siret}',
                                           style: GoogleFonts.poppins(
                                               color: kBlack,
                                               fontSize: 16,

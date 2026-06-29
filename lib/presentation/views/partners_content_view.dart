@@ -1010,7 +1010,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                   ),
                                                 ),
                                                 SelectableText(
-                                                  'email: ${_partners[index].email}',
+                                                  'Email: ${_partners[index].email}',
                                                   style: GoogleFonts.poppins(
                                                       color: kBlack,
                                                       fontSize: 16,
@@ -1018,7 +1018,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                           FontWeight.w400),
                                                 ),
                                                 SelectableText(
-                                                  'phone: ${_partners[index].phone}',
+                                                  'Tel: ${_partners[index].phone}',
                                                   style: GoogleFonts.poppins(
                                                       color: kBlack,
                                                       fontSize: 16,
@@ -1026,7 +1026,15 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                           FontWeight.w400),
                                                 ),
                                                 SelectableText(
-                                                  'siret: ${_partners[index].siret}',
+                                                  'Siret: ${_partners[index].siret}',
+                                                  style: GoogleFonts.poppins(
+                                                      color: kBlack,
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.w400),
+                                                ),
+                                                SelectableText(
+                                                  "Nom d'utilisateur: ${_partners[index].username}",
                                                   style: GoogleFonts.poppins(
                                                       color: kBlack,
                                                       fontSize: 16,

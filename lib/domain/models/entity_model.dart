@@ -11,6 +11,7 @@ class EntityModel {
   String? code;
   String? phone;
   String? type;
+  String? username;
   num? fundAmount;
   bool? acceptDemat;
   AddressModel? address;
@@ -26,6 +27,7 @@ class EntityModel {
     this.code,
     this.phone,
     this.type,
+    this.username,
     this.fundAmount,
     this.acceptDemat,
     this.address,
@@ -51,6 +53,8 @@ class EntityModel {
     type = json['type'];
     //print("### DEBUG ### -> fundAmount ${json['fundAmount']}");
     fundAmount = json['fund_amount'];
+    //print("### DEBUG ### -> username ${json['username']}");
+    username = json['username'];
     //print("### DEBUG ### -> address ${json['address']}");
     acceptDemat = json['accept_demat'];
     //print("### DEBUG ### -> accept_demat ${json['accept_demat']}");
