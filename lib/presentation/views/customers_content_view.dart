@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -32,6 +33,7 @@ class CustomersContentViewState extends State<CustomersContentView>
   final CustomerUseCase _customerUseCase = CustomerUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   TextEditingController searchController = TextEditingController();
+  Timer? _searchDebounce;
   bool _isLoading = false;
   List<EntityModel> _customers = [];
   late List<EntityModel> allCustomers;
@@ -64,9 +66,15 @@ class CustomersContentViewState extends State<CustomersContentView>
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     searchController.dispose();
     tabController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String text) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () => search(text));
   }
 
   Future<void> _refreshCustomers({bool withDelay = false}) async {
@@ -530,7 +538,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onChanged: search,
+                onChanged: _onSearchChanged,
               ),
             ),
           ],
