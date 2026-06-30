@@ -137,7 +137,7 @@ class ApiClient {
   }
 
   bool _isAuthPath(String path) =>
-      path.contains('auth/token') || path.contains('auth/login');
+      path.contains('auth/token') || path.contains('auth/login') || path.contains('auth/logout');
 
   Future<bool> _refreshToken() async {
     if (_isRefreshing) {

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 
@@ -17,7 +17,6 @@ class DashboardContentView extends StatefulWidget {
 
 class _DashboardContentViewState extends State<DashboardContentView> {
   final Completer<void> signOutCompleter = Completer();
-  final StorageFunction _storageFunction = StorageFunction();
   int? _hoveredIndex;
 
   @override
@@ -31,7 +30,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
   }
 
   Future<void> _signOut() async {
-    await _storageFunction.clearUser();
+    await MainUseCase().logout();
   }
 
   void _signOutAndNavigateToLogin(BuildContext context) async {

@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 
 class Header extends StatelessWidget {
@@ -15,7 +15,7 @@ class Header extends StatelessWidget {
   final String title;
 
   Future<void> _signOut() async {
-    await StorageFunction().clearUser();
+    await MainUseCase().logout();
   }
 
   void _signOutAndNavigateToLogin(BuildContext context) async {

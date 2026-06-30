@@ -6,4 +6,8 @@ class MainUseCase {
   Future<bool> checkToken() async {
     return await _mainRepository.checkToken();
   }
+
+  Future<void> logout() async {
+    await _mainRepository.logout();
+  }
 }

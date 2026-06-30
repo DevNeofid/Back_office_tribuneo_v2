@@ -64,7 +64,6 @@ class MySinglePageState extends State<MySinglePage> {
             }
           else
             {
-              _storageFunction.saveLastViewedMenu('dashboard'),
               setState(() {
                 loadedData = true;
               })
