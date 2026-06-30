@@ -115,17 +115,13 @@ class PartnersContentViewState extends State<PartnersContentView>
       });
       return;
     }
-    String firstLetter = text.substring(0, 1).toUpperCase();
-    final List<EntityModel> suggestions =
-        (sortedEntities[firstLetter] as List<EntityModel>).where((element) {
-      final nameLower = element.name!.toLowerCase();
-      final searchLower = text.toLowerCase();
-      return nameLower.startsWith(searchLower);
+    final searchLower = text.toLowerCase();
+    final List<EntityModel> suggestions = allPartners.where((element) {
+      return element.name!.toLowerCase().contains(searchLower);
     }).toList();
     setState(() {
       _lastSearch = text;
       _partners = suggestions;
-      _filter = firstLetter;
     });
   }
 
@@ -722,10 +718,11 @@ class PartnersContentViewState extends State<PartnersContentView>
                   shrinkWrap: true,
                   itemCount: _partners.length,
                   itemBuilder: (BuildContext context, int index) {
-                    if (_partners[index]
-                        .name!
-                        .toLowerCase()
-                        .startsWith(_filter.toLowerCase())) {
+                    if (_lastSearch.isNotEmpty ||
+                        _partners[index]
+                            .name!
+                            .toLowerCase()
+                            .startsWith(_filter.toLowerCase())) {
                       return DefaultTabController(
                         key: ValueKey(neoCurrentIndex),
                         initialIndex: neoCurrentIndex,

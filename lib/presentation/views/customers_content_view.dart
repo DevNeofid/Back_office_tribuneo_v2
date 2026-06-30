@@ -355,17 +355,13 @@ class CustomersContentViewState extends State<CustomersContentView>
       });
       return;
     }
-    String firstLetter = text.substring(0, 1).toUpperCase();
-    final List<EntityModel> suggestions =
-        (sortedEntities[firstLetter] as List<EntityModel>).where((element) {
-      final nameLower = element.name!.toLowerCase();
-      final searchLower = text.toLowerCase();
-      return nameLower.startsWith(searchLower);
+    final searchLower = text.toLowerCase();
+    final List<EntityModel> suggestions = allCustomers.where((element) {
+      return element.name!.toLowerCase().contains(searchLower);
     }).toList();
     setState(() {
       _lastSearch = text;
       _customers = suggestions;
-      _filter = firstLetter;
     });
   }
 

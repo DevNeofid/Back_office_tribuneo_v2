@@ -28,6 +28,8 @@ class StorageFunction {
     await _storage.deleteSecureDataFromKey('lastname');
     await _storage.deleteSecureDataFromKey('network');
     await _storage.deleteSecureDataFromKey('jwt_exp');
+    await _storage.deleteSecureDataFromKey('username');
+    await _storage.deleteSecureDataFromKey('box_last_viewed_1');
   }
 
   Future<void> saveJwtExp(int expTimestamp) async {
