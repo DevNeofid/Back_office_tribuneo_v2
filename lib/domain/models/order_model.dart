@@ -8,6 +8,7 @@ class OrderModel {
   num? totalAmount;
   int? paid;
   int? idEntity;
+  String? entityName;
   List<OrderItems>? orderItems;
   FundDate? fundExpiryDate;
   FundDate? createdDate;
@@ -23,6 +24,7 @@ class OrderModel {
     this.totalAmount,
     this.paid,
     this.idEntity,
+    this.entityName,
     this.orderItems,
     this.fundExpiryDate,
     this.createdDate,
@@ -39,6 +41,7 @@ class OrderModel {
         totalAmount = json['total_amount'],
         paid = json['amount_paid'] ?? 0,
         idEntity = json['id_entity'],
+        entityName = json['entity_name'],
         orderItems = _parseOrderItems(json['order_items']),
         fundExpiryDate = _parseFundDate(json['fund_expiry_date']),
         createdDate = _parseFundDate(json['created_date']),

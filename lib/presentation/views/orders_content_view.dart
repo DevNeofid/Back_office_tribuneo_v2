@@ -71,8 +71,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
 
   Future<void> _processQRCodeGeneration(OrderModel order) async {
     try {
-      String? name = order.giftFrom;
-      name = name!.replaceAll(' ', '_');
+      final String name = order.entityName!.replaceAll(' ', '_');
       String? number = order.orderNumber;
 
       dynamic res = await _orderUseCase.createQRCode(order.id!);
@@ -126,8 +125,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       },
     );
     try {
-      String? name = order.giftFrom;
-      name = name!.replaceAll(' ', '_');
+      final String name = order.entityName!.replaceAll(' ', '_');
       String? number = order.orderNumber;
 
       dynamic res = await _orderUseCase.createCsv(order.id!);
@@ -191,8 +189,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     };
     try {
       dynamic res = await _orderUseCase.createInvoice(invoice);
-      String? name = order.giftFrom;
-      name = name!.replaceAll(' ', '_');
+      final String name = order.entityName!.replaceAll(' ', '_');
       String? number = order.orderNumber;
       List<dynamic> listDynamic = res;
 
@@ -221,8 +218,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       },
     );
     try {
-      String? name = order.giftFrom;
-      name = name!.replaceAll(' ', '_');
+      final String name = order.entityName!.replaceAll(' ', '_');
       String? number = order.orderNumber;
 
       dynamic res = await _orderUseCase.createSummary(order.id!);
@@ -304,8 +300,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     try {
       dynamic res = await _orderUseCase.createDeliveryNote(order.id!);
 
-      String? name = order.giftFrom;
-      name = name!.replaceAll(' ', '_');
+      final String name = order.entityName!.replaceAll(' ', '_');
       String? number = order.orderNumber;
 
       List<dynamic> file = res;
