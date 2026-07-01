@@ -1,3 +1,5 @@
+import 'package:back_office_tribuneo_v2/domain/models/all_infos_customer_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/all_infos_partner_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/digital_partner_no_activity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
@@ -7,6 +9,7 @@ import 'package:back_office_tribuneo_v2/domain/models/partner_digital_never_open
 import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_unsettled_balance_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/sum_expired_vouchers_consumer_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/technical_support_order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_balance_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/voucher_total_balance_per_customer_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/stats_repository.dart';
@@ -187,6 +190,76 @@ class StatsUseCase {
     int offset = 0,
   }) async {
     return await statsRepository.getDigitalPartnerNoActivityCsv(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<AllInfosPartnerModel>> getAllInfosPartnersPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllInfosPartnersPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getAllInfosPartnersCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllInfosPartnersCsv(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<AllInfosCustomerModel>>
+      getAllInfosCustomersPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllInfosCustomersPaginated(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getAllInfosCustomersCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllInfosCustomersCsv(
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<TechnicalSupportOrderModel>>
+      getTechnicalSupportOrdersPaginated(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getTechnicalSupportOrdersPaginated(
+      dateFrom,
+      dateTo,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getTechnicalSupportOrdersCsv(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getTechnicalSupportOrdersCsv(
+      dateFrom,
+      dateTo,
       limit: limit,
       offset: offset,
     );

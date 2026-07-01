@@ -40,6 +40,12 @@ class StatsContentViewState extends State<StatsContentView> {
         return 'somme_coupons_expires.csv';
       case 6:
         return 'partenaires_sans_activite.csv';
+      case 7:
+        return 'toutes_les_infos_partenaires.csv';
+      case 8:
+        return 'toutes_les_infos_clients.csv';
+      case 9:
+        return 'support_technique_commandes.csv';
       default:
         return 'export_stats.csv';
     }
@@ -70,6 +76,15 @@ class StatsContentViewState extends State<StatsContentView> {
         );
       case 6:
         return _statsUseCase.getDigitalPartnerNoActivityCsv();
+      case 7:
+        return _statsUseCase.getAllInfosPartnersCsv();
+      case 8:
+        return _statsUseCase.getAllInfosCustomersCsv();
+      case 9:
+        return _statsUseCase.getTechnicalSupportOrdersCsv(
+          _selectedStartDate,
+          _selectedEndDate,
+        );
       default:
         return null;
     }
@@ -216,6 +231,19 @@ class StatsContentViewState extends State<StatsContentView> {
                                 value: 6,
                                 child: Text('Partenaires sans transactions',
                                     style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 7,
+                                child: Text('Toutes les infos partenaires',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 8,
+                                child: Text('Toutes les infos clients',
+                                    style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 9,
+                                child: Text(
+                                    'Support technique - commandes',
+                                    style: GoogleFonts.poppins())),
                           ],
                         ),
                       ),
@@ -232,7 +260,8 @@ class StatsContentViewState extends State<StatsContentView> {
             ),
             if (_selectedButtonIndex == 1 ||
                 _selectedButtonIndex == 2 ||
-                _selectedButtonIndex == 5)
+                _selectedButtonIndex == 5 ||
+                _selectedButtonIndex == 9)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -337,6 +366,12 @@ class StatsContentViewState extends State<StatsContentView> {
         return _buildSumExpiredVouchersConsumer();
       case 6:
         return _buildDigitalPartnerNoActivity();
+      case 7:
+        return _buildAllInfosPartners();
+      case 8:
+        return _buildAllInfosCustomers();
+      case 9:
+        return _buildTechnicalSupportOrders();
       default:
         return Container();
     }
@@ -564,6 +599,170 @@ class StatsContentViewState extends State<StatsContentView> {
             DataColumn(
                 label: Center(
                     child: Text('Téléphone', style: GoogleFonts.poppins()))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAllInfosPartners() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: ListAllPartnersDataSource(_statsUseCase),
+          columnSpacing: 16,
+          horizontalMargin: 10,
+          minWidth: 2200,
+          rowsPerPage: 10,
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Code', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Email', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Siret', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Téléphone', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child:
+                        Text('Accepte démat.', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Adresse', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Code postal', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Ville', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Pays', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('IBAN', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('BIC', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('N° TVA intracommunautaire',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Code NAF', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('N° comptable', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Montant', style: GoogleFonts.poppins()))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAllInfosCustomers() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: ListAllCustomersDataSource(_statsUseCase),
+          columnSpacing: 16,
+          horizontalMargin: 10,
+          minWidth: 1700,
+          rowsPerPage: 10,
+          columns: [
+            DataColumn(
+                label:
+                    Center(child: Text('Code', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Email', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Siret', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Téléphone', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Adresse', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Code postal', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Ville', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Pays', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('N° TVA intracommunautaire',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Code NAF', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('N° comptable', style: GoogleFonts.poppins()))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTechnicalSupportOrders() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: GetInfoTechnicalSupportDataSource(
+            _statsUseCase,
+            _selectedStartDate,
+            _selectedEndDate,
+          ),
+          rowsPerPage: 10,
+          columns: [
+            DataColumn(
+                label: Center(
+                    child:
+                        Text('N° de commande', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child:
+                        Text('Montant total', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Nombre de QR codes',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Date de création',
+                        style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -876,6 +1075,211 @@ class DigitalPartnerNoActivityDataSource extends AsyncDataTableSource {
     } else {
       _lastKnownTotal = startIndex + partners.length;
       if (partners.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class ListAllPartnersDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  ListAllPartnersDataSource(this._statsUseCase);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getAllInfosPartnersPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final partners = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < partners.length; i++) {
+      final item = partners[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(
+              child: Text(item.code ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.email ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.siret ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.phone ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.acceptDemat ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.street ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.zip ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.city ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.country ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.iban ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.bic ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.intracommunityVatNumber ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child:
+                  Text(item.nafCode ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.accountingNumber ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.amount ?? '', style: GoogleFonts.poppins()))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + partners.length;
+      if (partners.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class ListAllCustomersDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  int _lastKnownTotal = 0;
+
+  ListAllCustomersDataSource(this._statsUseCase);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getAllInfosCustomersPaginated(
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final customers = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < customers.length; i++) {
+      final item = customers[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(
+              child: Text(item.code ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.email ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.siret ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.phone ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.street ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.zip ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.city ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.country ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.intracommunityVatNumber ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child:
+                  Text(item.nafCode ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.accountingNumber ?? '',
+                  style: GoogleFonts.poppins()))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + customers.length;
+      if (customers.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class GetInfoTechnicalSupportDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  final DateTime? _dateFrom;
+  final DateTime? _dateTo;
+  int _lastKnownTotal = 0;
+
+  GetInfoTechnicalSupportDataSource(
+      this._statsUseCase, this._dateFrom, this._dateTo);
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated = await _statsUseCase.getTechnicalSupportOrdersPaginated(
+      _dateFrom,
+      _dateTo,
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final orders = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < orders.length; i++) {
+      final item = orders[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(
+              child: Text(item.orderNumber ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.name ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.totalByOrder ?? '0.00',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.countQrcode?.toString() ?? '0',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.createdDate ?? '',
+                  style: GoogleFonts.poppins()))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + orders.length;
+      if (orders.length == limit) {
         _lastKnownTotal += 1;
       }
     }

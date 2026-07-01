@@ -1,8 +1,11 @@
 import 'dart:convert';
 
+import 'package:back_office_tribuneo_v2/domain/models/all_infos_customer_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/all_infos_partner_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/digital_partner_no_activity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
+import 'package:back_office_tribuneo_v2/domain/models/technical_support_order_model.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_account_model.dart';
@@ -621,6 +624,190 @@ class StatsRepository {
   }) async {
     return _downloadCsvData(
       '$suffixe/digital-partner-no-activity',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
+  Future<PaginatedResult<AllInfosPartnerModel>> getAllInfosPartnersPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<AllInfosPartnerModel> partners = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/all-infos-partners',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          partners.add(AllInfosPartnerModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<AllInfosPartnerModel>(
+      items: partners,
+      total: total,
+    );
+  }
+
+  Future<String?> getAllInfosPartnersCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/all-infos-partners',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
+  Future<PaginatedResult<AllInfosCustomerModel>>
+      getAllInfosCustomersPaginated({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<AllInfosCustomerModel> customers = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.get(
+        '$suffixe/all-infos-customers',
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          customers.add(AllInfosCustomerModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<AllInfosCustomerModel>(
+      items: customers,
+      total: total,
+    );
+  }
+
+  Future<String?> getAllInfosCustomersCsv({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/all-infos-customers',
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
+  Future<PaginatedResult<TechnicalSupportOrderModel>>
+      getTechnicalSupportOrdersPaginated(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<TechnicalSupportOrderModel> orders = [];
+    int total = 0;
+
+    try {
+      final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+      final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+      final Map<String, String> body = {
+        'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+        'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+      };
+
+      dynamic response = await _remoteData.post(
+        '$suffixe/all-order-on-technical-support',
+        body,
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          orders.add(TechnicalSupportOrderModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<TechnicalSupportOrderModel>(
+      items: orders,
+      total: total,
+    );
+  }
+
+  Future<String?> getTechnicalSupportOrdersCsv(
+    DateTime? dateFrom,
+    DateTime? dateTo, {
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final DateTime effectiveStartDate = dateFrom ?? DateTime(2023, 1, 1);
+    final DateTime effectiveEndDate = dateTo ?? DateTime.now();
+
+    final Map<String, String> body = {
+      'date_from': DateFormat('yyyy-MM-dd').format(effectiveStartDate),
+      'date_to': DateFormat('yyyy-MM-dd').format(effectiveEndDate),
+    };
+
+    return _downloadCsvData(
+      '$suffixe/all-order-on-technical-support',
+      body: body,
+      usePost: true,
       queryParams: {
         'limit': limit,
         'offset': offset,
