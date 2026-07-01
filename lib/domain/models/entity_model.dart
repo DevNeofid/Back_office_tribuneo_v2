@@ -80,7 +80,7 @@ class EntityModel {
     data['phone'] = phone;
     data['type'] = type;
     data['fund_amount'] = fundAmount;
-    data['accept_demat'] = acceptDemat;
+    data['accept_demat'] = acceptDemat == true ? 1 : 0;
     if (address != null) {
       data['address'] = address!.toJson();
     }
