@@ -5,6 +5,7 @@ import 'package:back_office_tribuneo_v2/domain/models/user_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:back_office_tribuneo_v2/domain/models/login_model.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/rate_limit_exception.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_model.dart';
 
 class LoginRepository extends BaseRepository {
@@ -33,6 +34,11 @@ class LoginRepository extends BaseRepository {
 
     try {
       var response = await _remoteData.post(suffixe, data);
+      // Le rate limiter répond en 429 avec un format qui lui est propre
+      // ({"error": "RATE_LIMITED", ...}) — à détecter avant tout autre traitement.
+      if (response.statusCode == 429) {
+        throw RateLimitException.fromResponse(response.data);
+      }
       if (response.statusCode == 200) {
         final Map<String, dynamic> dataMap = Map<String, dynamic>.from(
           response.data['data'] as Map,

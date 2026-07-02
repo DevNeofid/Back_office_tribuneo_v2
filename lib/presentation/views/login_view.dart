@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/rate_limit_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/login_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_model.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
@@ -112,6 +113,21 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
         if (mounted) {
           _redirect();
         }
+      } on RateLimitException catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+
+        snackbarKey.currentState?.hideCurrentSnackBar();
+        snackbarKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(e.userMessage),
+            backgroundColor: Colors.red.shade300,
+            duration: const Duration(seconds: 8),
+          ),
+        );
       } catch (e) {
         if (mounted) {
           setState(() {
