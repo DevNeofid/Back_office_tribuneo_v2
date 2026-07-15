@@ -58,8 +58,8 @@ class _UpadateBankInformationsFormState
     // modification de l'IBAN par l'utilisateur.
     _lastPrefilledIban =
         (bankInformations?.iban ?? '').replaceAll(' ', '').toUpperCase();
-    iban.addListener(_handleTextChanged);
     iban.text = _formatIban(bankInformations?.iban ?? '');
+    iban.addListener(_handleTextChanged);
   }
 
   Future<void> addBankInformations() async {
@@ -157,11 +157,26 @@ class _UpadateBankInformationsFormState
   }
 
   String _lastPrefilledIban = '';
+  String? _ibanError;
 
   /// Un IBAN français contient déjà le RIB : FR + clé (2) + code établissement
   /// (5) + code guichet (5) + numéro de compte (11) + clé RIB (2).
   void _prefillFromIban(String cleanIban) {
-    if (!FormValidator.isValidIban(cleanIban)) return;
+    // Le message d'erreur ne s'affiche qu'une fois la saisie complète, pour ne
+    // pas signaler « invalide » pendant que l'utilisateur tape encore.
+    String? error;
+    if (cleanIban.length >= 27) {
+      if (FormValidator.validateIban(cleanIban) != null) {
+        error = '🚩 Format d\'IBAN invalide';
+      } else if (!FormValidator.isValidIban(cleanIban)) {
+        error = '🚩 IBAN invalide (clé de contrôle incorrecte)';
+      }
+    }
+    if (error != _ibanError) {
+      setState(() => _ibanError = error);
+    }
+
+    if (error != null || cleanIban.length != 27) return;
     if (cleanIban == _lastPrefilledIban) return;
     _lastPrefilledIban = cleanIban;
     bankCode.text = cleanIban.substring(4, 9);
@@ -216,9 +231,10 @@ class _UpadateBankInformationsFormState
                             maxLength: 34,
                             controller: iban,
                             hintText: 'Iban',
+                            errorText: _ibanError,
                             fillColor: kPWhite,
                             validator: (value) {
-                              return FormValidator.validateText(value ?? '');
+                              return FormValidator.validateIban(value ?? '');
                             },
                           ),
                         ),

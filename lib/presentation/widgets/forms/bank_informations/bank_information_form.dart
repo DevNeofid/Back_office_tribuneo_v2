@@ -125,11 +125,26 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
   }
 
   String _lastPrefilledIban = '';
+  String? _ibanError;
 
   /// Un IBAN français contient déjà le RIB : FR + clé (2) + code établissement
   /// (5) + code guichet (5) + numéro de compte (11) + clé RIB (2).
   void _prefillFromIban(String cleanIban) {
-    if (!FormValidator.isValidIban(cleanIban)) return;
+    // Le message d'erreur ne s'affiche qu'une fois la saisie complète, pour ne
+    // pas signaler « invalide » pendant que l'utilisateur tape encore.
+    String? error;
+    if (cleanIban.length >= 27) {
+      if (FormValidator.validateIban(cleanIban) != null) {
+        error = '🚩 Format d\'IBAN invalide';
+      } else if (!FormValidator.isValidIban(cleanIban)) {
+        error = '🚩 IBAN invalide (clé de contrôle incorrecte)';
+      }
+    }
+    if (error != _ibanError) {
+      setState(() => _ibanError = error);
+    }
+
+    if (error != null || cleanIban.length != 27) return;
     if (cleanIban == _lastPrefilledIban) return;
     _lastPrefilledIban = cleanIban;
     bankCode.text = cleanIban.substring(4, 9);
@@ -199,6 +214,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                             maxLength: 34,
                             controller: iban,
                             hintText: 'Iban',
+                            errorText: _ibanError,
                             fillColor: kPWhite,
                             validator: (value) {
                               return FormValidator.validateIban(value ?? '');

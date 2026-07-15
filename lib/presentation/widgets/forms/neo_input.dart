@@ -16,6 +16,7 @@ class NeoInput extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputFormatter? formatter;
   final int? maxLength;
+  final String? errorText;
 
   const NeoInput({
     Key? key,
@@ -34,6 +35,7 @@ class NeoInput extends StatelessWidget {
     this.validator,
     this.formatter,
     this.maxLength,
+    this.errorText,
   }) : super(key: key);
 
   @override
@@ -55,6 +57,7 @@ class NeoInput extends StatelessWidget {
             color: textColor,
           ),
           labelText: hintText,
+          errorText: errorText,
           floatingLabelStyle: const TextStyle(color: kBlue),
           fillColor: fillColor,
           filled: true,
