@@ -55,6 +55,10 @@ class OrderUseCase {
     return await orderRepository.addPayment(payment);
   }
 
+  Future<void> deletePayment(int idPayment) async {
+    return await orderRepository.deletePayment(idPayment);
+  }
+
   Future<String> getInvoiceInfos(int orderId) async {
     return await orderRepository.getInvoiceInfos(orderId);
   }

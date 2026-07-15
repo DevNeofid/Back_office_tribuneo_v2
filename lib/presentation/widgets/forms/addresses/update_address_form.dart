@@ -76,14 +76,10 @@ class _UpdateAddressFormState extends State<UpdateAddressForm> {
 
     if (latController.text.trim().isNotEmpty) {
       addressMap['lat'] = double.parse(latController.text.replaceAll(',', '.'));
-    } else {
-      addressMap['lat'] = 0;
     }
 
     if (lngController.text.trim().isNotEmpty) {
       addressMap['lng'] = double.parse(lngController.text.replaceAll(',', '.'));
-    } else {
-      addressMap['lng'] = 0;
     }
 
     AddressModel a = AddressModel.fromJson(addressMap);
@@ -210,40 +206,42 @@ class _UpdateAddressFormState extends State<UpdateAddressForm> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: latController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Latitude',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
-                            return FormValidator.validatePosition(value);
-                          },
+                      if (widget.entity.type == 'partner') ...[
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: latController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Latitude',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return null;
+                              }
+                              return FormValidator.validatePosition(value);
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: lngController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Longitude',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
-                            return FormValidator.validatePosition(value);
-                          },
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: lngController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Longitude',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return null;
+                              }
+                              return FormValidator.validatePosition(value);
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                       SizedBox(height: SizeConfig.screenHeight * 0.04),
                       _isSaving
                           ? const SizedBox(

@@ -121,6 +121,21 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
         selection: TextSelection.collapsed(offset: newText.length),
       );
     }
+    _prefillFromIban(text.toUpperCase());
+  }
+
+  String _lastPrefilledIban = '';
+
+  /// Un IBAN français contient déjà le RIB : FR + clé (2) + code établissement
+  /// (5) + code guichet (5) + numéro de compte (11) + clé RIB (2).
+  void _prefillFromIban(String cleanIban) {
+    if (!FormValidator.isValidIban(cleanIban)) return;
+    if (cleanIban == _lastPrefilledIban) return;
+    _lastPrefilledIban = cleanIban;
+    bankCode.text = cleanIban.substring(4, 9);
+    officeCode.text = cleanIban.substring(9, 14);
+    accountNumber.text = cleanIban.substring(14, 25);
+    key.text = cleanIban.substring(25, 27);
   }
 
   @override

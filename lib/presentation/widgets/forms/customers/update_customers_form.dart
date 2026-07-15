@@ -162,9 +162,6 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
                     hintText: 'Siret du client',
                     keyboardType: TextInputType.number,
                     fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validateSiret(value ?? '');
-                    },
                     formatter: FilteringTextInputFormatter.digitsOnly,
                     maxLength: 14,
                   ),

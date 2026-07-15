@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
@@ -275,6 +276,34 @@ class OrderRepository extends BaseRepository {
       }
       return http.Response('Error: $e', 500);
     }
+  }
+
+  Future<void> deletePayment(int idPayment) async {
+    String suffixe = 'payment';
+    String tenant = await getTenantForCurrentNetwork();
+
+    dynamic response =
+        await _remoteData.delete(suffixe, idPayment, overrideTenant: tenant);
+
+    if (response.statusCode == 200) {
+      return;
+    }
+
+    // Format d'erreur de l'API : {"error": {"type": ..., "description": ...}}
+    String description = '';
+    final dynamic data = response.data;
+    if (data is Map && data['error'] is Map) {
+      description = data['error']['description']?.toString() ?? '';
+    }
+
+    if (description.contains('accounting entries')) {
+      throw ApiException(
+          'Impossible de supprimer ce paiement : les écritures comptables ont déjà été générées.');
+    }
+    if (response.statusCode == 404) {
+      throw ApiException('Paiement introuvable.');
+    }
+    throw ApiException('Erreur lors de la suppression du paiement.');
   }
 
   Future<String> getInvoiceInfos(int idOrder) async {

@@ -53,6 +53,11 @@ class _UpadateBankInformationsFormState
     accountNumber.text = bankInformations?.accountNumber ?? '';
     accountingNumber.text = bankInformations?.accountingNumber ?? '';
     intraComNumber.text = bankInformations?.intraCommunityVat ?? '';
+    // Mémorise l'IBAN initial pour ne pas écraser les champs RIB venant de la
+    // base à l'ouverture du formulaire — le préshot ne vaut que pour une
+    // modification de l'IBAN par l'utilisateur.
+    _lastPrefilledIban =
+        (bankInformations?.iban ?? '').replaceAll(' ', '').toUpperCase();
     iban.addListener(_handleTextChanged);
     iban.text = _formatIban(bankInformations?.iban ?? '');
   }
@@ -148,6 +153,21 @@ class _UpadateBankInformationsFormState
         selection: TextSelection.collapsed(offset: newText.length),
       );
     }
+    _prefillFromIban(text.replaceAll(' ', '').toUpperCase());
+  }
+
+  String _lastPrefilledIban = '';
+
+  /// Un IBAN français contient déjà le RIB : FR + clé (2) + code établissement
+  /// (5) + code guichet (5) + numéro de compte (11) + clé RIB (2).
+  void _prefillFromIban(String cleanIban) {
+    if (!FormValidator.isValidIban(cleanIban)) return;
+    if (cleanIban == _lastPrefilledIban) return;
+    _lastPrefilledIban = cleanIban;
+    bankCode.text = cleanIban.substring(4, 9);
+    officeCode.text = cleanIban.substring(9, 14);
+    accountNumber.text = cleanIban.substring(14, 25);
+    key.text = cleanIban.substring(25, 27);
   }
 
   @override

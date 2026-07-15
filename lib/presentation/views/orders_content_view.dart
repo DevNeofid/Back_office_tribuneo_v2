@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
@@ -925,6 +926,44 @@ class ShowPaymentState extends State<ShowPayment> {
     }
   }
 
+  Future _deletePayment(PaymentModel payment) async {
+    final bool? confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Supprimer un paiement'),
+            content: Text(
+                'Êtes-vous sûr de vouloir supprimer le paiement de ${payment.amount!.toStringAsFixed(2)} € du ${DateFormater().modifyDate(payment.paymentDate!.toString())} ?'),
+            actions: <Widget>[
+              TextButton(
+                  child: const Text('Annuler'),
+                  onPressed: () => Navigator.of(context).pop(false)),
+              TextButton(
+                  child: const Text('Supprimer'),
+                  onPressed: () => Navigator.of(context).pop(true)),
+            ],
+          );
+        });
+
+    if (confirmed != true) return;
+
+    try {
+      await orderUseCase.deletePayment(payment.id!);
+      _hasModifiedData = true;
+      await _refreshPayments();
+      snackbarKey.currentState?.showSnackBar(const SnackBar(
+          content: Text('Paiement supprimé avec succès.'),
+          backgroundColor: kGreen));
+    } on ApiException catch (e) {
+      snackbarKey.currentState?.showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: kRed));
+    } catch (_) {
+      snackbarKey.currentState?.showSnackBar(const SnackBar(
+          content: Text('Erreur lors de la suppression du paiement.'),
+          backgroundColor: kRed));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     num sumOfPayments = _payments.fold<num>(0, (sum, p) => sum + p.amount!);
@@ -958,6 +997,9 @@ class ShowPaymentState extends State<ShowPayment> {
                       Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Montant'))),
+                      Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: Center(child: Text('Action'))),
                     ],
                   ),
                   ..._payments
@@ -988,6 +1030,13 @@ class ShowPaymentState extends State<ShowPayment> {
                                   child: Center(
                                       child: Text(
                                           payment.amount!.toStringAsFixed(2)))),
+                              Center(
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete, color: kRed),
+                                  tooltip: 'Supprimer le paiement',
+                                  onPressed: () => _deletePayment(payment),
+                                ),
+                              ),
                             ],
                           ))
                       .toList(),

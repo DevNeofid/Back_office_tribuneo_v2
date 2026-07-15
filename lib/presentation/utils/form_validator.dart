@@ -158,6 +158,33 @@ class FormValidator {
     return null;
   }
 
+  /// Format français (27 caractères) + clé de contrôle (mod 97).
+  /// Plus strict que [validateIban] : sert à ne préremplir les champs RIB
+  /// que depuis un IBAN mathématiquement valide.
+  static bool isValidIban(String value) {
+    final cleanValue = value.replaceAll(' ', '').toUpperCase();
+    if (validateIban(cleanValue) != null) return false;
+    return _checkIbanMod97(cleanValue);
+  }
+
+  /// Clé de contrôle IBAN (ISO 7064) : les 4 premiers caractères sont déplacés
+  /// à la fin, les lettres converties en nombres (A=10 … Z=35), et le tout
+  /// doit être ≡ 1 (mod 97). Calcul incrémental pour éviter BigInt.
+  static bool _checkIbanMod97(String iban) {
+    final rearranged = iban.substring(4) + iban.substring(0, 4);
+    int remainder = 0;
+    for (final codeUnit in rearranged.codeUnits) {
+      if (codeUnit >= 48 && codeUnit <= 57) {
+        remainder = (remainder * 10 + (codeUnit - 48)) % 97;
+      } else if (codeUnit >= 65 && codeUnit <= 90) {
+        remainder = (remainder * 100 + (codeUnit - 55)) % 97;
+      } else {
+        return false;
+      }
+    }
+    return remainder == 1;
+  }
+
   static String? validateBic(String? value) {
     if (value == null || value.trim().isEmpty) {
       return '🚩 BIC requis';

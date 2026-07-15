@@ -80,7 +80,8 @@ class PartnersContentViewState extends State<PartnersContentView>
 
   void _onSearchChanged(String text) {
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () => search(text));
+    _searchDebounce =
+        Timer(const Duration(milliseconds: 500), () => search(text));
   }
 
   Future<void> _refreshPartners({bool withDelay = false}) async {
@@ -355,12 +356,12 @@ class PartnersContentViewState extends State<PartnersContentView>
     }
   }
 
-  Future<void> _addAddress(int id) async {
+  Future<void> _addAddress(EntityModel partner) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return AddressForm(idPartner: id);
+          return AddressForm(entity: partner);
         });
     if (shouldRefresh == true) {
       _refreshPartners(withDelay: true);
@@ -491,8 +492,8 @@ class PartnersContentViewState extends State<PartnersContentView>
                 child: const Text('Désactiver'),
                 onPressed: () async {
                   try {
-                    bool deleted = await _partnerUseCase.deletePartner(
-                        partner.id!);
+                    bool deleted =
+                        await _partnerUseCase.deletePartner(partner.id!);
                     Navigator.of(context).pop(true);
                     if (deleted) {
                       snackbarKey.currentState?.showSnackBar(
@@ -866,7 +867,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                     ? _addressUpdate(
                                                         _partners[index])
                                                     : _addAddress(
-                                                        _partners[index].id!);
+                                                        _partners[index]);
                                                 break;
                                               case EditBoxItem.itemFour:
                                                 _partners[index]
@@ -1262,7 +1263,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                         ),
                                                       ),
                                                       SelectableText(
-                                                        'lat: ${_partners[index].address!.lat}',
+                                                        'lat: ${_partners[index].address!.lat ?? "Non renseigné"}',
                                                         style:
                                                             GoogleFonts.poppins(
                                                                 color: kBlack,
@@ -1272,7 +1273,7 @@ class PartnersContentViewState extends State<PartnersContentView>
                                                                         .w400),
                                                       ),
                                                       SelectableText(
-                                                        'long: ${_partners[index].address!.lng}',
+                                                        'long: ${_partners[index].address!.lng ?? "Non renseigné"}',
                                                         style:
                                                             GoogleFonts.poppins(
                                                                 color: kBlack,

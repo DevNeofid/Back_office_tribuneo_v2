@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:back_office_tribuneo_v2/config/responsive.dart';
@@ -12,9 +13,9 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dar
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 
 class AddressForm extends StatefulWidget {
-  final int idPartner;
+  final EntityModel entity;
 
-  const AddressForm({Key? key, required this.idPartner}) : super(key: key);
+  const AddressForm({Key? key, required this.entity}) : super(key: key);
 
   @override
   State<AddressForm> createState() => _AddressFormState();
@@ -53,7 +54,7 @@ class _AddressFormState extends State<AddressForm> {
       'zip': zipController.text,
       'city': cityController.text,
       'country': countryController.text,
-      'id_entity': widget.idPartner,
+      'id_entity': widget.entity.id,
     };
 
     if (latController.text.isNotEmpty) {
@@ -202,40 +203,42 @@ class _AddressFormState extends State<AddressForm> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: latController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Lattitude',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
-                            return FormValidator.validatePosition(value);
-                          },
+                      if (widget.entity.type == 'partner') ...[
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: latController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Latitude',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return null;
+                              }
+                              return FormValidator.validatePosition(value);
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: lngController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Longitude',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
-                            return FormValidator.validatePosition(value);
-                          },
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: inputWidth,
+                          child: NeoInput(
+                            controller: lngController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            hintText: 'Longitude',
+                            fillColor: kPWhite,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return null;
+                              }
+                              return FormValidator.validatePosition(value);
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                       SizedBox(height: SizeConfig.screenHeight * 0.04),
                       _isSaving
                           ? const SizedBox(

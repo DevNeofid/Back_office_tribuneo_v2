@@ -226,12 +226,12 @@ class CustomersContentViewState extends State<CustomersContentView>
     }
   }
 
-  Future<void> _addAddress(int id) async {
+  Future<void> _addAddress(EntityModel customers) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return AddressForm(idPartner: id);
+          return AddressForm(entity: customers);
         });
     if (shouldRefresh == true) {
       _refreshCustomers(withDelay: true);
@@ -664,7 +664,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                                                   ? _addressUpdate(
                                                       _customers[index])
                                                   : _addAddress(
-                                                      _customers[index].id!);
+                                                      _customers[index]);
                                               break;
                                             case FirstBoxItem.itemThree:
                                               _customers[index]
@@ -917,7 +917,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                                                       ),
                                                     ),
                                                     SelectableText(
-                                                      'lat: ${_customers[index].address!.lat}',
+                                                      'lat: ${_customers[index].address!.lat ?? "Non renseigné"}',
                                                       style:
                                                           GoogleFonts.poppins(
                                                               color: kBlack,
@@ -927,7 +927,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                                                                       .w400),
                                                     ),
                                                     SelectableText(
-                                                      'long: ${_customers[index].address!.lng}',
+                                                      'long: ${_customers[index].address!.lng ?? "Non renseigné"}',
                                                       style:
                                                           GoogleFonts.poppins(
                                                               color: kBlack,
