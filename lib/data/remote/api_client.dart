@@ -10,6 +10,14 @@ import 'package:back_office_tribuneo_v2/data/local/storage_service.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 
+/// Résultat d'une tentative de refresh :
+/// - [success] : nouveau token obtenu
+/// - [expired] : le backend a explicitement rejeté le refresh token (401/403),
+///   la session est réellement morte
+/// - [transient] : erreur passagère (réseau, timeout, 429, 5xx) — la session
+///   locale ne doit PAS être détruite
+enum _RefreshResult { success, expired, transient }
+
 class ApiClient {
   static ApiClient? _instance;
   factory ApiClient() {
@@ -25,7 +33,7 @@ class ApiClient {
   int? _currentIdNetwork;
 
   bool _isRefreshing = false;
-  Completer<bool>? _refreshCompleter;
+  Completer<_RefreshResult>? _refreshCompleter;
   bool _isHandlingExpiry = false;
   DateTime? _lastRefreshTime;
 
@@ -72,10 +80,15 @@ class ApiClient {
       if (jwtExp != null) {
         final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final remaining = jwtExp - nowSeconds;
-        if (remaining < 60) {
+        // Garde-fou : pas de refresh proactif si un refresh a réussi il y a
+        // moins d'une minute (évite une tempête de refresh si jwt_exp est périmé).
+        final recentlyRefreshed = _lastRefreshTime != null &&
+            DateTime.now().difference(_lastRefreshTime!) <
+                const Duration(minutes: 1);
+        if (remaining < 60 && !recentlyRefreshed) {
           if (kDebugMode) print('[Auth] Token expire dans ${remaining}s — refresh proactif');
-          final refreshed = await _refreshToken();
-          if (!refreshed) {
+          final result = await _refreshToken();
+          if (result == _RefreshResult.expired) {
             await _handleSessionExpired();
             return handler.reject(DioException(
               requestOptions: options,
@@ -83,6 +96,8 @@ class ApiClient {
               message: 'Session expirée',
             ));
           }
+          // transient : on laisse partir la requête ; si le token est vraiment
+          // mort, le 401 sera géré par _onResponse.
         }
       }
     }
@@ -102,24 +117,27 @@ class ApiClient {
         response.requestOptions.extra['_isRetry'] != true &&
         await _isTokenExpiredOrUnknown()) {
       if (kDebugMode) print('[Auth] 401 reçu + token expiré/inconnu — tentative de refresh');
-      final refreshed = await _refreshToken();
-      if (refreshed) {
+      final result = await _refreshToken();
+      if (result == _RefreshResult.success) {
         response.requestOptions.extra['_isRetry'] = true;
         try {
           final newResponse = await dio.fetch(response.requestOptions);
           return handler.resolve(newResponse);
         } catch (_) {
-          await _handleSessionExpired();
+          // Le refresh a réussi, la session est valide : une erreur sur le
+          // retry (réseau...) ne doit pas déconnecter. On transmet le 401
+          // d'origine à l'appelant.
           return handler.next(response);
         }
-      } else {
+      } else if (result == _RefreshResult.expired) {
         await _handleSessionExpired();
       }
+      // transient : on transmet le 401 à l'appelant sans détruire la session.
     }
     return handler.next(response);
   }
 
-  // Token expiré = jwt_exp passé, ou inconnu ET aucun refresh récent (< 5 min)
+  // Token expiré = jwt_exp passé, ou inconnu ET aucun refresh récent (< 1 min)
   Future<bool> _isTokenExpiredOrUnknown() async {
     final jwtExpStr = await _storage.readSecureData('jwt_exp');
     if (jwtExpStr != null) {
@@ -139,32 +157,46 @@ class ApiClient {
   bool _isAuthPath(String path) =>
       path.contains('auth/token') || path.contains('auth/login') || path.contains('auth/logout');
 
-  Future<bool> _refreshToken() async {
+  Future<_RefreshResult> _refreshToken() async {
     if (_isRefreshing) {
-      return await (_refreshCompleter?.future ?? Future.value(false));
+      return await (_refreshCompleter?.future ??
+          Future.value(_RefreshResult.transient));
     }
 
     _isRefreshing = true;
-    final completer = Completer<bool>();
+    final completer = Completer<_RefreshResult>();
     _refreshCompleter = completer;
 
-    bool result = false;
+    var result = _RefreshResult.transient;
     try {
       final response = await _refreshDio.post('auth/token', data: null);
-      result = response.statusCode == 200;
-      if (result) {
+      if (response.statusCode == 200) {
+        result = _RefreshResult.success;
         _lastRefreshTime = DateTime.now();
         final data = response.data;
-        // Sauvegarde jwt_exp si le backend le retourne (nécessite PHP: voir note)
         if (data is Map && data['access_exp'] != null) {
           await _storage.writeSecureData(
             StorageItem('jwt_exp', data['access_exp'].toString()),
           );
+        } else {
+          // Pas d'access_exp dans la réponse : on supprime un éventuel jwt_exp
+          // périmé pour ne pas re-déclencher un refresh à chaque requête.
+          await _storage.deleteSecureDataFromKey('jwt_exp');
         }
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // Seul un rejet explicite du backend prouve que la session est morte.
+        result = _RefreshResult.expired;
+      } else {
+        // 429, 5xx, maintenance... : erreur passagère, on garde la session.
+        if (kDebugMode) {
+          print('[Auth] Refresh échoué (HTTP ${response.statusCode}) — transitoire');
+        }
+        result = _RefreshResult.transient;
       }
     } catch (e) {
+      // Erreur réseau/timeout : transitoire, la session locale reste valide.
       if (kDebugMode) print('[Auth] Erreur refresh token: $e');
-      result = false;
+      result = _RefreshResult.transient;
     } finally {
       _isRefreshing = false;
       _refreshCompleter = null;
