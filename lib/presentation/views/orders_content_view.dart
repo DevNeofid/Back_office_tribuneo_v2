@@ -12,10 +12,11 @@ import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/show_vouchers.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 
-enum SampleItem { itemOne, itemTwo, itemThree, itemFour, itemFive, itemSix }
+enum SampleItem { itemOne, itemTwo, itemThree, itemFour, itemFive, itemSix, itemSeven }
 
 enum SampleItem2 { itemOne, itemTwo, itemThree }
 
@@ -43,6 +44,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       onCreateDeliveryNote: _createDeliveryNote,
       onCreateInvoice: _createInvoice,
       onCreateSummary: _createSummary,
+      onShowVouchers: _showVouchers,
       onDelete: _deleteOrder,
     );
   }
@@ -140,6 +142,19 @@ class _OrdersContentViewState extends State<OrdersContentView> {
           content: Text('Erreur lors de la génération du CSV.')));
     } finally {
       navigatorKey.currentState?.pop();
+    }
+  }
+
+  Future<void> _showVouchers(OrderModel order) async {
+    final result = await showDialog(
+        useSafeArea: true,
+        context: context,
+        builder: (context) {
+          return ShowVouchers(order: order);
+        });
+
+    if (result == true) {
+      _dataSource.refreshDatasource();
     }
   }
 
@@ -548,6 +563,7 @@ class OrderDataSource extends AsyncDataTableSource {
   final void Function(OrderModel) onCreateDeliveryNote;
   final void Function(OrderModel) onCreateInvoice;
   final void Function(OrderModel) onCreateSummary;
+  final void Function(OrderModel) onShowVouchers;
   final void Function(int) onDelete;
   List<OrderModel> _cachedOrders = [];
   bool _needsReload = true;
@@ -563,6 +579,7 @@ class OrderDataSource extends AsyncDataTableSource {
     required this.onCreateDeliveryNote,
     required this.onCreateInvoice,
     required this.onCreateSummary,
+    required this.onShowVouchers,
     required this.onDelete,
   }) : _orderUseCase = orderUseCase;
 
@@ -684,6 +701,8 @@ class OrderDataSource extends AsyncDataTableSource {
                     onCreateInvoice(order);
                   } else if (item == SampleItem.itemSix) {
                     onCreateSummary(order);
+                  } else if (item == SampleItem.itemSeven) {
+                    onShowVouchers(order);
                   }
                 },
                 itemBuilder: (BuildContext context) =>
@@ -716,6 +735,11 @@ class OrderDataSource extends AsyncDataTableSource {
                   const PopupMenuItem<SampleItem>(
                     value: SampleItem.itemSix,
                     child: Text('Générer le récapitulatif'),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemSeven,
+                    child: Text('Gestion des bons'),
                   ),
                 ],
               ),

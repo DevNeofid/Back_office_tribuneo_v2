@@ -7,6 +7,7 @@ import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dar
 import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
@@ -241,6 +242,76 @@ class OrderRepository extends BaseRepository {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<List<OrderVoucherModel>> getOrderVouchers(int idOrder) async {
+    String suffixe = 'qrcode';
+    String tenant = await getTenantForCurrentNetwork();
+    List<OrderVoucherModel> vouchers = [];
+    try {
+      dynamic response =
+          await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
+      if (response.statusCode == 200) {
+        final List<dynamic> vouchersJson = response.data['data'] ?? [];
+        for (var voucher in vouchersJson) {
+          vouchers.add(
+              OrderVoucherModel.fromJson(voucher as Map<String, dynamic>));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error: $e');
+      }
+      vouchers = [];
+    }
+    return vouchers;
+  }
+
+  Future<void> disableVoucher(int idQrCode) async {
+    String tenant = await getTenantForCurrentNetwork();
+
+    dynamic response = await _remoteData.put(
+        'qrcode/$idQrCode/deleted-date', jsonEncode({}),
+        overrideTenant: tenant);
+
+    if (response.statusCode == 200) {
+      return;
+    }
+
+    // Format d'erreur de l'API : {"error": {"type": ..., "description": ...}}
+    String description = '';
+    final dynamic data = response.data;
+    if (data is Map && data['error'] is Map) {
+      description = data['error']['description']?.toString() ?? '';
+    }
+
+    if (description.contains('assigned to a user')) {
+      throw ApiException(
+          'Impossible de désactiver ce bon : il est associé à un utilisateur.');
+    }
+    if (response.statusCode == 404) {
+      throw ApiException('Bon introuvable.');
+    }
+    throw ApiException('Erreur lors de la désactivation du bon.');
+  }
+
+  Future<void> updateVoucherExpiryDate(int idQrCode, String expiryDate) async {
+    String tenant = await getTenantForCurrentNetwork();
+    // L'API attend une date au format 'yyyy-MM-dd' et y ajoute ' 23:59:59'.
+    String data = jsonEncode({'expiry_date': expiryDate});
+
+    dynamic response = await _remoteData.put('qrcode', data,
+        id: idQrCode, overrideTenant: tenant);
+
+    if (response.statusCode == 200) {
+      return;
+    }
+
+    if (response.statusCode == 404) {
+      throw ApiException('Bon introuvable.');
+    }
+    throw ApiException(
+        'Erreur lors de la mise à jour de la date d\'expiration.');
   }
 
   Future<List<PaymentModel>> getPayments(int idOrder) async {

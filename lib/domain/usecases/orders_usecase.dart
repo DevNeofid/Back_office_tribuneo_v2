@@ -1,4 +1,5 @@
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
@@ -45,6 +46,18 @@ class OrderUseCase {
   Future createCsv(int idOrder) async {
     dynamic res = await orderRepository.createCsv(idOrder);
     return res;
+  }
+
+  Future<List<OrderVoucherModel>> getOrderVouchers(int orderId) async {
+    return await orderRepository.getOrderVouchers(orderId);
+  }
+
+  Future<void> disableVoucher(int idQrCode) async {
+    return await orderRepository.disableVoucher(idQrCode);
+  }
+
+  Future<void> updateVoucherExpiryDate(int idQrCode, String expiryDate) async {
+    return await orderRepository.updateVoucherExpiryDate(idQrCode, expiryDate);
   }
 
   Future<List<PaymentModel>> getPayments(int orderId) async {
