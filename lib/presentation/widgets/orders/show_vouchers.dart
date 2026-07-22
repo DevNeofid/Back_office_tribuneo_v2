@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/data/local/storage_service.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,14 +22,22 @@ class ShowVouchers extends StatefulWidget {
 
 class ShowVouchersState extends State<ShowVouchers> {
   final OrderUseCase _orderUseCase = OrderUseCase();
+  final StorageService _storageService = StorageService();
   List<OrderVoucherModel> _vouchers = [];
   bool _isLoading = true;
   bool _hasModifiedData = false;
+  String? networkId;
 
   @override
   void initState() {
     super.initState();
-    _refreshVouchers();
+    _init();
+  }
+
+  Future<void> _init() async {
+    networkId = await _storageService.readSecureData('id_network');
+    if (!mounted) return;
+    await _refreshVouchers();
   }
 
   Future<void> _refreshVouchers() async {
@@ -85,8 +94,7 @@ class ShowVouchersState extends State<ShowVouchers> {
 
   Future<void> _updateExpiryDate(OrderVoucherModel voucher) async {
     final DateTime now = DateTime.now();
-    DateTime initialDate =
-        DateTime.tryParse(voucher.expiryDate ?? '') ?? now;
+    DateTime initialDate = DateTime.tryParse(voucher.expiryDate ?? '') ?? now;
     if (initialDate.isBefore(now)) {
       initialDate = now;
     }
@@ -125,8 +133,8 @@ class ShowVouchersState extends State<ShowVouchers> {
           SnackBar(content: Text(e.message), backgroundColor: kRed));
     } catch (_) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text(
-              'Erreur lors de la mise à jour de la date d\'expiration.'),
+          content:
+              Text('Erreur lors de la mise à jour de la date d\'expiration.'),
           backgroundColor: kRed));
     }
   }
@@ -144,8 +152,8 @@ class ShowVouchersState extends State<ShowVouchers> {
   }
 
   DataCell _centeredCell(String text) {
-    return DataCell(Center(
-        child: SelectableText(text, textAlign: TextAlign.center)));
+    return DataCell(
+        Center(child: SelectableText(text, textAlign: TextAlign.center)));
   }
 
   DataRow _buildRow(OrderVoucherModel voucher, int rowIndex) {
@@ -158,7 +166,11 @@ class ShowVouchersState extends State<ShowVouchers> {
           ? WidgetStateProperty.all(kWhite)
           : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
       cells: [
-        _centeredCell(voucher.id?.toString() ?? ''),
+        _centeredCell('${networkId}' +
+            '-' +
+            '${voucher.id?.toString()}' +
+            '-' +
+            '${widget.order.id?.toString()}'),
         _centeredCell('${(voucher.amount ?? 0).toStringAsFixed(2)} €'),
         _centeredCell('${(voucher.remainingAmount ?? 0).toStringAsFixed(2)} €'),
         _centeredCell(voucher.isDonation == 1 ? 'Oui' : 'Non'),
