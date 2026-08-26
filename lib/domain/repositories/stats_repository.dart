@@ -5,6 +5,7 @@ import 'package:back_office_tribuneo_v2/domain/models/all_infos_partner_model.da
 import 'package:back_office_tribuneo_v2/domain/models/digital_partner_no_activity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
+import 'package:back_office_tribuneo_v2/domain/models/qr_code_status_by_user_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/technical_support_order_model.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
@@ -813,5 +814,121 @@ class StatsRepository {
         'offset': offset,
       },
     );
+  }
+
+  Future<PaginatedResult<QrCodeStatusByUserModel>>
+      getAllQrCodeStatusByUserInfosPaginated({
+    String? email,
+    String? firstname,
+    String? lastname,
+    String? mobile,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    List<QrCodeStatusByUserModel> qrCodes = [];
+    int total = 0;
+
+    try {
+      dynamic response = await _remoteData.post(
+        '$suffixe/all-qrcode-status-by-user-infos',
+        _qrCodeStatusByUserInfosBody(
+          email: email,
+          firstname: firstname,
+          lastname: lastname,
+          mobile: mobile,
+        ),
+        queryParams: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = response.data;
+        final List<dynamic> items =
+            (responseBody['data']?['items'] as List<dynamic>?) ??
+                (responseBody['data'] as List<dynamic>? ?? []);
+        total = _extractTotal(responseBody, items.length);
+
+        for (final item in items) {
+          qrCodes.add(QrCodeStatusByUserModel.fromJson(
+              Map<String, dynamic>.from(item as Map)));
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    return PaginatedResult<QrCodeStatusByUserModel>(
+      items: qrCodes,
+      total: total,
+    );
+  }
+
+  Future<String?> getAllQrCodeStatusByUserInfosCsv({
+    String? email,
+    String? firstname,
+    String? lastname,
+    String? mobile,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return _downloadCsvData(
+      '$suffixe/all-qrcode-status-by-user-infos',
+      body: _qrCodeStatusByUserInfosBody(
+        email: email,
+        firstname: firstname,
+        lastname: lastname,
+        mobile: mobile,
+      ),
+      usePost: true,
+      queryParams: {
+        'limit': limit,
+        'offset': offset,
+      },
+    );
+  }
+
+  /// L'API attend systématiquement les 4 clés de recherche : une chaîne vide
+  /// signifie "pas de filtre sur ce champ".
+  Map<String, String> _qrCodeStatusByUserInfosBody({
+    String? email,
+    String? firstname,
+    String? lastname,
+    String? mobile,
+  }) {
+    return {
+      'email': email?.trim() ?? '',
+      'firstname': firstname?.trim() ?? '',
+      'lastname': lastname?.trim() ?? '',
+      'mobile': normalizeMobileToE164(mobile),
+    };
+  }
+
+  /// Les mobiles sont stockés au format international (+33...), alors que la
+  /// saisie se fait le plus souvent au format national (06..., 06 12 34 ...).
+  /// On normalise donc avant d'envoyer le filtre à l'API, sinon la recherche
+  /// ne remonte rien. La saisie partielle est supportée (`061` -> `+3361`).
+  static String normalizeMobileToE164(String? mobile) {
+    if (mobile == null) return '';
+
+    final String raw = mobile.trim();
+    if (raw.isEmpty) return '';
+
+    final bool hasPlus = raw.startsWith('+');
+    final String digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return '';
+
+    if (hasPlus) return '+$digits';
+    // 0033... : préfixe international "long"
+    if (digits.startsWith('00')) return '+${digits.substring(2)}';
+    // 06... : format national français
+    if (digits.startsWith('0')) return '+33${digits.substring(1)}';
+    // 336... : indicatif pays sans prefixe
+    if (digits.startsWith('33')) return '+$digits';
+    // 6... : numéro national sans le 0 initial
+    return '+33$digits';
   }
 }

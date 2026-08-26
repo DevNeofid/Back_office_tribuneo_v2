@@ -24,6 +24,18 @@ class StatsContentViewState extends State<StatsContentView> {
   DateTime _selectedEndDate = DateTime.now();
   bool _isChangingStat = false;
 
+  final TextEditingController _qrLastnameController = TextEditingController();
+  final TextEditingController _qrFirstnameController = TextEditingController();
+  final TextEditingController _qrEmailController = TextEditingController();
+  final TextEditingController _qrMobileController = TextEditingController();
+
+  /// Filtres réellement envoyés à l'API : mis à jour uniquement au clic sur
+  /// "Rechercher" (ou validation clavier), pas à chaque frappe.
+  String _qrLastname = '';
+  String _qrFirstname = '';
+  String _qrEmail = '';
+  String _qrMobile = '';
+
   String get _currentFilename {
     switch (_selectedButtonIndex) {
       case 0:
@@ -46,6 +58,8 @@ class StatsContentViewState extends State<StatsContentView> {
         return 'toutes_les_infos_clients.csv';
       case 9:
         return 'support_technique_commandes.csv';
+      case 10:
+        return 'liste_qr_code_status.csv';
       default:
         return 'export_stats.csv';
     }
@@ -85,6 +99,13 @@ class StatsContentViewState extends State<StatsContentView> {
           _selectedStartDate,
           _selectedEndDate,
         );
+      case 10:
+        return _statsUseCase.getAllQrCodeStatusByUserInfosCsv(
+          email: _qrEmail,
+          firstname: _qrFirstname,
+          lastname: _qrLastname,
+          mobile: _qrMobile,
+        );
       default:
         return null;
     }
@@ -93,6 +114,98 @@ class StatsContentViewState extends State<StatsContentView> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _qrLastnameController.dispose();
+    _qrFirstnameController.dispose();
+    _qrEmailController.dispose();
+    _qrMobileController.dispose();
+    super.dispose();
+  }
+
+  void _applyQrCodeStatusFilters() {
+    setState(() {
+      _qrLastname = _qrLastnameController.text.trim();
+      _qrFirstname = _qrFirstnameController.text.trim();
+      _qrEmail = _qrEmailController.text.trim();
+      _qrMobile = _qrMobileController.text.trim();
+    });
+  }
+
+  void _resetQrCodeStatusFilters() {
+    _qrLastnameController.clear();
+    _qrFirstnameController.clear();
+    _qrEmailController.clear();
+    _qrMobileController.clear();
+    _applyQrCodeStatusFilters();
+  }
+
+  Widget _buildQrCodeStatusSearchField(
+      TextEditingController controller, String label) {
+    return SizedBox(
+      width: 220,
+      child: TextField(
+        controller: controller,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => _applyQrCodeStatusFilters(),
+        style: GoogleFonts.poppins(fontSize: 14),
+        decoration: InputDecoration(
+          isDense: true,
+          labelText: label,
+          labelStyle: GoogleFonts.poppins(fontSize: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: kBlue, width: 2.0),
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrCodeStatusFilters() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          _buildQrCodeStatusSearchField(_qrLastnameController, 'Nom'),
+          _buildQrCodeStatusSearchField(_qrFirstnameController, 'Prénom'),
+          _buildQrCodeStatusSearchField(_qrEmailController, 'Email'),
+          _buildQrCodeStatusSearchField(_qrMobileController, 'Mobile'),
+          ElevatedButton.icon(
+            onPressed: _applyQrCodeStatusFilters,
+            icon: const Icon(Icons.search, size: 20),
+            label: Text('Rechercher',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(0, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              backgroundColor: kBlue,
+              foregroundColor: kWhite,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _resetQrCodeStatusFilters,
+            child: Text('Réinitialiser',
+                style: GoogleFonts.poppins(
+                    color: kBlue, fontWeight: FontWeight.w500)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStyledTable(BuildContext context, Widget tableWidget,
@@ -144,7 +257,7 @@ class StatsContentViewState extends State<StatsContentView> {
                     headingRowHeight: headerHeight,
                   ),
                 ),
-                child: tableWidget,
+                child: SelectionArea(child: tableWidget),
               ),
             ),
           ),
@@ -244,6 +357,11 @@ class StatsContentViewState extends State<StatsContentView> {
                                 child: Text(
                                     'Support technique - commandes',
                                     style: GoogleFonts.poppins())),
+                            DropdownMenuItem(
+                                value: 10,
+                                child: Text(
+                                    'Statut des QR codes par client',
+                                    style: GoogleFonts.poppins())),
                           ],
                         ),
                       ),
@@ -339,6 +457,7 @@ class StatsContentViewState extends State<StatsContentView> {
                   ],
                 ),
               ),
+            if (_selectedButtonIndex == 10) _buildQrCodeStatusFilters(),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: kBlue))
@@ -372,6 +491,8 @@ class StatsContentViewState extends State<StatsContentView> {
         return _buildAllInfosCustomers();
       case 9:
         return _buildTechnicalSupportOrders();
+      case 10:
+        return _buildQrCodeStatusByUserInfos();
       default:
         return Container();
     }
@@ -763,6 +884,64 @@ class StatsContentViewState extends State<StatsContentView> {
                 label: Center(
                     child: Text('Date de création',
                         style: GoogleFonts.poppins()))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrCodeStatusByUserInfos() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _buildStyledTable(
+        context,
+        AsyncPaginatedDataTable2(
+          wrapInCard: false,
+          source: QrCodeStatusByUserInfosDataSource(
+            _statsUseCase,
+            email: _qrEmail,
+            firstname: _qrFirstname,
+            lastname: _qrLastname,
+            mobile: _qrMobile,
+          ),
+          columnSpacing: 16,
+          horizontalMargin: 10,
+          minWidth: 1800,
+          rowsPerPage: 10,
+          columns: [
+            DataColumn(
+                label: Center(
+                    child: Text('Identifiant', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('N° de commande',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Montant', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Montant restant',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Donation', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Date d\'expiration',
+                        style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Email', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Prénom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label:
+                    Center(child: Text('Nom', style: GoogleFonts.poppins()))),
+            DataColumn(
+                label: Center(
+                    child: Text('Mobile', style: GoogleFonts.poppins()))),
           ],
         ),
       ),
@@ -1280,6 +1459,103 @@ class GetInfoTechnicalSupportDataSource extends AsyncDataTableSource {
     } else {
       _lastKnownTotal = startIndex + orders.length;
       if (orders.length == limit) {
+        _lastKnownTotal += 1;
+      }
+    }
+
+    return AsyncRowsResponse(_lastKnownTotal, rows);
+  }
+}
+
+class QrCodeStatusByUserInfosDataSource extends AsyncDataTableSource {
+  final StatsUseCase _statsUseCase;
+  final String _email;
+  final String _firstname;
+  final String _lastname;
+  final String _mobile;
+  int _lastKnownTotal = 0;
+
+  QrCodeStatusByUserInfosDataSource(
+    this._statsUseCase, {
+    String email = '',
+    String firstname = '',
+    String lastname = '',
+    String mobile = '',
+  })  : _email = email,
+        _firstname = firstname,
+        _lastname = lastname,
+        _mobile = mobile;
+
+  String _formatExpiryDate(String? value) {
+    if (value == null || value.isEmpty) return '';
+
+    final DateTime? parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+
+    return DateFormat('dd/MM/yyyy').format(parsed);
+  }
+
+  String _formatAmount(num? value) =>
+      '${(value ?? 0).toStringAsFixed(2)} €';
+
+  @override
+  Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
+    final int apiOffset = startIndex;
+    final paginated =
+        await _statsUseCase.getAllQrCodeStatusByUserInfosPaginated(
+      email: _email,
+      firstname: _firstname,
+      lastname: _lastname,
+      mobile: _mobile,
+      limit: limit,
+      offset: apiOffset,
+    );
+
+    final qrCodes = paginated.items;
+    final List<DataRow> rows = [];
+    for (int i = 0; i < qrCodes.length; i++) {
+      final item = qrCodes[i];
+      final int rowIndex = startIndex + i;
+      rows.add(DataRow(
+        color: rowIndex % 2 == 0
+            ? WidgetStateProperty.all(kWhite)
+            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+        cells: [
+          DataCell(Center(
+              child: Text(item.qrCodeIdentifier ?? '',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child:
+                  Text(item.orderNumber ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(_formatAmount(item.amount),
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(_formatAmount(item.remainingAmount),
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.isDonation ? 'Oui' : 'Non',
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(_formatExpiryDate(item.expiryDate),
+                  style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.email ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.firstname ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.lastname ?? '', style: GoogleFonts.poppins()))),
+          DataCell(Center(
+              child: Text(item.mobile ?? '', style: GoogleFonts.poppins()))),
+        ],
+      ));
+    }
+
+    if (paginated.total > 0) {
+      _lastKnownTotal = paginated.total;
+    } else {
+      _lastKnownTotal = startIndex + qrCodes.length;
+      if (qrCodes.length == limit) {
         _lastKnownTotal += 1;
       }
     }

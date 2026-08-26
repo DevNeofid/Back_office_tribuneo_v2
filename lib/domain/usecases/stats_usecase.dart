@@ -8,6 +8,7 @@ import 'package:back_office_tribuneo_v2/domain/models/partner_activated_since_mo
 import 'package:back_office_tribuneo_v2/domain/models/partner_digital_never_open_session_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_total_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/partner_unsettled_balance_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/qr_code_status_by_user_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/sum_expired_vouchers_consumer_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/technical_support_order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_balance_model.dart';
@@ -260,6 +261,43 @@ class StatsUseCase {
     return await statsRepository.getTechnicalSupportOrdersCsv(
       dateFrom,
       dateTo,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<PaginatedResult<QrCodeStatusByUserModel>>
+      getAllQrCodeStatusByUserInfosPaginated({
+    String? email,
+    String? firstname,
+    String? lastname,
+    String? mobile,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllQrCodeStatusByUserInfosPaginated(
+      email: email,
+      firstname: firstname,
+      lastname: lastname,
+      mobile: mobile,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  Future<String?> getAllQrCodeStatusByUserInfosCsv({
+    String? email,
+    String? firstname,
+    String? lastname,
+    String? mobile,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    return await statsRepository.getAllQrCodeStatusByUserInfosCsv(
+      email: email,
+      firstname: firstname,
+      lastname: lastname,
+      mobile: mobile,
       limit: limit,
       offset: offset,
     );
