@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/blocked_refunds_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/blocked_refunds_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
@@ -79,6 +82,9 @@ class _RefoundShopViewState extends State<RefoundShopView> {
             loadingText: 'Génération des ordres de virement...');
       },
     );
+    // L'erreur est mise de côté puis traitée après le `finally` : le pop() qui ferme
+    // le dialogue de chargement fermerait sinon le dialogue d'erreur à sa place.
+    Object? failure;
     try {
       dynamic response = await _transferOrderUseCase.refundShop();
       String fileName = 'BTO_$formattedDate';
@@ -86,27 +92,44 @@ class _RefoundShopViewState extends State<RefoundShopView> {
 
       FileDownloader.downloadLargeFile(listDynamic, fileName, 'application/zip',
           fileExtension: 'zip');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Remboursement traite avec succes.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors du traitement du remboursement.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      failure = error;
     } finally {
       _refreshData();
       navigatorKey.currentState?.pop();
     }
+
+    if (failure == null) {
+      snackbarKey.currentState?.showSnackBar(
+        const SnackBar(
+          content: Text('Remboursement traité avec succès.'),
+          backgroundColor: kGreen,
+        ),
+      );
+      return;
+    }
+
+    // Au moins un remboursement est incomplet : la liste détaillée mérite un dialogue,
+    // un snackbar ne tiendrait pas la longueur.
+    if (failure is BlockedRefundsException) {
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) => BlockedRefundsDialog(
+            refunds: (failure as BlockedRefundsException).refunds),
+      );
+      return;
+    }
+
+    snackbarKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(failure is ApiException
+            ? failure.message
+            : 'Erreur lors du traitement du remboursement.'),
+        backgroundColor: kRed,
+        duration: const Duration(seconds: 8),
+      ),
+    );
   }
 
   Future _editProof(RefundShopModel refund) async {
@@ -117,6 +140,7 @@ class _RefoundShopViewState extends State<RefoundShopView> {
         return const LoadingDialog(loadingText: 'Génération des documents...');
       },
     );
+    Object? failure;
     try {
       String? name = refund.code;
       name = name!.replaceAll(' ', '_');
@@ -129,11 +153,22 @@ class _RefoundShopViewState extends State<RefoundShopView> {
           listDynamic, '$name-$number', 'application/zip',
           fileExtension: 'zip');
     } catch (error) {
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de la génération de la facture.')));
+      failure = error;
     } finally {
       _refreshData();
       navigatorKey.currentState?.pop();
+    }
+
+    if (failure != null) {
+      snackbarKey.currentState?.showSnackBar(
+        SnackBar(
+          content: Text(failure is ApiException
+              ? failure.message
+              : 'Erreur lors de la génération des justificatifs.'),
+          backgroundColor: kRed,
+          duration: const Duration(seconds: 8),
+        ),
+      );
     }
   }
 
