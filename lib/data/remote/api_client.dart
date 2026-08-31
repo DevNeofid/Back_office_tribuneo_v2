@@ -25,6 +25,20 @@ class ApiClient {
     return _instance!;
   }
 
+  /// Aucun timeout = attente infinie. Sur le web, une requête qui reste pendue
+  /// (onglet en arrière-plan, sortie de veille, proxy qui coupe sans FIN) gèle
+  /// alors définitivement le client : si c'est le refresh qui est pendu, le
+  /// verrou [_isRefreshing] n'est jamais relâché et TOUTES les requêtes
+  /// suivantes attendent un Completer qui ne se complètera jamais.
+  static const Duration _kConnectTimeout = Duration(seconds: 20);
+  static const Duration _kReceiveTimeout = Duration(seconds: 120);
+  static const Duration _kRefreshConnectTimeout = Duration(seconds: 15);
+  static const Duration _kRefreshReceiveTimeout = Duration(seconds: 20);
+
+  /// Filet de sécurité au-dessus des timeouts Dio : garantit que le verrou de
+  /// refresh est relâché même si l'adapter navigateur n'honore pas un timeout.
+  static const Duration _kRefreshHardTimeout = Duration(seconds: 25);
+
   final String _baseUrl = Env.kUrl;
   String? _kDbName;
   final Dio dio;
@@ -46,6 +60,8 @@ class ApiClient {
     _refreshDio = Dio();
     _refreshDio.options.baseUrl = _baseUrl;
     _refreshDio.options.validateStatus = (status) => status != null && status < 504;
+    _refreshDio.options.connectTimeout = _kRefreshConnectTimeout;
+    _refreshDio.options.receiveTimeout = _kRefreshReceiveTimeout;
     _refreshDio.options.extra['withCredentials'] = true;
     _refreshDio.options.headers = {
       'Content-Type': 'application/json; charset=UTF-8',
@@ -55,6 +71,8 @@ class ApiClient {
 
   void _setupMainDio() {
     dio.options.validateStatus = (status) => status != null && status < 504;
+    dio.options.connectTimeout = _kConnectTimeout;
+    dio.options.receiveTimeout = _kReceiveTimeout;
     dio.options.extra['withCredentials'] = true;
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: _onRequest,
@@ -66,6 +84,20 @@ class ApiClient {
         return handler.next(e);
       },
     ));
+  }
+
+  /// L'API encapsule toute réponse dans `{"data": {...}}` (ActionPayload), donc
+  /// `access_exp` se lit à `body['data']['access_exp']`. La forme à plat est
+  /// tolérée pour rester robuste à un changement de contrat.
+  int? _extractAccessExp(dynamic body) {
+    if (body is! Map) return null;
+    final flat = body['access_exp'];
+    if (flat is num) return flat.toInt();
+    final nested = body['data'];
+    if (nested is Map && nested['access_exp'] is num) {
+      return (nested['access_exp'] as num).toInt();
+    }
+    return null;
   }
 
   // Vérifie si jwt_exp est stocké et proche de l'expiration (< 60s) → refresh proactif
@@ -102,56 +134,80 @@ class ApiClient {
       }
     }
 
+    // Horodate le départ réel de la requête : c'est ce qui permet, sur un 401,
+    // de distinguer « partie avec un cookie devenu périmé » (→ refresh + retry)
+    // de « partie après un refresh réussi et refusée quand même » (→ 401 légitime).
+    options.extra['_issuedAt'] = DateTime.now();
+
     return handler.next(options);
   }
 
-  // Intercepte les 401 → refresh + retry, seulement si le token est expiré ou inconnu.
-  // Traque aussi les réponses réussies de auth/token pour mettre à jour _lastRefreshTime.
+  /// Intercepte **uniquement** les 401 → refresh + retry.
+  ///
+  /// Tous les autres statuts (404 de `bto/pending`, 403, 5xx…) traversent
+  /// l'intercepteur sans aucun traitement et restent à la charge des
+  /// repositories : ne rien ajouter ici pour un statut autre que 401.
+  ///
+  /// Traque aussi les réponses réussies de auth/token pour mettre à jour
+  /// _lastRefreshTime.
   Future<void> _onResponse(Response response, ResponseInterceptorHandler handler) async {
     if (_isAuthPath(response.requestOptions.path) && response.statusCode == 200) {
       _lastRefreshTime = DateTime.now();
     }
 
-    if (response.statusCode == 401 &&
-        !_isAuthPath(response.requestOptions.path) &&
-        response.requestOptions.extra['_isRetry'] != true &&
-        await _isTokenExpiredOrUnknown()) {
-      if (kDebugMode) print('[Auth] 401 reçu + token expiré/inconnu — tentative de refresh');
-      final result = await _refreshToken();
-      if (result == _RefreshResult.success) {
-        response.requestOptions.extra['_isRetry'] = true;
-        try {
-          final newResponse = await dio.fetch(response.requestOptions);
-          return handler.resolve(newResponse);
-        } catch (_) {
-          // Le refresh a réussi, la session est valide : une erreur sur le
-          // retry (réseau...) ne doit pas déconnecter. On transmet le 401
-          // d'origine à l'appelant.
-          return handler.next(response);
-        }
-      } else if (result == _RefreshResult.expired) {
-        await _handleSessionExpired();
-      }
-      // transient : on transmet le 401 à l'appelant sans détruire la session.
+    if (response.statusCode != 401 ||
+        _isAuthPath(response.requestOptions.path) ||
+        response.requestOptions.extra['_isRetry'] == true) {
+      return handler.next(response);
     }
-    return handler.next(response);
-  }
 
-  // Token expiré = jwt_exp passé, ou inconnu ET aucun refresh récent (< 1 min)
-  Future<bool> _isTokenExpiredOrUnknown() async {
-    final jwtExpStr = await _storage.readSecureData('jwt_exp');
-    if (jwtExpStr != null) {
-      final jwtExp = int.tryParse(jwtExpStr);
-      if (jwtExp != null) {
-        final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        return nowSeconds >= jwtExp;
+    // Un 401 du serveur fait autorité : on ne le conditionne PAS à une
+    // heuristique d'horloge côté client (jwt_exp / dernier refresh). C'est ce
+    // garde-fou qui faisait perdre silencieusement toutes les requêtes déjà en
+    // vol au moment où un refresh concurrent aboutissait → panneaux vides.
+    final issuedAt = response.requestOptions.extra['_issuedAt'];
+    final refreshedSinceRequest = _lastRefreshTime != null &&
+        issuedAt is DateTime &&
+        _lastRefreshTime!.isAfter(issuedAt);
+
+    var result = _RefreshResult.success;
+    if (!refreshedSinceRequest) {
+      // Les appels concurrents sont dédoublonnés par le Completer : une seule
+      // rotation de refresh token, même sur une rafale de 401.
+      if (kDebugMode) {
+        print('[Auth] 401 sur ${response.requestOptions.path} — refresh + retry');
+      }
+      result = await _refreshToken();
+    } else if (kDebugMode) {
+      print('[Auth] 401 sur ${response.requestOptions.path} — cookie déjà '
+          'renouvelé depuis, retry direct');
+    }
+
+    if (result == _RefreshResult.success) {
+      final retryOptions = response.requestOptions;
+      retryOptions.extra['_isRetry'] = true;
+      // Un FormData a déjà été consommé par le premier envoi : sans clone, le
+      // rejeu échoue systématiquement (uploads de fichiers).
+      final body = retryOptions.data;
+      if (body is FormData) {
+        retryOptions.data = body.clone();
+      }
+      try {
+        final newResponse = await dio.fetch(retryOptions);
+        return handler.resolve(newResponse);
+      } catch (_) {
+        // Le refresh a réussi, la session est valide : une erreur sur le
+        // retry (réseau...) ne doit pas déconnecter. On transmet le 401
+        // d'origine à l'appelant.
+        return handler.next(response);
       }
     }
-    // jwt_exp non stocké : on se fie au dernier refresh connu
-    if (_lastRefreshTime != null) {
-      return DateTime.now().difference(_lastRefreshTime!) >= const Duration(minutes: 1);
+
+    if (result == _RefreshResult.expired) {
+      await _handleSessionExpired();
     }
-    return true;
+    // transient : on transmet le 401 à l'appelant sans détruire la session.
+    return handler.next(response);
   }
 
   bool _isAuthPath(String path) =>
@@ -159,8 +215,15 @@ class ApiClient {
 
   Future<_RefreshResult> _refreshToken() async {
     if (_isRefreshing) {
-      return await (_refreshCompleter?.future ??
-          Future.value(_RefreshResult.transient));
+      final pending = _refreshCompleter;
+      if (pending == null) return _RefreshResult.transient;
+      try {
+        return await pending.future.timeout(_kRefreshHardTimeout);
+      } on TimeoutException {
+        // On n'attend pas indéfiniment un refresh bloqué : la requête repart
+        // en « transitoire », sans détruire la session locale.
+        return _RefreshResult.transient;
+      }
     }
 
     _isRefreshing = true;
@@ -169,19 +232,25 @@ class ApiClient {
 
     var result = _RefreshResult.transient;
     try {
-      final response = await _refreshDio.post('auth/token', data: null);
+      final response = await _refreshDio
+          .post('auth/token', data: null)
+          .timeout(_kRefreshHardTimeout);
       if (response.statusCode == 200) {
         result = _RefreshResult.success;
         _lastRefreshTime = DateTime.now();
-        final data = response.data;
-        if (data is Map && data['access_exp'] != null) {
+        // La session est de nouveau vivante : on relâche le verrou d'expiration.
+        _isHandlingExpiry = false;
+        final accessExp = _extractAccessExp(response.data);
+        if (accessExp != null) {
           await _storage.writeSecureData(
-            StorageItem('jwt_exp', data['access_exp'].toString()),
+            StorageItem('jwt_exp', accessExp.toString()),
           );
-        } else {
-          // Pas d'access_exp dans la réponse : on supprime un éventuel jwt_exp
-          // périmé pour ne pas re-déclencher un refresh à chaque requête.
-          await _storage.deleteSecureDataFromKey('jwt_exp');
+        } else if (kDebugMode) {
+          // On ne supprime surtout PAS jwt_exp : sans lui le refresh proactif
+          // est désactivé et le client ne peut plus que subir les 401. Le
+          // garde-fou `recentlyRefreshed` de _onRequest suffit à éviter une
+          // tempête de refresh si jwt_exp devenait périmé.
+          print('[Auth] access_exp absent de la réponse auth/token');
         }
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         // Seul un rejet explicite du backend prouve que la session est morte.
@@ -206,29 +275,34 @@ class ApiClient {
     return result;
   }
 
+  /// Réarme la détection d'expiration après une reconnexion réussie.
+  void resetAuthState() {
+    _isHandlingExpiry = false;
+    _lastRefreshTime = null;
+  }
+
   Future<void> _handleSessionExpired() async {
+    // Verrou volontairement latché : sur une rafale de 401, une seule
+    // redirection et un seul snackbar. Il est relâché par un refresh réussi
+    // ou par resetAuthState() après une reconnexion.
     if (_isHandlingExpiry) return;
     _isHandlingExpiry = true;
 
-    try {
-      await StorageFunction().clearUser();
-      await _storage.deleteSecureDataFromKey('jwt_exp');
+    await StorageFunction().clearUser();
+    await _storage.deleteSecureDataFromKey('jwt_exp');
 
-      snackbarKey.currentState?.showSnackBar(
-        const SnackBar(
-          content: Text('Votre session a expiré, veuillez vous reconnecter'),
-          backgroundColor: Color(0xFFE57373),
-          duration: Duration(seconds: 5),
-        ),
-      );
+    snackbarKey.currentState?.showSnackBar(
+      const SnackBar(
+        content: Text('Votre session a expiré, veuillez vous reconnecter'),
+        backgroundColor: Color(0xFFE57373),
+        duration: Duration(seconds: 5),
+      ),
+    );
 
-      navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        '/login',
-        (route) => false,
-      );
-    } finally {
-      _isHandlingExpiry = false;
-    }
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      '/login',
+      (route) => false,
+    );
   }
 
   Future<Response> checkForMaintenance(Response response) async {

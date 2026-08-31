@@ -145,12 +145,21 @@ class MySinglePageState extends State<MySinglePage> {
   };
 
   Future<void> checkForNewRefunds() async {
-    // Notification of new refunds
-    var res = await TransferOrderUseCase().awaitRefund();
-    if (res.isNotEmpty) {
-      setState(() {
-        showRefundNotification = true;
-      });
+    // Notification of new refunds.
+    // Ce poll tourne à chaque changement de menu et peut légitimement échouer
+    // (404 attendu, timeout réseau) : il ne doit jamais remonter d'erreur non
+    // capturée ni bloquer la navigation.
+    try {
+      var res = await TransferOrderUseCase().awaitRefund();
+      if (res.isNotEmpty && mounted) {
+        setState(() {
+          showRefundNotification = true;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### checkForNewRefunds ignoré : $e');
+      }
     }
   }
 

@@ -22,10 +22,18 @@ class MainRepository extends BaseRepository {
 
       var response = await apiClient.post(suffixe, null);
       if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is Map && data['access_exp'] != null) {
+        // L'API encapsule la réponse dans `{"data": {...}}` (ActionPayload) :
+        // access_exp est donc imbriqué. La forme à plat reste tolérée.
+        final body = response.data;
+        final nested = body is Map ? body['data'] : null;
+        final accessExp = (body is Map && body['access_exp'] is num)
+            ? (body['access_exp'] as num).toInt()
+            : (nested is Map && nested['access_exp'] is num)
+                ? (nested['access_exp'] as num).toInt()
+                : null;
+        if (accessExp != null) {
           await storage.writeSecureData(
-            StorageItem('jwt_exp', data['access_exp'].toString()),
+            StorageItem('jwt_exp', accessExp.toString()),
           );
         }
         return true;

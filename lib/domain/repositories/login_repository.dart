@@ -83,6 +83,10 @@ class LoginRepository extends BaseRepository {
           );
         }
 
+        // Nouvelle session : on réarme la détection d'expiration du client
+        // (le singleton ApiClient survit à un retour sur /login).
+        _remoteData.resetAuthState();
+
         return UserModel.fromJson(userData);
       } else {
         throw ApiException(
