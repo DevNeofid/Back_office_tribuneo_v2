@@ -193,9 +193,10 @@ class FormValidator {
 
     final regex = RegExp(r'^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$');
 
-    if (cleanValue.length < 11) {
-      return '🚩 Numéro de BIC invalide';
+    if (cleanValue.length != 8 && cleanValue.length != 11) {
+      return '🚩 BIC invalide (8 ou 11 caractères)';
     }
+
     if (!regex.hasMatch(cleanValue)) {
       return '🚩 Code BIC invalide';
     }
