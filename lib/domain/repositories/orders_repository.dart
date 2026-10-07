@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
@@ -254,8 +253,8 @@ class OrderRepository extends BaseRepository {
       if (response.statusCode == 200) {
         final List<dynamic> vouchersJson = response.data['data'] ?? [];
         for (var voucher in vouchersJson) {
-          vouchers.add(
-              OrderVoucherModel.fromJson(voucher as Map<String, dynamic>));
+          vouchers
+              .add(OrderVoucherModel.fromJson(voucher as Map<String, dynamic>));
         }
       }
     } catch (e) {
@@ -335,17 +334,60 @@ class OrderRepository extends BaseRepository {
     return payments;
   }
 
-  Future addPayment(Map payment) async {
+  /// Enregistre un paiement et retourne le paiement tel que l'API l'a enregistré
+  /// (`bank_account_code` y est toujours renseigné, même si le front n'a rien envoyé).
+  Future<PaymentModel> addPayment(Map payment) async {
     String suffixe = 'payment';
     String data = jsonEncode(payment);
     String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
     try {
-      return await _remoteData.post(suffixe, data, overrideTenant: tenant);
+      response = await _remoteData.post(suffixe, data, overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('Error: $e');
       }
-      return http.Response('Error: $e', 500);
+      throw ApiException("Erreur lors de l'enregistrement du paiement.");
+    }
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final dynamic body = response.data;
+      return PaymentModel.fromJson(body is Map && body['data'] is Map
+          ? Map<String, dynamic>.from(body['data'] as Map)
+          : <String, dynamic>{});
+    }
+
+    final Map<String, dynamic>? error = decodeApiError(response.data);
+    final dynamic details = error?['details'];
+    final String? code = details is Map ? details['code']?.toString() : null;
+    final String description = error?['description']?.toString() ?? '';
+
+    if (kDebugMode) {
+      print('###DEBUG### $description');
+    }
+    throw ApiException(_addPaymentMessage(code, description), code: code);
+  }
+
+  /// Traduit les refus liés au compte bancaire. Les autres erreurs retombent sur un
+  /// message générique plutôt que sur la description anglaise de l'API.
+  String _addPaymentMessage(String? code, String description) {
+    switch (code) {
+      case 'BANK_ACCOUNT_REQUIRED':
+        return 'Choisissez le compte sur lequel le paiement a été encaissé.';
+      case 'UNKNOWN_BANK_ACCOUNT':
+        return "Le compte bancaire choisi n'existe plus. "
+            'La liste des comptes a été rechargée, choisissez à nouveau le compte.';
+      case 'BANK_ACCOUNT_LOCKED':
+        // Ne devrait pas arriver si le front respecte les verrous : on affiche la
+        // description telle quelle pour diagnostiquer le désalignement.
+        return description.isNotEmpty
+            ? description
+            : "Ce réseau impose le compte d'encaissement des paiements.";
+      case 'NO_BANK_ACCOUNT':
+        return "Aucun compte bancaire n'est configuré pour ce réseau. "
+            'Contactez Neofid.';
+      default:
+        return "Erreur lors de l'enregistrement du paiement.";
     }
   }
 

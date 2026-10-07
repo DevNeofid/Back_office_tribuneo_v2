@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/accounting_entries_config_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/accounting_entries_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/accounting_entries_config_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
@@ -80,6 +82,9 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
             loadingText: 'Génération des écritures comptables...');
       },
     );
+    // L'erreur est mise de côté puis traitée après le `finally` : le pop() qui ferme
+    // le dialogue de chargement fermerait sinon le dialogue d'erreur à sa place.
+    Object? failure;
     try {
       dynamic response =
           await _accountingEntriesUseCase.createAccountingEntries();
@@ -89,12 +94,26 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       FileDownloader.downloadLargeFile(listDynamic, fileName, 'application/zip',
           fileExtension: 'zip');
     } catch (error) {
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content:
-              Text('Erreur lors de la génération des écritures comptables.')));
+      failure = error;
     } finally {
       navigatorKey.currentState?.pop();
     }
+
+    if (failure == null) return;
+
+    if (failure is AccountingEntriesConfigException) {
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) => AccountingEntriesConfigDialog(
+            errors: (failure as AccountingEntriesConfigException).errors),
+      );
+      return;
+    }
+
+    snackbarKey.currentState?.showSnackBar(const SnackBar(
+        content:
+            Text('Erreur lors de la génération des écritures comptables.')));
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/accounting_entries_config_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
@@ -11,18 +12,40 @@ class AccountingEntriesRepository extends BaseRepository {
 
   Future createAccountingEntries() async {
     String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
     try {
-      dynamic response = await _remoteData.get('$suffixe/entries/gen',
+      response = await _remoteData.get('$suffixe/entries/gen',
           overrideTenant: tenant, bytesType: true);
-      if (response.statusCode == 200) {
-        return response.data;
-      }
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
       }
       return null;
     }
+
+    if (response.statusCode == 200) {
+      return response.data;
+    }
+
+    final Map<String, dynamic>? error = decodeApiError(response.data);
+    final dynamic details = error?['details'];
+
+    // Un compte bancaire utilisé sur la période n'a pas de journal ou de compte 512 :
+    // l'API donne la liste des manques, on la remonte pour l'afficher.
+    if (details is Map && details['errors'] is List) {
+      final List<String> errors = (details['errors'] as List<dynamic>)
+          .map((item) => item.toString())
+          .where((item) => item.isNotEmpty)
+          .toList();
+      if (errors.isNotEmpty) {
+        throw AccountingEntriesConfigException(errors);
+      }
+    }
+
+    if (kDebugMode) {
+      print('###DEBUG### ${error?['description']}');
+    }
+    return null;
   }
 
   Future<PaginatedResult<AccountingEntriesModel>> getAccountingEntries({

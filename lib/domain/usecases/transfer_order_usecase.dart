@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
@@ -23,8 +24,10 @@ class TransferOrderUseCase {
     return await transferOrderRepository.awaitRefund();
   }
 
-  Future refundShop() async {
-    return await transferOrderRepository.refundShop();
+  Future refundShop(
+      {String? bankAccountCode, BankAccountsModel? bankAccounts}) async {
+    return await transferOrderRepository.refundShop(
+        bankAccountCode: bankAccountCode, bankAccounts: bankAccounts);
   }
 
   Future editProof(String transactionNumber) async {

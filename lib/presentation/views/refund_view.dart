@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/blocked_refunds_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
@@ -12,6 +14,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart'
 import 'package:back_office_tribuneo_v2/presentation/widgets/blocked_refunds_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/refund_bank_account_dialog.dart';
 
 enum SampleItem { itemOne, itemTwo }
 
@@ -23,6 +26,7 @@ class RefoundShopView extends StatefulWidget {
 
 class _RefoundShopViewState extends State<RefoundShopView> {
   final TransferOrderUseCase _transferOrderUseCase = TransferOrderUseCase();
+  final BankAccountUseCase _bankAccountUseCase = BankAccountUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
 
   List<RefundShopModel> _refund = [];
@@ -74,6 +78,32 @@ class _RefoundShopViewState extends State<RefoundShopView> {
       );
       return;
     }
+
+    // Chargée à chaque déclenchement : c'est elle qui dit s'il y a un compte à choisir.
+    final BankAccountsModel bankAccounts;
+    try {
+      bankAccounts = await _bankAccountUseCase.getBankAccounts();
+    } on ApiException catch (e) {
+      snackbarKey.currentState?.showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: kRed));
+      return;
+    }
+
+    // Sans select (un seul compte, ou compte imposé par le réseau), on n'envoie rien :
+    // l'API prend le compte `is_refund`.
+    String? bankAccountCode;
+    if (bankAccounts.refundSelectRequired) {
+      if (!mounted) return;
+      final BankAccountModel? chosen = await showDialog<BankAccountModel>(
+        context: context,
+        builder: (BuildContext context) =>
+            RefundBankAccountDialog(bankAccounts: bankAccounts),
+      );
+      if (chosen == null) return;
+      bankAccountCode = chosen.code;
+    }
+
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -86,7 +116,8 @@ class _RefoundShopViewState extends State<RefoundShopView> {
     // le dialogue de chargement fermerait sinon le dialogue d'erreur à sa place.
     Object? failure;
     try {
-      dynamic response = await _transferOrderUseCase.refundShop();
+      dynamic response = await _transferOrderUseCase.refundShop(
+          bankAccountCode: bankAccountCode, bankAccounts: bankAccounts);
       String fileName = 'BTO_$formattedDate';
       List<dynamic> listDynamic = response;
 

@@ -64,7 +64,7 @@ class OrderUseCase {
     return await orderRepository.getPayments(orderId);
   }
 
-  Future addPayment(Map payment) async {
+  Future<PaymentModel> addPayment(Map payment) async {
     return await orderRepository.addPayment(payment);
   }
 

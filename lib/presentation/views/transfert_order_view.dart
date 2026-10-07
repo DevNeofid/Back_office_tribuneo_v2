@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
@@ -22,16 +24,40 @@ class TranferOrderView extends StatefulWidget {
 
 class _TranferOrderViewState extends State<TranferOrderView> {
   final TransferOrderUseCase _transferOrderUseCase = TransferOrderUseCase();
+  final BankAccountUseCase _bankAccountUseCase = BankAccountUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
 
   late final TransferOrderDataSource _dataSource;
   SampleItem? selectedMenu;
 
+  /// Le tableau n'est affiché qu'une fois les comptes connus : la colonne « Compte »
+  /// en dépend, et colonnes et cellules doivent rester alignées.
+  bool _isLoadingBankAccounts = true;
+
   @override
   void initState() {
     super.initState();
     _dataSource = TransferOrderDataSource(_transferOrderUseCase, _downloadFile);
+    _loadBankAccounts();
   }
+
+  Future<void> _loadBankAccounts() async {
+    BankAccountsModel? accounts;
+    try {
+      accounts = await _bankAccountUseCase.getBankAccounts();
+    } catch (_) {
+      // Colonne facultative : sans la liste, on affiche le tableau sans elle.
+      accounts = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      _dataSource.bankAccounts = accounts;
+      _isLoadingBankAccounts = false;
+    });
+  }
+
+  bool get _showBankAccount =>
+      _dataSource.bankAccounts?.hasSeveralAccounts ?? false;
 
   Future _downloadFile(TransferOrderModel order) async {
     showDialog(
@@ -93,83 +119,95 @@ class _TranferOrderViewState extends State<TranferOrderView> {
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      dataTableTheme: DataTableThemeData(
-                        headingRowColor: WidgetStateProperty.all(kBlue),
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kWhite,
+                child: _isLoadingBankAccounts
+                    ? const Center(
+                        child: CircularProgressIndicator(color: kOrange))
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            dataTableTheme: DataTableThemeData(
+                              headingRowColor: WidgetStateProperty.all(kBlue),
+                              headingTextStyle: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: kWhite,
+                              ),
+                              dataTextStyle: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: kBlueEnd,
+                              ),
+                              dividerThickness: 0.6,
+                              dataRowMinHeight: 50,
+                              dataRowMaxHeight: 56,
+                              headingRowHeight: 54,
+                            ),
+                          ),
+                          child: AsyncPaginatedDataTable2(
+                            wrapInCard: false,
+                            columnSpacing: 22,
+                            horizontalMargin: 14,
+                            minWidth: 1000,
+                            rowsPerPage: 10,
+                            showCheckboxColumn: false,
+                            columns: [
+                              const DataColumn2(
+                                size: ColumnSize.L,
+                                label: Expanded(
+                                  child: Center(
+                                    child: Text('Nom du fichier',
+                                        textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                              const DataColumn(
+                                label: Expanded(
+                                  child: Center(
+                                    child: Text('Frais de gestion',
+                                        textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                              const DataColumn(
+                                label: Expanded(
+                                  child: Center(
+                                    child: Text('Montant remboursé',
+                                        textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                              if (_showBankAccount)
+                                const DataColumn(
+                                  label: Expanded(
+                                    child: Center(
+                                      child: Text('Compte',
+                                          textAlign: TextAlign.center),
+                                    ),
+                                  ),
+                                ),
+                              const DataColumn2(
+                                size: ColumnSize.S,
+                                label: Expanded(
+                                  child: Center(
+                                    child: Text('Date de création',
+                                        textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                              const DataColumn2(
+                                size: ColumnSize.S,
+                                label: Expanded(
+                                  child: Center(
+                                    child: Text('Actions',
+                                        textAlign: TextAlign.center),
+                                  ),
+                                ),
+                              ),
+                            ],
+                            source: _dataSource,
+                          ),
                         ),
-                        dataTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: kBlueEnd,
-                        ),
-                        dividerThickness: 0.6,
-                        dataRowMinHeight: 50,
-                        dataRowMaxHeight: 56,
-                        headingRowHeight: 54,
                       ),
-                    ),
-                    child: AsyncPaginatedDataTable2(
-                      wrapInCard: false,
-                      columnSpacing: 22,
-                      horizontalMargin: 14,
-                      minWidth: 1000,
-                      rowsPerPage: 10,
-                      showCheckboxColumn: false,
-                      columns: const [
-                        DataColumn2(
-                          size: ColumnSize.L,
-                          label: Expanded(
-                            child: Center(
-                              child: Text('Nom du fichier',
-                                  textAlign: TextAlign.center),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text('Frais de gestion',
-                                  textAlign: TextAlign.center),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Center(
-                              child: Text('Montant remboursé',
-                                  textAlign: TextAlign.center),
-                            ),
-                          ),
-                        ),
-                        DataColumn2(
-                          size: ColumnSize.S,
-                          label: Expanded(
-                            child: Center(
-                              child: Text('Date de création',
-                                  textAlign: TextAlign.center),
-                            ),
-                          ),
-                        ),
-                        DataColumn2(
-                          size: ColumnSize.S,
-                          label: Expanded(
-                            child: Center(
-                              child:
-                                  Text('Actions', textAlign: TextAlign.center),
-                            ),
-                          ),
-                        ),
-                      ],
-                      source: _dataSource,
-                    ),
-                  ),
-                ),
               );
             }),
             const SizedBox(height: 50),
@@ -184,6 +222,10 @@ class TransferOrderDataSource extends AsyncDataTableSource {
   final TransferOrderUseCase _transferOrderUseCase;
   final Function(TransferOrderModel) onDownload;
   int _lastKnownTotal = 0;
+
+  /// Comptes du réseau, pour afficher le libellé du compte payeur. Colonne affichée
+  /// seulement s'il y a plusieurs comptes.
+  BankAccountsModel? bankAccounts;
 
   TransferOrderDataSource(this._transferOrderUseCase, this.onDownload);
 
@@ -212,6 +254,11 @@ class TransferOrderDataSource extends AsyncDataTableSource {
                 Center(child: SelectableText(order.retainedAmount.toString()))),
             DataCell(
                 Center(child: SelectableText(order.refundedAmount.toString()))),
+            if (bankAccounts?.hasSeveralAccounts ?? false)
+              DataCell(Center(
+                  child: SelectableText(
+                      bankAccounts!.labelForCode(order.bankAccountCode),
+                      textAlign: TextAlign.center))),
             DataCell(Center(
                 child: SelectableText(
                     DateFormater().modifyDate(order.createdDate ?? '') ?? ''))),

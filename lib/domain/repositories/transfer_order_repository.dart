@@ -1,8 +1,8 @@
-import 'dart:convert';
 
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/blocked_refunds_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
@@ -119,12 +119,19 @@ class TransferOrderRepository extends BaseRepository {
     return refunds;
   }
 
-  Future refundShop() async {
+  /// Génère l'ordre de virement. [bankAccountCode] est le compte payeur choisi ;
+  /// `null` quand aucun select n'est affiché, l'API prend alors le compte `is_refund`.
+  /// [bankAccounts] ne sert qu'à nommer le compte dans les messages d'erreur.
+  Future refundShop(
+      {String? bankAccountCode, BankAccountsModel? bankAccounts}) async {
     String tenant = await getTenantForCurrentNetwork();
     dynamic response;
     try {
       response = await _remoteData.get('$suffixe/gen',
-          bytesType: true, overrideTenant: tenant);
+          queryParams:
+              bankAccountCode == null ? null : {'bank_account': bankAccountCode},
+          bytesType: true,
+          overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
@@ -137,7 +144,7 @@ class TransferOrderRepository extends BaseRepository {
       return response.data;
     }
 
-    final Map<String, dynamic>? error = _decodeApiError(response.data);
+    final Map<String, dynamic>? error = decodeApiError(response.data);
     final dynamic details = error?['details'];
 
     // L'API refuse de générer tant qu'un remboursement de la période est incomplet :
@@ -154,7 +161,8 @@ class TransferOrderRepository extends BaseRepository {
       }
     }
 
-    throw ApiException(_refundShopMessage(details));
+    throw ApiException(
+        _refundShopMessage(details, error?['description'], bankAccounts));
   }
 
   Future editProof(String transactionNumber) async {
@@ -175,7 +183,7 @@ class TransferOrderRepository extends BaseRepository {
       return response.data;
     }
 
-    final Map<String, dynamic>? error = _decodeApiError(response.data);
+    final Map<String, dynamic>? error = decodeApiError(response.data);
     final dynamic details = error?['details'];
 
     // Fiche partenaire incomplète : rien n'a été écrit côté API, on dit quoi compléter.
@@ -191,7 +199,8 @@ class TransferOrderRepository extends BaseRepository {
 
   /// Traduit les refus attendus de l'API. Un code inconnu retombe sur un message
   /// générique plutôt que sur la description anglaise de l'API.
-  String _refundShopMessage(dynamic details) {
+  String _refundShopMessage(
+      dynamic details, dynamic description, BankAccountsModel? bankAccounts) {
     final String? code = details is Map ? details['code']?.toString() : null;
     final String period = details is Map
         ? _periodLabel(details['period_from'], details['period_to'])
@@ -199,8 +208,20 @@ class TransferOrderRepository extends BaseRepository {
 
     switch (code) {
       case 'MISSING_XML_PARAMS':
-        return 'Les paramètres SEPA du réseau (nom, IBAN, BIC) ne sont pas renseignés. '
-            'Complétez-les dans les paramètres du réseau puis réessayez.';
+        return _missingXmlParamsMessage(details as Map, bankAccounts);
+      case 'UNKNOWN_BANK_ACCOUNT':
+        return "Le compte bancaire choisi n'existe plus. "
+            'Relancez le déclenchement pour choisir à nouveau le compte.';
+      case 'BANK_ACCOUNT_LOCKED':
+        // Ne devrait pas arriver si le front respecte les verrous : on affiche la
+        // description telle quelle pour diagnostiquer le désalignement.
+        final String text = description?.toString() ?? '';
+        return text.isNotEmpty
+            ? text
+            : 'Ce réseau impose le compte payeur des ordres de virement.';
+      case 'NO_DEFAULT_BANK_ACCOUNT':
+        return "Aucun compte bancaire de remboursement n'est configuré pour ce réseau. "
+            'Contactez Neofid.';
       case 'NO_NEW_PERIOD':
         return 'Aucune nouvelle donnée depuis le dernier ordre de virement.';
       case 'NO_REFUND_IN_PERIOD':
@@ -211,6 +232,37 @@ class TransferOrderRepository extends BaseRepository {
       default:
         return "Erreur lors de la génération de l'ordre de virement.";
     }
+  }
+
+  static const Map<String, String> _missingXmlParamLabels = {
+    'holder': "le titulaire (donneur d'ordre)",
+    'iban': "l'IBAN",
+    'bic': 'le BIC',
+  };
+
+  /// Les paramètres SEPA sont portés par le compte bancaire, géré par Neofid.
+  String _missingXmlParamsMessage(
+      Map<dynamic, dynamic> details, BankAccountsModel? bankAccounts) {
+    final String? code = details['bank_account']?.toString();
+    final List<String> missing = (details['missing'] as List<dynamic>? ?? [])
+        .map((item) =>
+            _missingXmlParamLabels[item.toString()] ?? item.toString())
+        .toList();
+
+    final String account = code == null
+        ? 'du compte bancaire'
+        : 'du compte « ${bankAccounts?.labelForCode(code) ?? code} »';
+    final String what = missing.isEmpty
+        ? '(titulaire, IBAN, BIC)'
+        : ': il manque ${_joinFrench(missing)}';
+
+    return 'Les paramètres SEPA $account sont incomplets $what. '
+        'Contactez Neofid.';
+  }
+
+  String _joinFrench(List<String> items) {
+    if (items.length <= 1) return items.join();
+    return '${items.sublist(0, items.length - 1).join(', ')} et ${items.last}';
   }
 
   /// ' du 01/09/2026 au 15/09/2026', ou '' si l'API n'a pas fourni la période.
@@ -247,28 +299,5 @@ class TransferOrderRepository extends BaseRepository {
 
     return 'Impossible de générer les justificatifs pour $target : '
         '$what non renseignée(s). Complétez la fiche du partenaire puis réessayez.';
-  }
-
-  /// Décode le corps d'une réponse en erreur et retourne le contenu de la clé `error`.
-  /// La requête est faite en `bytesType`, donc le JSON arrive en octets et non en Map.
-  Map<String, dynamic>? _decodeApiError(dynamic data) {
-    try {
-      dynamic decoded = data;
-      if (decoded is List<int>) {
-        decoded = utf8.decode(decoded, allowMalformed: true);
-      }
-      if (decoded is String) {
-        if (decoded.trim().isEmpty) return null;
-        decoded = jsonDecode(decoded);
-      }
-      if (decoded is Map && decoded['error'] is Map) {
-        return Map<String, dynamic>.from(decoded['error'] as Map);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('###DEBUG### Corps d\'erreur illisible: $e');
-      }
-    }
-    return null;
   }
 }

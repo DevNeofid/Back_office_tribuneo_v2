@@ -3,6 +3,7 @@ import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_service.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/domain/models/result.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 
 abstract class BaseRepository {
@@ -67,5 +68,29 @@ abstract class BaseRepository {
     }
 
     throw Exception('Aucun tenant trouvé pour id_network $idNetwork');
+  }
+
+  /// Décode le corps d'une réponse en erreur et retourne le contenu de la clé `error`.
+  /// Accepte un corps déjà décodé (Map), du texte ou des octets (requêtes en
+  /// `bytesType`, où le JSON d'erreur arrive en octets et non en Map).
+  Map<String, dynamic>? decodeApiError(dynamic data) {
+    try {
+      dynamic decoded = data;
+      if (decoded is List<int>) {
+        decoded = utf8.decode(decoded, allowMalformed: true);
+      }
+      if (decoded is String) {
+        if (decoded.trim().isEmpty) return null;
+        decoded = jsonDecode(decoded);
+      }
+      if (decoded is Map && decoded['error'] is Map) {
+        return Map<String, dynamic>.from(decoded['error'] as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("###DEBUG### Corps d'erreur illisible: $e");
+      }
+    }
+    return null;
   }
 }

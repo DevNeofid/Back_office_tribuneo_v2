@@ -3,6 +3,9 @@ class TransferOrderModel {
   String? filename;
   double? retainedAmount;
   double? refundedAmount;
+
+  /// Compte payeur. `null` sur les ordres antérieurs aux comptes multiples.
+  String? bankAccountCode;
   String? createdDate;
 
   TransferOrderModel(
@@ -10,6 +13,7 @@ class TransferOrderModel {
       this.filename,
       this.retainedAmount,
       this.refundedAmount,
+      this.bankAccountCode,
       this.createdDate});
 
   TransferOrderModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +21,7 @@ class TransferOrderModel {
     filename = json['filename'];
     retainedAmount = json['retained_amount'];
     refundedAmount = json['refunded_amount'];
+    bankAccountCode = json['bank_account_code']?.toString();
     createdDate = json['created_date'];
   }
 
@@ -26,6 +31,7 @@ class TransferOrderModel {
     data['filename'] = filename;
     data['retained_amount'] = retainedAmount;
     data['refunded_amount'] = refundedAmount;
+    data['bank_account_code'] = bankAccountCode;
     data['created_date'] = createdDate;
     return data;
   }

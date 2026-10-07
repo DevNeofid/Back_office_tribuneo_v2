@@ -4,6 +4,9 @@ class PaymentModel {
   int? idOrder;
   num? amount;
   int? idPaymentMethod;
+
+  /// Compte encaisseur. `null` sur les paiements antérieurs aux comptes multiples.
+  String? bankAccountCode;
   DateTime? createdDate;
   DateTime? paymentDate;
   DateTime? updatedDate;
@@ -14,6 +17,7 @@ class PaymentModel {
       this.idOrder,
       this.amount,
       this.idPaymentMethod,
+      this.bankAccountCode,
       this.createdDate,
       this.paymentDate,
       this.updatedDate});
@@ -24,6 +28,7 @@ class PaymentModel {
     idOrder = json['id_order'];
     amount = json['amount'];
     idPaymentMethod = json['id_payment_method'];
+    bankAccountCode = json['bank_account_code']?.toString();
     createdDate = _parseDate(json['created_date']);
     paymentDate = _parseDate(json['payment_date']);
     updatedDate = _parseDate(json['updated_date']);
@@ -36,6 +41,7 @@ class PaymentModel {
     data['id_order'] = idOrder;
     data['amount'] = amount;
     data['id_payment_method'] = idPaymentMethod;
+    data['bank_account_code'] = bankAccountCode;
     if (createdDate != null) {
       data['created_date'] = createdDate!.toIso8601String();
     }

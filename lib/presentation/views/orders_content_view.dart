@@ -4,8 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
@@ -793,7 +795,14 @@ class ShowPayment extends StatefulWidget {
 
 class ShowPaymentState extends State<ShowPayment> {
   OrderUseCase orderUseCase = OrderUseCase();
+  final BankAccountUseCase _bankAccountUseCase = BankAccountUseCase();
   PaymentMethod? _selectedPaymentMethod;
+
+  /// `null` tant que la liste n'est pas chargée, ou si son chargement a échoué :
+  /// on n'affiche alors aucun select et l'API applique son compte par défaut.
+  BankAccountsModel? _bankAccounts;
+  bool _isLoadingBankAccounts = true;
+  BankAccountModel? _selectedBankAccount;
   late OrderModel order;
   List<PaymentModel> _payments = [];
   bool _hasModifiedData = false;
@@ -817,8 +826,31 @@ class ShowPaymentState extends State<ShowPayment> {
     paymentDateController.text =
         "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
     _refreshPayments();
+    _loadBankAccounts();
     super.initState();
   }
+
+  Future<void> _loadBankAccounts() async {
+    // Premier appel depuis initState : le flag est déjà à true, pas de setState.
+    if (!_isLoadingBankAccounts) setState(() => _isLoadingBankAccounts = true);
+    BankAccountsModel? accounts;
+    try {
+      accounts = await _bankAccountUseCase.getBankAccounts();
+    } on ApiException catch (e) {
+      snackbarKey.currentState?.showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: kRed));
+    }
+    if (!mounted) return;
+    setState(() {
+      _bankAccounts = accounts;
+      // Une sélection dont le compte a disparu de la liste doit être refaite.
+      _selectedBankAccount = accounts?.byCode(_selectedBankAccount?.code);
+      _isLoadingBankAccounts = false;
+    });
+  }
+
+  bool get _bankAccountSelectRequired =>
+      _bankAccounts?.paymentSelectRequired ?? false;
 
   _refreshPayments() async {
     List<PaymentModel> response =
@@ -890,6 +922,12 @@ class ShowPaymentState extends State<ShowPayment> {
   }
 
   void _submitPayment([String? value]) {
+    if (_bankAccountSelectRequired && _selectedBankAccount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Choisissez le compte sur lequel le paiement a été encaissé.')));
+      return;
+    }
     if (value != null) {
       double paymentAmount = double.parse(value);
       if (_validatePayment(paymentAmount) && _selectedPaymentMethod != null) {
@@ -909,7 +947,8 @@ class ShowPaymentState extends State<ShowPayment> {
           return AlertDialog(
             title: const Text('Confirmation'),
             content: Text(
-                'Vous allez envoyer un paiement de ${_paymentAmountController.text} € à la date du ${_getDisplayableDate(selectedDate)} ?'),
+                'Vous allez envoyer un paiement de ${_paymentAmountController.text} € à la date du ${_getDisplayableDate(selectedDate)}'
+                '${_bankAccountSelectRequired ? ' sur le compte « ${_selectedBankAccount!.label} »' : ''} ?'),
             actions: <Widget>[
               TextButton(
                   child: const Text('Annuler'),
@@ -940,11 +979,25 @@ class ShowPaymentState extends State<ShowPayment> {
         'id_order': order.id,
         'payment_date': dateFormated,
         'amount': amount,
-        'id_payment_method': _selectedPaymentMethod!.id
+        'id_payment_method': _selectedPaymentMethod!.id,
+        // Sans select, on n'envoie rien : l'API applique le compte imposé.
+        if (_bankAccountSelectRequired)
+          'bank_account_code': _selectedBankAccount!.code,
       };
       await orderUseCase.addPayment(payment);
       _hasModifiedData = true;
       await _refreshPayments();
+    } on ApiException catch (e) {
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+          content: Text(e.message),
+          backgroundColor: kRed,
+          duration: const Duration(seconds: 8)));
+      // Liste des comptes périmée (ou non chargée) : on la recharge pour réafficher
+      // un select à jour.
+      if (e.code == 'UNKNOWN_BANK_ACCOUNT' ||
+          e.code == 'BANK_ACCOUNT_REQUIRED') {
+        await _loadBankAccounts();
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -991,6 +1044,8 @@ class ShowPaymentState extends State<ShowPayment> {
   @override
   Widget build(BuildContext context) {
     num sumOfPayments = _payments.fold<num>(0, (sum, p) => sum + p.amount!);
+    // Pour un réseau à un seul compte, la colonne n'apporte rien.
+    final bool showBankAccount = _bankAccounts?.hasSeveralAccounts ?? false;
 
     return AlertDialog(
       title: const SelectableText('Paiements'),
@@ -1010,18 +1065,22 @@ class ShowPaymentState extends State<ShowPayment> {
                 ),
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
-                  const TableRow(
+                  TableRow(
                     children: [
-                      Padding(
+                      const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Date'))),
-                      Padding(
+                      const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Méthode'))),
-                      Padding(
+                      if (showBankAccount)
+                        const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Center(child: Text('Compte'))),
+                      const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Montant'))),
-                      Padding(
+                      const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
                           child: Center(child: Text('Action'))),
                     ],
@@ -1048,6 +1107,15 @@ class ShowPaymentState extends State<ShowPayment> {
                                         )
                                         .name,
                                   )))),
+                              if (showBankAccount)
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0, horizontal: 4.0),
+                                    child: Center(
+                                        child: Text(
+                                            _bankAccounts!.labelForCode(
+                                                payment.bankAccountCode),
+                                            textAlign: TextAlign.center))),
                               Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8.0),
@@ -1067,6 +1135,23 @@ class ShowPaymentState extends State<ShowPayment> {
                 ],
               ),
               const SizedBox(height: 20),
+              if (_bankAccountSelectRequired &&
+                  sumOfPayments < order.totalAmount!) ...[
+                DropdownButton<BankAccountModel>(
+                  isExpanded: true,
+                  hint: const Text('Compte encaisseur'),
+                  value: _selectedBankAccount,
+                  onChanged: (BankAccountModel? account) =>
+                      setState(() => _selectedBankAccount = account),
+                  items: _bankAccounts!.accounts
+                      .map((account) => DropdownMenuItem<BankAccountModel>(
+                          value: account,
+                          child: Text(account.selectLabel,
+                              overflow: TextOverflow.ellipsis)))
+                      .toList(),
+                ),
+                const SizedBox(height: 12),
+              ],
               if (_payments.fold<num>(0, (sum, p) => sum + p.amount!) <
                   order.totalAmount!)
                 IntrinsicHeight(
@@ -1119,7 +1204,7 @@ class ShowPaymentState extends State<ShowPayment> {
                       const SizedBox(width: 12),
                       Expanded(
                         flex: 1,
-                        child: _isSubmitting
+                        child: _isSubmitting || _isLoadingBankAccounts
                             ? const SizedBox(
                                 height: 40,
                                 child: Center(
