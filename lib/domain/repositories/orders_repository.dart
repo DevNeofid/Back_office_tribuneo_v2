@@ -376,7 +376,7 @@ class OrderRepository extends BaseRepository {
         return 'Choisissez le compte sur lequel le paiement a été encaissé.';
       case 'UNKNOWN_BANK_ACCOUNT':
         return "Le compte bancaire choisi n'existe plus. "
-            'La liste des comptes a été rechargée, choisissez à nouveau le compte.';
+            'La liste des comptes a été rechargée, vérifiez le compte sélectionné.';
       case 'BANK_ACCOUNT_LOCKED':
         // Ne devrait pas arriver si le front respecte les verrous : on affiche la
         // description telle quelle pour diagnostiquer le désalignement.

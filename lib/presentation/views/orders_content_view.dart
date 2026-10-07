@@ -823,8 +823,7 @@ class ShowPaymentState extends State<ShowPayment> {
   void initState() {
     order = widget.order;
     selectedDate = DateTime.now();
-    paymentDateController.text =
-        "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+    paymentDateController.text = _getDisplayableDate(selectedDate);
     _refreshPayments();
     _loadBankAccounts();
     super.initState();
@@ -843,8 +842,10 @@ class ShowPaymentState extends State<ShowPayment> {
     if (!mounted) return;
     setState(() {
       _bankAccounts = accounts;
-      // Une sélection dont le compte a disparu de la liste doit être refaite.
-      _selectedBankAccount = accounts?.byCode(_selectedBankAccount?.code);
+      // On garde la sélection si son compte existe toujours, sinon on présélectionne
+      // le compte par défaut du réseau.
+      _selectedBankAccount = accounts?.byCode(_selectedBankAccount?.code) ??
+          accounts?.defaultAccount;
       _isLoadingBankAccounts = false;
     });
   }
@@ -1165,7 +1166,8 @@ class ShowPaymentState extends State<ShowPayment> {
                           verticalPadding: 0,
                           horizontalPadding: 0,
                           fontSize: 14,
-                          text: "Date",
+                          // Affiche la date retenue : cliquer dessus la modifie.
+                          text: paymentDateController.text,
                           backgroundColor: kBlue,
                           onPressed: () => _selectDate(context),
                         ),
