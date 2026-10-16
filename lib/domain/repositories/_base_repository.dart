@@ -93,4 +93,37 @@ abstract class BaseRepository {
     }
     return null;
   }
+
+  /// Code machine d'une erreur décodée par [decodeApiError] : `error.details.code`,
+  /// à défaut `error.type`. C'est sur lui que s'appuie le front, jamais sur
+  /// `description` (texte anglais destiné aux logs).
+  String? apiErrorCode(Map<String, dynamic>? error) {
+    final dynamic details = error?['details'];
+    final String? code = details is Map ? details['code']?.toString() : null;
+    if (code != null && code.isNotEmpty) return code;
+    final String? type = error?['type']?.toString();
+    return type == null || type.isEmpty ? null : type;
+  }
+
+  /// `error.details` sous forme de Map (vide si absent).
+  Map<String, dynamic> apiErrorDetails(Map<String, dynamic>? error) {
+    final dynamic details = error?['details'];
+    return details is Map ? Map<String, dynamic>.from(details) : {};
+  }
+
+  /// Nom de fichier annoncé par l'en-tête `Content-Disposition`, s'il est lisible.
+  String? filenameFromHeaders(dynamic response) {
+    try {
+      final String? contentDisposition =
+          response.headers.value('content-disposition');
+      if (contentDisposition == null) return null;
+      final RegExpMatch? match =
+          RegExp(r'filename="?([^";]+)"?', caseSensitive: false)
+              .firstMatch(contentDisposition);
+      final String? filename = match?.group(1)?.trim();
+      return filename == null || filename.isEmpty ? null : filename;
+    } catch (_) {
+      return null;
+    }
+  }
 }

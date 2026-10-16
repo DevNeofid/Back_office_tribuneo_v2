@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dart';
@@ -13,12 +14,24 @@ import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/update_order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/beneficiaries_dialog.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/show_vouchers.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 
-enum SampleItem { itemOne, itemTwo, itemThree, itemFour, itemFive, itemSix, itemSeven }
+enum SampleItem {
+  itemOne,
+  itemTwo,
+  itemThree,
+  itemFour,
+  itemFive,
+  itemSix,
+  itemSeven,
+  itemEight
+}
 
 enum SampleItem2 { itemOne, itemTwo, itemThree }
 
@@ -47,8 +60,63 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       onCreateInvoice: _createInvoice,
       onCreateSummary: _createSummary,
       onShowVouchers: _showVouchers,
+      onShowBeneficiaries: _showBeneficiaries,
+      onEdit: _editOrder,
+      onChangeExpiryDate: _changeExpiryDate,
       onDelete: _deleteOrder,
     );
+  }
+
+  /// Le statut de la commande (facturée, importée, boutique) est lu avant
+  /// d'ouvrir le formulaire, pour n'y proposer que ce qui est modifiable.
+  Future<void> _editOrder(OrderModel order) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) =>
+          const LoadingDialog(loadingText: 'Chargement de la commande...'),
+    );
+    OrderBeneficiariesModel? status;
+    try {
+      status = await _orderUseCase.getBeneficiaries(order.id!);
+    } catch (_) {
+      // Sans statut, le formulaire reste modifiable : l'API refusera ce qui ne
+      // l'est pas, avec un message explicite.
+      status = null;
+    } finally {
+      navigatorKey.currentState?.pop();
+    }
+    if (!mounted) return;
+
+    final bool? changed = await showDialog<bool>(
+        useSafeArea: true,
+        context: context,
+        builder: (context) {
+          return UpdateOrderForm(orderItem: order, orderStatus: status);
+        });
+    if (changed == true) {
+      _dataSource.refreshDatasource();
+    }
+  }
+
+  Future<void> _changeExpiryDate(OrderModel order) async {
+    final bool updated =
+        await changeOrderExpiryDate(context, order, orderUseCase: _orderUseCase);
+    if (updated) {
+      _dataSource.refreshDatasource();
+    }
+  }
+
+  Future<void> _showBeneficiaries(OrderModel order) async {
+    final bool? saved = await showDialog<bool>(
+        useSafeArea: true,
+        context: context,
+        builder: (context) {
+          return BeneficiariesDialog(order: order);
+        });
+    if (saved == true) {
+      _dataSource.refreshDatasource();
+    }
   }
 
   Future<void> _addOrder() async {
@@ -566,6 +634,9 @@ class OrderDataSource extends AsyncDataTableSource {
   final void Function(OrderModel) onCreateInvoice;
   final void Function(OrderModel) onCreateSummary;
   final void Function(OrderModel) onShowVouchers;
+  final void Function(OrderModel) onShowBeneficiaries;
+  final void Function(OrderModel) onEdit;
+  final void Function(OrderModel) onChangeExpiryDate;
   final void Function(int) onDelete;
   List<OrderModel> _cachedOrders = [];
   bool _needsReload = true;
@@ -582,6 +653,9 @@ class OrderDataSource extends AsyncDataTableSource {
     required this.onCreateInvoice,
     required this.onCreateSummary,
     required this.onShowVouchers,
+    required this.onShowBeneficiaries,
+    required this.onEdit,
+    required this.onChangeExpiryDate,
     required this.onDelete,
   }) : _orderUseCase = orderUseCase;
 
@@ -705,6 +779,8 @@ class OrderDataSource extends AsyncDataTableSource {
                     onCreateSummary(order);
                   } else if (item == SampleItem.itemSeven) {
                     onShowVouchers(order);
+                  } else if (item == SampleItem.itemEight) {
+                    onShowBeneficiaries(order);
                   }
                 },
                 itemBuilder: (BuildContext context) =>
@@ -743,6 +819,11 @@ class OrderDataSource extends AsyncDataTableSource {
                     value: SampleItem.itemSeven,
                     child: Text('Gestion des bons'),
                   ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem<SampleItem>(
+                    value: SampleItem.itemEight,
+                    child: Text('Bénéficiaires (commande importée)'),
+                  ),
                 ],
               ),
             ),
@@ -751,12 +832,27 @@ class OrderDataSource extends AsyncDataTableSource {
             Center(
               child: PopupMenuButton<SampleItem2>(
                 onSelected: (SampleItem2 item) {
-                  if (item == SampleItem2.itemTwo) {
+                  if (item == SampleItem2.itemOne) {
+                    onEdit(order);
+                  } else if (item == SampleItem2.itemTwo) {
                     onDelete(order.id!);
+                  } else if (item == SampleItem2.itemThree) {
+                    onChangeExpiryDate(order);
                   }
                 },
                 itemBuilder: (BuildContext context) =>
                     <PopupMenuEntry<SampleItem2>>[
+                  const PopupMenuItem<SampleItem2>(
+                    value: SampleItem2.itemOne,
+                    child: Text('Modifier'),
+                  ),
+                  const PopupMenuDivider(),
+                  // Disponible même après facture.
+                  const PopupMenuItem<SampleItem2>(
+                    value: SampleItem2.itemThree,
+                    child: Text('Changer la date de validité'),
+                  ),
+                  const PopupMenuDivider(),
                   const PopupMenuItem<SampleItem2>(
                     value: SampleItem2.itemTwo,
                     child: Text('Supprimer'),

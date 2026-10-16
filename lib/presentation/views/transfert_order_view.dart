@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/downloaded_file.dart';
 import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
@@ -37,7 +40,8 @@ class _TranferOrderViewState extends State<TranferOrderView> {
   @override
   void initState() {
     super.initState();
-    _dataSource = TransferOrderDataSource(_transferOrderUseCase, _downloadFile);
+    _dataSource = TransferOrderDataSource(
+        _transferOrderUseCase, _downloadFile, _downloadDocuments);
     _loadBankAccounts();
   }
 
@@ -65,7 +69,7 @@ class _TranferOrderViewState extends State<TranferOrderView> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return const LoadingDialog(
-            loadingText: 'Génération des ordres de virement...');
+            loadingText: "Téléchargement de l'ordre de virement...");
       },
     );
     try {
@@ -84,6 +88,41 @@ class _TranferOrderViewState extends State<TranferOrderView> {
     } finally {
       navigatorKey.currentState?.pop();
     }
+  }
+
+  /// Un PDF (justificatif + facture) par demande payée par ce virement. Les
+  /// virements antérieurs au 14/10/2026 n'en ont pas : 404, cas normal.
+  Future _downloadDocuments(TransferOrderModel order) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog(
+            loadingText: 'Préparation des documents du virement...');
+      },
+    );
+    DownloadedFile? file;
+    String? failure;
+    try {
+      file = await _transferOrderUseCase.downloadDocuments(order.id!);
+    } on ApiException catch (e) {
+      failure = e.message;
+    } catch (_) {
+      failure = 'Erreur lors du téléchargement des documents du virement.';
+    } finally {
+      navigatorKey.currentState?.pop();
+    }
+
+    if (file != null) {
+      FileDownloader.downloadLargeFile(file.bytes,
+          file.filename ?? 'DOCUMENTS_BTO_${order.id}', 'application/zip',
+          fileExtension: 'zip');
+      return;
+    }
+    snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text(failure ??
+            'Erreur lors du téléchargement des documents du virement.'),
+        backgroundColor: kRed));
   }
 
   @override
@@ -221,13 +260,15 @@ class _TranferOrderViewState extends State<TranferOrderView> {
 class TransferOrderDataSource extends AsyncDataTableSource {
   final TransferOrderUseCase _transferOrderUseCase;
   final Function(TransferOrderModel) onDownload;
+  final Function(TransferOrderModel) onDownloadDocuments;
   int _lastKnownTotal = 0;
 
   /// Comptes du réseau, pour afficher le libellé du compte payeur. Colonne affichée
   /// seulement s'il y a plusieurs comptes.
   BankAccountsModel? bankAccounts;
 
-  TransferOrderDataSource(this._transferOrderUseCase, this.onDownload);
+  TransferOrderDataSource(
+      this._transferOrderUseCase, this.onDownload, this.onDownloadDocuments);
 
   @override
   Future<AsyncRowsResponse> getRows(int startIndex, int limit) async {
@@ -251,9 +292,9 @@ class TransferOrderDataSource extends AsyncDataTableSource {
           cells: [
             DataCell(Center(child: SelectableText(order.filename ?? ''))),
             DataCell(
-                Center(child: SelectableText(order.retainedAmount.toString()))),
+                Center(child: SelectableText(formatEuro(order.retainedAmount)))),
             DataCell(
-                Center(child: SelectableText(order.refundedAmount.toString()))),
+                Center(child: SelectableText(formatEuro(order.refundedAmount)))),
             if (bankAccounts?.hasSeveralAccounts ?? false)
               DataCell(Center(
                   child: SelectableText(
@@ -264,13 +305,26 @@ class TransferOrderDataSource extends AsyncDataTableSource {
                     DateFormater().modifyDate(order.createdDate ?? '') ?? ''))),
             DataCell(
               Center(
-                child: IconButton(
-                  icon: const Icon(Icons.download),
-                  color: kBlue,
-                  tooltip: 'Télécharger',
-                  onPressed: () {
-                    onDownload(order);
-                  },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.download),
+                      color: kBlue,
+                      tooltip: "Télécharger l'ordre de virement",
+                      onPressed: () {
+                        onDownload(order);
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.folder_zip_outlined),
+                      color: kBlue,
+                      tooltip: 'Documents (justificatifs et factures)',
+                      onPressed: () {
+                        onDownloadDocuments(order);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),

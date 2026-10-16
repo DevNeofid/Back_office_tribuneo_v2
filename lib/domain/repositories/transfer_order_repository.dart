@@ -1,14 +1,14 @@
+import 'dart:convert';
 
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
-import 'package:back_office_tribuneo_v2/domain/errors/blocked_refunds_exception.dart';
-import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/bto_preview_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/downloaded_file.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
-import 'package:back_office_tribuneo_v2/domain/models/refund_shop_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/transfer_order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 
 class TransferOrderRepository extends BaseRepository {
   final ApiClient _remoteData = ApiClient();
@@ -98,32 +98,105 @@ class TransferOrderRepository extends BaseRepository {
     }
   }
 
-  Future<List<RefundShopModel>> awaitRefund() async {
+  /// Aperçu du prochain virement. Ne crée rien, peut être appelé à volonté.
+  /// [bankAccountCode] n'est envoyé que si l'écran propose un choix de compte payeur.
+  Future<BtoPreviewModel> getPreview({String? bankAccountCode}) async {
     String tenant = await getTenantForCurrentNetwork();
-    List<RefundShopModel> refunds = [];
+    dynamic response;
     try {
-      dynamic response =
-          await _remoteData.get('$suffixe/pending', overrideTenant: tenant);
-      if (response.statusCode == 200) {
-        List<dynamic> jsonResponse = response.data['data'];
-        for (var refund in jsonResponse) {
-          refunds.add(RefundShopModel.fromJson(refund));
-        }
-      } else {
-        refunds = [];
-      }
+      response = await _remoteData.get('$suffixe/preview',
+          queryParams:
+              bankAccountCode == null ? null : {'bank_account': bankAccountCode},
+          overrideTenant: tenant);
     } catch (e) {
-      refunds = [];
-      throw Exception('Erreur lors du téléchargement du fichier XML');
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException("Impossible de charger l'aperçu du prochain virement.");
     }
-    return refunds;
+
+    final dynamic body = response.data;
+    if (response.statusCode == 200 && body is Map && body['data'] is Map) {
+      return BtoPreviewModel.fromJson(
+          Map<String, dynamic>.from(body['data'] as Map));
+    }
+
+    final Map<String, dynamic>? error = decodeApiError(body);
+    final String? code = apiErrorCode(error);
+    throw ApiException(
+        _btoMessage(code, response.statusCode) ??
+            "Impossible de charger l'aperçu du prochain virement.",
+        code: code);
   }
 
-  /// Génère l'ordre de virement. [bankAccountCode] est le compte payeur choisi ;
-  /// `null` quand aucun select n'est affiché, l'API prend alors le compte `is_refund`.
-  /// [bankAccounts] ne sert qu'à nommer le compte dans les messages d'erreur.
-  Future refundShop(
-      {String? bankAccountCode, BankAccountsModel? bankAccounts}) async {
+  /// Met une demande en attente : elle est écartée des virements jusqu'à sa
+  /// libération. [reason] : 255 caractères maximum, facultatif.
+  Future<void> holdRefund(String transactionNumber, {String? reason}) async {
+    String tenant = await getTenantForCurrentNetwork();
+    final String? trimmed = reason?.trim();
+    dynamic response;
+    try {
+      response = await _remoteData.post(
+          '$suffixe/refunds/${Uri.encodeComponent(transactionNumber)}/hold',
+          jsonEncode({
+            if (trimmed != null && trimmed.isNotEmpty) 'reason': trimmed,
+          }),
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException('Erreur lors de la mise en attente de la demande.');
+    }
+    _throwOnHoldError(
+        response, 'Erreur lors de la mise en attente de la demande.');
+  }
+
+  /// Libère une demande mise en attente (idempotent).
+  Future<void> releaseRefund(String transactionNumber) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.delete(
+          '$suffixe/refunds/${Uri.encodeComponent(transactionNumber)}/hold',
+          null,
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException('Erreur lors de la libération de la demande.');
+    }
+    _throwOnHoldError(response, 'Erreur lors de la libération de la demande.');
+  }
+
+  void _throwOnHoldError(dynamic response, String fallback) {
+    if (response.statusCode == 200) return;
+
+    final Map<String, dynamic>? error = decodeApiError(response.data);
+    final String? code = apiErrorCode(error);
+
+    if (code == 'REFUND_ALREADY_PAID') {
+      throw ApiException('Cette demande a déjà été payée.', code: code);
+    }
+    if (code == 'VALIDATION_ERROR') {
+      throw ApiException('Le motif ne doit pas dépasser 255 caractères.',
+          code: code);
+    }
+    if (response.statusCode == 404) {
+      throw ApiException('Demande introuvable.', code: 'NOT_FOUND');
+    }
+    throw ApiException(_btoMessage(code, response.statusCode) ?? fallback,
+        code: code);
+  }
+
+  /// Génère l'ordre de virement : l'API crée les justificatifs et factures
+  /// manquants (une paire par demande), puis le fichier bancaire.
+  /// [bankAccountCode] : le même compte que l'aperçu affiché, `null` sans select.
+  ///
+  /// Jamais relancé automatiquement : en cas d'expiration, l'état réel se lit en
+  /// rechargeant l'aperçu.
+  Future<BtoGenerationResult> generate({String? bankAccountCode}) async {
     String tenant = await getTenantForCurrentNetwork();
     dynamic response;
     try {
@@ -132,6 +205,19 @@ class TransferOrderRepository extends BaseRepository {
               bankAccountCode == null ? null : {'bank_account': bankAccountCode},
           bytesType: true,
           overrideTenant: tenant);
+    } on DioException catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      if (e.type == DioExceptionType.receiveTimeout) {
+        throw ApiException(
+            "La génération prend plus de temps que prévu. Rechargez l'aperçu "
+            "avant de réessayer : le virement a peut-être été enregistré.",
+            code: 'TIMEOUT');
+      }
+      throw ApiException(
+          "Erreur réseau pendant la génération de l'ordre de virement. "
+          "Rechargez l'aperçu avant de réessayer.");
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
@@ -141,163 +227,107 @@ class TransferOrderRepository extends BaseRepository {
     }
 
     if (response.statusCode == 200) {
-      return response.data;
+      return BtoGenerationResult(
+        bytes: (response.data as List).cast<int>(),
+        filename: filenameFromHeaders(response),
+        requestsPaid: _intHeader(response, 'x-requests-paid'),
+        requestsExcluded: _intHeader(response, 'x-requests-excluded'),
+      );
     }
 
     final Map<String, dynamic>? error = decodeApiError(response.data);
-    final dynamic details = error?['details'];
-
-    // L'API refuse de générer tant qu'un remboursement de la période est incomplet :
-    // elle renvoie la liste, on la remonte telle quelle pour l'afficher.
-    if (details is Map && details['code'] == 'BLOCKED_REFUNDS') {
-      final List<BlockedRefund> blocked = (details['items'] as List<dynamic>? ??
-              [])
-          .whereType<Map>()
-          .map(
-              (item) => BlockedRefund.fromJson(Map<String, dynamic>.from(item)))
-          .toList();
-      if (blocked.isNotEmpty) {
-        throw BlockedRefundsException(blocked);
-      }
+    final String? code = apiErrorCode(error);
+    if (kDebugMode) {
+      print('###DEBUG### ${error?['description']}');
     }
-
+    // Vrai par construction : en cas d'échec, l'API n'enregistre aucun virement et
+    // réutilise au prochain essai les documents déjà créés.
+    if (response.statusCode >= 500) {
+      throw ApiException(
+          "La génération a échoué. Aucun virement n'a été enregistré, "
+          'vous pouvez réessayer.',
+          code: code);
+    }
     throw ApiException(
-        _refundShopMessage(details, error?['description'], bankAccounts));
+        _btoMessage(code, response.statusCode) ??
+            "Erreur lors de la génération de l'ordre de virement.",
+        code: code);
   }
 
-  Future editProof(String transactionNumber) async {
-    String suffixe = 'accounting/proof-of-receipt';
+  /// Zip des documents (justificatif + facture) des demandes payées par le virement
+  /// [id]. 404 pour les virements antérieurs au 14/10/2026.
+  Future<DownloadedFile> downloadDocuments(int id) async {
     String tenant = await getTenantForCurrentNetwork();
     dynamic response;
     try {
-      response = await _remoteData.get('$suffixe/$transactionNumber',
+      response = await _remoteData.get('$suffixe/$id/documents',
           bytesType: true, overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
       }
-      throw ApiException('Erreur lors de la génération des justificatifs.');
+      throw ApiException(
+          'Erreur lors du téléchargement des documents du virement.');
     }
 
     if (response.statusCode == 200) {
-      return response.data;
+      return DownloadedFile(
+        bytes: (response.data as List).cast<int>(),
+        filename: filenameFromHeaders(response),
+      );
     }
 
-    final Map<String, dynamic>? error = decodeApiError(response.data);
-    final dynamic details = error?['details'];
-
-    // Fiche partenaire incomplète : rien n'a été écrit côté API, on dit quoi compléter.
-    if (details is Map && details['code'] == 'INCOMPLETE_ENTITY') {
-      throw ApiException(_incompleteEntityMessage(details));
+    final String? code = apiErrorCode(decodeApiError(response.data));
+    if (response.statusCode == 404 || code == 'NO_DOCUMENTS') {
+      throw ApiException('Aucun document disponible pour ce virement.',
+          code: 'NO_DOCUMENTS');
     }
-
-    if (kDebugMode) {
-      print('###DEBUG### ${error?['description']}');
+    if (response.statusCode == 502) {
+      throw ApiException(
+          'Le service de génération des PDF ne répond pas. Réessayez plus tard.');
     }
-    throw ApiException('Erreur lors de la génération des justificatifs.');
+    throw ApiException(_btoMessage(code, response.statusCode) ??
+        'Erreur lors du téléchargement des documents du virement.');
   }
 
-  /// Traduit les refus attendus de l'API. Un code inconnu retombe sur un message
-  /// générique plutôt que sur la description anglaise de l'API.
-  String _refundShopMessage(
-      dynamic details, dynamic description, BankAccountsModel? bankAccounts) {
-    final String? code = details is Map ? details['code']?.toString() : null;
-    final String period = details is Map
-        ? _periodLabel(details['period_from'], details['period_to'])
-        : '';
+  int? _intHeader(dynamic response, String name) {
+    try {
+      return int.tryParse(response.headers.value(name) ?? '');
+    } catch (_) {
+      return null;
+    }
+  }
 
+  /// Messages des refus attendus des routes de virement. `null` pour un code
+  /// inconnu : l'appelant choisit son message générique, jamais la description
+  /// anglaise de l'API.
+  String? _btoMessage(String? code, int? statusCode) {
     switch (code) {
+      case 'INSUFFICIENT_PRIVILEGES':
+        return "Vous n'avez pas accès à ce réseau.";
+      case 'NO_REFUND_TO_PAY':
+        return 'Aucune demande à payer.';
+      case 'BTO_GENERATION_IN_PROGRESS':
+      case 'NUMBERING_BUSY':
+        return 'Une génération est déjà en cours, réessayez dans un instant.';
       case 'MISSING_XML_PARAMS':
-        return _missingXmlParamsMessage(details as Map, bankAccounts);
+        return 'Le compte bancaire du réseau est incomplet, contactez le support.';
+      case 'ZERO_TOTAL_AMOUNT':
+        return 'Le montant total à virer est nul.';
       case 'UNKNOWN_BANK_ACCOUNT':
         return "Le compte bancaire choisi n'existe plus. "
-            'Relancez le déclenchement pour choisir à nouveau le compte.';
+            'La liste des comptes a été rechargée.';
       case 'BANK_ACCOUNT_LOCKED':
-        // Ne devrait pas arriver si le front respecte les verrous : on affiche la
-        // description telle quelle pour diagnostiquer le désalignement.
-        final String text = description?.toString() ?? '';
-        return text.isNotEmpty
-            ? text
-            : 'Ce réseau impose le compte payeur des ordres de virement.';
+        // Ne doit pas arriver si l'écran respecte le verrou du réseau.
+        return 'Ce réseau impose le compte payeur des ordres de virement. '
+            'La liste des comptes a été rechargée.';
       case 'NO_DEFAULT_BANK_ACCOUNT':
-        return "Aucun compte bancaire de remboursement n'est configuré pour ce réseau. "
-            'Contactez Neofid.';
-      case 'NO_NEW_PERIOD':
-        return 'Aucune nouvelle donnée depuis le dernier ordre de virement.';
-      case 'NO_REFUND_IN_PERIOD':
-        return 'Aucun remboursement à traiter$period.';
-      case 'ZERO_TOTAL_AMOUNT':
-        return 'Le total des remboursements$period est de 0,00 €, '
-            "aucun ordre de virement n'a été généré.";
-      default:
-        return "Erreur lors de la génération de l'ordre de virement.";
+        return "Aucun compte bancaire de remboursement n'est configuré pour ce "
+            'réseau, contactez le support.';
+      case 'MISSING_SELECTION_CUTOFF':
+        return 'Configuration du réseau incomplète, contactez le support.';
     }
-  }
-
-  static const Map<String, String> _missingXmlParamLabels = {
-    'holder': "le titulaire (donneur d'ordre)",
-    'iban': "l'IBAN",
-    'bic': 'le BIC',
-  };
-
-  /// Les paramètres SEPA sont portés par le compte bancaire, géré par Neofid.
-  String _missingXmlParamsMessage(
-      Map<dynamic, dynamic> details, BankAccountsModel? bankAccounts) {
-    final String? code = details['bank_account']?.toString();
-    final List<String> missing = (details['missing'] as List<dynamic>? ?? [])
-        .map((item) =>
-            _missingXmlParamLabels[item.toString()] ?? item.toString())
-        .toList();
-
-    final String account = code == null
-        ? 'du compte bancaire'
-        : 'du compte « ${bankAccounts?.labelForCode(code) ?? code} »';
-    final String what = missing.isEmpty
-        ? '(titulaire, IBAN, BIC)'
-        : ': il manque ${_joinFrench(missing)}';
-
-    return 'Les paramètres SEPA $account sont incomplets $what. '
-        'Contactez Neofid.';
-  }
-
-  String _joinFrench(List<String> items) {
-    if (items.length <= 1) return items.join();
-    return '${items.sublist(0, items.length - 1).join(', ')} et ${items.last}';
-  }
-
-  /// ' du 01/09/2026 au 15/09/2026', ou '' si l'API n'a pas fourni la période.
-  String _periodLabel(dynamic from, dynamic to) {
-    final String start = _frenchDate(from);
-    final String end = _frenchDate(to);
-    if (start.isEmpty || end.isEmpty) return '';
-    return ' du $start au $end';
-  }
-
-  String _frenchDate(dynamic isoDate) {
-    final DateTime? parsed = DateTime.tryParse(isoDate?.toString() ?? '');
-    if (parsed == null) return '';
-    return DateFormat('dd/MM/yyyy').format(parsed);
-  }
-
-  static const Map<String, String> _missingEntityDataLabels = {
-    'MISSING_ADDRESS': "l'adresse postale",
-    'MISSING_BANK_DETAILS': 'les coordonnées bancaires (IBAN, BIC)',
-  };
-
-  String _incompleteEntityMessage(Map<dynamic, dynamic> details) {
-    final String name = details['entity_name']?.toString() ?? 'ce partenaire';
-    final String? code = details['entity_code']?.toString();
-    final List<String> missing = (details['missing'] as List<dynamic>? ?? [])
-        .map((item) =>
-            _missingEntityDataLabels[item.toString()] ?? item.toString())
-        .toList();
-
-    final String target = code == null || code.isEmpty ? name : '$name ($code)';
-    final String what = missing.isEmpty
-        ? 'des informations obligatoires'
-        : missing.join(' et ');
-
-    return 'Impossible de générer les justificatifs pour $target : '
-        '$what non renseignée(s). Complétez la fiche du partenaire puis réessayez.';
+    if (statusCode == 403) return "Vous n'avez pas accès à ce réseau.";
+    return null;
   }
 }

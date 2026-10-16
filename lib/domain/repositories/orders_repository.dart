@@ -2,10 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/order_error_messages.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
 import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
@@ -134,20 +137,153 @@ class OrderRepository extends BaseRepository {
     }
   }
 
-  Future updateOrder(OrderSendModel order) async {
-    String data = jsonEncode(order.toJson());
+  /// Modifie une commande saisie à la main. Les bons ne sont plus recréés : l'API
+  /// applique l'écart de quantité par montant (bons créés avec lien QR, ou retrait
+  /// des derniers bons jamais attribués).
+  ///
+  /// [body] : `fund_expiry_date` seulement si la date a changé, `id_urssaf_event`
+  /// absent pour le laisser inchangé.
+  Future<OrderUpdateResult> updateOrder(
+      int idOrder, Map<String, dynamic> body) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
     try {
-      dynamic request = await _remoteData.put(suffixe, data, id: order.id);
-      if (request.statusCode == 200) {
-        request = jsonDecode(request.body);
-        return OrderSendModel.fromJson(request);
-      }
+      response = await _remoteData.put('$suffixe/$idOrder', jsonEncode(body),
+          overrideTenant: tenant);
     } catch (e) {
       if (kDebugMode) {
         print('###DEBUG### Error: $e');
       }
-      return null;
+      throw ApiException('Erreur lors de la modification de la commande.');
     }
+
+    if (response.statusCode == 200) {
+      return OrderUpdateResult.fromJson(_dataOf(response));
+    }
+    _throwOrderError(response, 'Erreur lors de la modification de la commande.');
+  }
+
+  /// Change la date de validité de tous les bons non annulés de la commande.
+  /// Fonctionne aussi après facture.
+  Future<OrderExpiryUpdateResult> updateOrderExpiryDate(
+      int idOrder, String expiryDate) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.put('$suffixe/$idOrder/expiry-date',
+          jsonEncode({'expiry_date': expiryDate}),
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException('Erreur lors de la mise à jour de la date de validité.');
+    }
+
+    if (response.statusCode == 200) {
+      return OrderExpiryUpdateResult.fromJson(_dataOf(response));
+    }
+    _throwOrderError(
+        response, 'Erreur lors de la mise à jour de la date de validité.',
+        // Au niveau de la commande, plusieurs bons peuvent être concernés.
+        overrides: {
+          'SHORTENING_ASSIGNED_VOUCHER': "Impossible d'avancer la date : des bons "
+              'sont déjà attribués à des consommateurs. On peut seulement la '
+              'prolonger.',
+        });
+  }
+
+  Future<OrderBeneficiariesModel> getBeneficiaries(int idOrder) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.get('$suffixe/$idOrder/beneficiaries',
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException('Impossible de charger les bénéficiaires.');
+    }
+
+    if (response.statusCode == 200) {
+      return OrderBeneficiariesModel.fromJson(_dataOf(response));
+    }
+    _throwOrderError(response, 'Impossible de charger les bénéficiaires.');
+  }
+
+  /// Enregistre la liste **complète** des bénéficiaires : bons existants avec
+  /// `id_qrcode`, nouveaux sans, bons retirés absents.
+  Future<BeneficiariesUpdateResult> updateBeneficiaries(
+      int idOrder, List<Map<String, dynamic>> beneficiaries) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.put('$suffixe/$idOrder/beneficiaries',
+          jsonEncode({'beneficiaries': beneficiaries}),
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException("Erreur lors de l'enregistrement des bénéficiaires.");
+    }
+
+    if (response.statusCode == 200) {
+      return BeneficiariesUpdateResult.fromJson(_dataOf(response));
+    }
+    _throwOrderError(response, "Erreur lors de l'enregistrement des bénéficiaires.",
+        overrides: {
+          'VALIDATION_ERROR': 'Montant, e-mail ou mobile invalide : vérifiez les '
+              'lignes saisies.',
+        });
+  }
+
+  /// Renvoie le mail « chèque cadeau » d'un bon non attribué. Retourne l'adresse
+  /// à laquelle il a été envoyé.
+  Future<String?> resendGiftMail(int idQrCode) async {
+    String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.post(
+          'qrcode/$idQrCode/resend-gift-mail', jsonEncode({}),
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException("Erreur lors de l'envoi de l'e-mail.");
+    }
+
+    if (response.statusCode == 200) {
+      return _dataOf(response)['email']?.toString();
+    }
+    _throwOrderError(response, "Erreur lors de l'envoi de l'e-mail.");
+  }
+
+  Map<String, dynamic> _dataOf(dynamic response) {
+    final dynamic body = response.data;
+    if (body is Map && body['data'] is Map) {
+      return Map<String, dynamic>.from(body['data'] as Map);
+    }
+    return body is Map ? Map<String, dynamic>.from(body) : {};
+  }
+
+  /// Lève une [ApiException] avec le message français du code d'erreur (section 6
+  /// de la spec), [overrides] permettant un message propre au contexte.
+  Never _throwOrderError(dynamic response, String fallback,
+      {Map<String, String> overrides = const {}}) {
+    final Map<String, dynamic>? error = decodeApiError(response.data);
+    final String? code = apiErrorCode(error);
+    if (kDebugMode) {
+      print('###DEBUG### [${response.statusCode}] $code ${error?['description']}');
+    }
+    final String message = overrides[code] ??
+        OrderErrorMessages.forCode(code, apiErrorDetails(error)) ??
+        (response.statusCode == 403
+            ? "Vous n'avez pas accès à cette ressource."
+            : fallback);
+    throw ApiException(message, code: code);
   }
 
   Future<bool> deleteOrder(int id) async {
@@ -294,23 +430,31 @@ class OrderRepository extends BaseRepository {
     throw ApiException('Erreur lors de la désactivation du bon.');
   }
 
-  Future<void> updateVoucherExpiryDate(int idQrCode, String expiryDate) async {
+  /// Change la date d'un bon (minimum demain). Prolonger un bon déjà expiré
+  /// recalcule le solde du consommateur : voir [VoucherExpiryUpdateResult.wallet].
+  Future<VoucherExpiryUpdateResult> updateVoucherExpiryDate(
+      int idQrCode, String expiryDate) async {
     String tenant = await getTenantForCurrentNetwork();
     // L'API attend une date au format 'yyyy-MM-dd' et y ajoute ' 23:59:59'.
     String data = jsonEncode({'expiry_date': expiryDate});
 
-    dynamic response = await _remoteData.put('qrcode', data,
-        id: idQrCode, overrideTenant: tenant);
+    dynamic response;
+    try {
+      response = await _remoteData.put('qrcode', data,
+          id: idQrCode, overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
+      }
+      throw ApiException(
+          'Erreur lors de la mise à jour de la date d\'expiration.');
+    }
 
     if (response.statusCode == 200) {
-      return;
+      return VoucherExpiryUpdateResult.fromJson(_dataOf(response));
     }
-
-    if (response.statusCode == 404) {
-      throw ApiException('Bon introuvable.');
-    }
-    throw ApiException(
-        'Erreur lors de la mise à jour de la date d\'expiration.');
+    _throwOrderError(
+        response, 'Erreur lors de la mise à jour de la date d\'expiration.');
   }
 
   Future<List<PaymentModel>> getPayments(int idOrder) async {

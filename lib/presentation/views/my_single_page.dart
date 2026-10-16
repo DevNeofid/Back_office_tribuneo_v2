@@ -11,9 +11,9 @@ import 'package:back_office_tribuneo_v2/presentation/views/accounting_entries.da
 import 'package:back_office_tribuneo_v2/presentation/views/customers_content_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/dashboard_content_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/document_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/next_transfer_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/orders_content_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/partners_content_view.dart';
-import 'package:back_office_tribuneo_v2/presentation/views/refund_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/sector_activity_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/stats_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/transfert_order_view.dart';
@@ -121,11 +121,12 @@ class MySinglePageState extends State<MySinglePage> {
       "content": const TranferOrderView(),
       "icon": Icons.reorder,
     },
+    // Nom « refund » conservé : c'est lui qui est mémorisé comme dernier menu ouvert.
     7: {
       "name": "refund",
-      "title": "Liste des demandes de remboursement",
-      "short": "Remboursement",
-      "content": const RefoundShopView(),
+      "title": "Prochain virement",
+      "short": "Prochain virement",
+      "content": const NextTransferView(),
       "icon": Icons.euro,
     },
     8: {
@@ -145,13 +146,14 @@ class MySinglePageState extends State<MySinglePage> {
   };
 
   Future<void> checkForNewRefunds() async {
-    // Notification of new refunds.
+    // Pastille : au moins une demande prête à être payée au prochain virement.
     // Ce poll tourne à chaque changement de menu et peut légitimement échouer
-    // (404 attendu, timeout réseau) : il ne doit jamais remonter d'erreur non
-    // capturée ni bloquer la navigation.
+    // (timeout réseau, réseau mal configuré) : il ne doit jamais remonter d'erreur
+    // non capturée ni bloquer la navigation.
     try {
-      var res = await TransferOrderUseCase().awaitRefund();
-      if (res.isNotEmpty && mounted) {
+      final bool hasRefundsToPay =
+          await TransferOrderUseCase().hasRefundsToPay();
+      if (hasRefundsToPay && mounted) {
         setState(() {
           showRefundNotification = true;
         });
@@ -474,17 +476,27 @@ class _SideMenuState extends State<SideMenu> {
                                         ),
                                         onPressed: null,
                                       ),
-                                      Text(
-                                        widget.menuItemsInfos[index]!['short'],
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: (isSelected || isHovered)
-                                              ? kBlue
-                                              : kLBlue,
+                                      // Une seule ligne : l'item a une hauteur
+                                      // fixe, un libellé long est réduit.
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4),
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            widget.menuItemsInfos[index]![
+                                                'short'],
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: (isSelected || isHovered)
+                                                  ? kBlue
+                                                  : kLBlue,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                          ),
                                         ),
-                                        textAlign: TextAlign.center,
-                                        softWrap: true,
                                       ),
                                     ],
                                   ),

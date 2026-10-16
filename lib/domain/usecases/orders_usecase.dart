@@ -1,4 +1,6 @@
+import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/models/payment_model.dart';
@@ -17,8 +19,27 @@ class OrderUseCase {
         fileName: fileName, file: file);
   }
 
-  Future<void> updateOrder(OrderSendModel order) async {
-    return await orderRepository.updateOrder(order);
+  Future<OrderUpdateResult> updateOrder(
+      int idOrder, Map<String, dynamic> body) async {
+    return await orderRepository.updateOrder(idOrder, body);
+  }
+
+  Future<OrderExpiryUpdateResult> updateOrderExpiryDate(
+      int idOrder, String expiryDate) async {
+    return await orderRepository.updateOrderExpiryDate(idOrder, expiryDate);
+  }
+
+  Future<OrderBeneficiariesModel> getBeneficiaries(int idOrder) async {
+    return await orderRepository.getBeneficiaries(idOrder);
+  }
+
+  Future<BeneficiariesUpdateResult> updateBeneficiaries(
+      int idOrder, List<Map<String, dynamic>> beneficiaries) async {
+    return await orderRepository.updateBeneficiaries(idOrder, beneficiaries);
+  }
+
+  Future<String?> resendGiftMail(int idQrCode) async {
+    return await orderRepository.resendGiftMail(idQrCode);
   }
 
   Future<PaginatedResult<OrderModel>> getOrders({
@@ -56,7 +77,8 @@ class OrderUseCase {
     return await orderRepository.disableVoucher(idQrCode);
   }
 
-  Future<void> updateVoucherExpiryDate(int idQrCode, String expiryDate) async {
+  Future<VoucherExpiryUpdateResult> updateVoucherExpiryDate(
+      int idQrCode, String expiryDate) async {
     return await orderRepository.updateVoucherExpiryDate(idQrCode, expiryDate);
   }
 

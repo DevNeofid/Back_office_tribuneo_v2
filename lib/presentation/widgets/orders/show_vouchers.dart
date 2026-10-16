@@ -5,11 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
 
 class ShowVouchers extends StatefulWidget {
   final OrderModel order;
@@ -26,6 +29,7 @@ class ShowVouchersState extends State<ShowVouchers> {
   List<OrderVoucherModel> _vouchers = [];
   bool _isLoading = true;
   bool _hasModifiedData = false;
+  int? _resendingVoucher;
   String? networkId;
 
   @override
@@ -93,41 +97,27 @@ class ShowVouchersState extends State<ShowVouchers> {
   }
 
   Future<void> _updateExpiryDate(OrderVoucherModel voucher) async {
-    final DateTime now = DateTime.now();
-    DateTime initialDate = DateTime.tryParse(voucher.expiryDate ?? '') ?? now;
-    if (initialDate.isBefore(now)) {
-      initialDate = now;
-    }
-
-    final DateTime? selected = await showDatePicker(
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: kBlue),
-          ),
-          child: child!,
-        );
-      },
-      fieldHintText: "Jour/Mois/Année",
-      locale: const Locale("fr", "FR"),
-      context: context,
-      initialDate: initialDate,
-      firstDate: now,
-      lastDate: DateTime(3000),
-    );
+    // Minimum demain ; prolonger un bon déjà expiré est possible.
+    final DateTime? selected = await pickExpiryDate(context,
+        current: DateTime.tryParse(voucher.expiryDate ?? ''));
 
     if (selected == null) return;
 
     try {
       // L'API attend 'yyyy-MM-dd' et ajoute elle-même l'heure ' 23:59:59'.
-      await _orderUseCase.updateVoucherExpiryDate(
-          voucher.id!, DateFormat('yyyy-MM-dd').format(selected));
+      final VoucherExpiryUpdateResult result =
+          await _orderUseCase.updateVoucherExpiryDate(
+              voucher.id!, DateFormat('yyyy-MM-dd').format(selected));
       _hasModifiedData = true;
       await _refreshVouchers();
+      final VoucherWalletUpdate? wallet = result.wallet;
       snackbarKey.currentState?.showSnackBar(SnackBar(
           content: Text(
-              'Date d\'expiration mise à jour au ${_getDisplayableDate(selected)}.'),
-          backgroundColor: kGreen));
+              'Date d\'expiration mise à jour au ${_getDisplayableDate(selected)}.'
+              '${wallet == null ? '' : ' Le solde du consommateur a été mis à jour '
+                  '(${formatEuro(wallet.oldAmount)} → ${formatEuro(wallet.newAmount)}).'}'),
+          backgroundColor: kGreen,
+          duration: Duration(seconds: wallet == null ? 4 : 8)));
     } on ApiException catch (e) {
       snackbarKey.currentState?.showSnackBar(
           SnackBar(content: Text(e.message), backgroundColor: kRed));
@@ -136,6 +126,24 @@ class ShowVouchersState extends State<ShowVouchers> {
           content:
               Text('Erreur lors de la mise à jour de la date d\'expiration.'),
           backgroundColor: kRed));
+    }
+  }
+
+  /// Renvoie le mail « chèque cadeau ». L'API refuse (`VOUCHER_ASSIGNED`) si le
+  /// bon est déjà attribué.
+  Future<void> _resendGiftMail(OrderVoucherModel voucher) async {
+    if (_resendingVoucher != null) return;
+    setState(() => _resendingVoucher = voucher.id);
+    try {
+      final String? email = await _orderUseCase.resendGiftMail(voucher.id!);
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+          content: Text('E-mail renvoyé à ${email ?? voucher.email ?? ''}.'),
+          backgroundColor: kGreen));
+    } on ApiException catch (e) {
+      snackbarKey.currentState?.showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: kRed));
+    } finally {
+      if (mounted) setState(() => _resendingVoucher = null);
     }
   }
 
@@ -160,6 +168,9 @@ class ShowVouchersState extends State<ShowVouchers> {
     final bool isEvenRow = rowIndex % 2 == 0;
     final bool canDisable = !voucher.hasUser && !voucher.isDeleted;
     final bool canUpdateExpiry = !voucher.isDeleted;
+    final bool canResendMail = !voucher.isDeleted &&
+        voucher.isDonation != 1 &&
+        (voucher.email?.trim().isNotEmpty ?? false);
 
     return DataRow(
       color: isEvenRow
@@ -209,6 +220,28 @@ class ShowVouchersState extends State<ShowVouchers> {
                         : null,
                   ),
                 ),
+                if (_resendingVoucher == voucher.id)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: kBlue)),
+                  )
+                else
+                  Tooltip(
+                    message: canResendMail
+                        ? "Renvoyer l'e-mail"
+                        : 'Aucune adresse e-mail pour ce bon',
+                    child: IconButton(
+                      icon: Icon(Icons.forward_to_inbox,
+                          color: canResendMail ? kBlue : Colors.grey),
+                      onPressed: canResendMail && _resendingVoucher == null
+                          ? () => _resendGiftMail(voucher)
+                          : null,
+                    ),
+                  ),
               ],
             ),
           ),

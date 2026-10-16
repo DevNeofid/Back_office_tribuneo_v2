@@ -46,7 +46,10 @@ class BankAccountModel {
   }
 
   /// IBAN groupé par 4 caractères : `FR76 1680 7001 …`.
-  String? get formattedIban {
+  String? get formattedIban => groupIban(iban);
+
+  /// Groupe un IBAN par 4 caractères. `null` si absent.
+  static String? groupIban(String? iban) {
     final String? raw = iban?.replaceAll(' ', '');
     if (raw == null || raw.isEmpty) return null;
     final StringBuffer buffer = StringBuffer();

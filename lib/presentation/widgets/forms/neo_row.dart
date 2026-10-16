@@ -16,6 +16,9 @@ class NeoRow extends StatefulWidget {
   final String? initialNumber;
   final String? initialValue;
   final String? initialPersoMsg;
+
+  /// Lignes non modifiables (commande facturée, importée ou de la boutique).
+  final bool readOnly;
   NeoRow(
       {Key? key,
       RowModel? rowModel,
@@ -25,7 +28,8 @@ class NeoRow extends StatefulWidget {
       persoMsgController,
       this.initialNumber = '',
       this.initialValue = '',
-      this.initialPersoMsg = ''})
+      this.initialPersoMsg = '',
+      this.readOnly = false})
       : super(key: key);
 
   @override
@@ -90,12 +94,13 @@ class NeoRowState extends State<NeoRow> {
               flex: 2,
               child: NeoInput(
                 controller: widget.fundValueController,
+                readOnly: widget.readOnly,
                 hintText: 'Montant par chèque',
                 fillColor: kPWhite,
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   return FormValidator.validateValueByFund(
-                      double.parse(value?.toString() ?? '0'));
+                      double.tryParse(value ?? '') ?? 0);
                 },
                 // Limite l'entrée aux chiffres avec virgule uniquement
                 formatter: FilteringTextInputFormatter.allow(
@@ -107,12 +112,13 @@ class NeoRowState extends State<NeoRow> {
               flex: 2,
               child: NeoInput(
                 controller: widget.fundNumberController,
+                readOnly: widget.readOnly,
                 hintText: 'Nombre de chèque',
                 keyboardType: TextInputType.number,
                 fillColor: kPWhite,
                 validator: (value) {
                   return FormValidator.validateNumberOfFunds(
-                      int.parse(value?.toString() ?? '0'));
+                      int.tryParse(value ?? '') ?? 0);
                 },
                 formatter: FilteringTextInputFormatter.digitsOnly,
               ),
@@ -122,6 +128,7 @@ class NeoRowState extends State<NeoRow> {
               flex: 3,
               child: NeoInput(
                 controller: widget.persoMsgController,
+                readOnly: widget.readOnly,
                 hintText: 'Message personnalisé',
                 keyboardType: TextInputType.text,
                 fillColor: kPWhite,
