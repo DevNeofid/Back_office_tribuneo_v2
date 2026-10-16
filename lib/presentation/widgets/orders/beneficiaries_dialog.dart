@@ -324,12 +324,21 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
               child: Center(child: Text('Aucun bénéficiaire pour cette commande.')))
         else
           Expanded(
-            child: Scrollbar(
-              thumbVisibility: true,
-              child: SingleChildScrollView(
+            // Le tableau occupe toute la largeur disponible, sans descendre sous
+            // sa largeur minimale lisible (défilement horizontal en dessous).
+            child: LayoutBuilder(
+              builder: (context, constraints) => Scrollbar(
+                thumbVisibility: true,
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: _buildTable(),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: constraints.maxWidth > _tableMinWidth
+                          ? constraints.maxWidth
+                          : _tableMinWidth,
+                      child: _buildTable(),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -345,15 +354,15 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
     );
   }
 
-  static const Map<int, TableColumnWidth> _columnWidths = {
-    0: FixedColumnWidth(150),
-    1: FixedColumnWidth(150),
-    2: FixedColumnWidth(250),
-    3: FixedColumnWidth(140),
-    4: FixedColumnWidth(110),
-    5: FixedColumnWidth(100),
-    6: FixedColumnWidth(220),
-    7: FixedColumnWidth(110),
+  /// Proportions des colonnes ; leur somme est la largeur minimale du tableau.
+  static const List<double> _columnFlex = [
+    150, 150, 250, 140, 110, 100, 220, 110
+  ];
+  static final double _tableMinWidth =
+      _columnFlex.fold<double>(0, (sum, width) => sum + width);
+  static final Map<int, TableColumnWidth> _columnWidths = {
+    for (int i = 0; i < _columnFlex.length; i++)
+      i: FlexColumnWidth(_columnFlex[i]),
   };
 
   Widget _buildTable() {
