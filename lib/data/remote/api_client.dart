@@ -484,6 +484,35 @@ class ApiClient {
     }
   }
 
+  /// Méthode PATCH (envoi de JSON)
+  Future<Response> patch(
+    String suffixeUrl,
+    dynamic data, {
+    int? id,
+    String? overrideTenant,
+  }) async {
+    await _ensureInitialized();
+
+    String path = id != null ? '$suffixeUrl/$id' : suffixeUrl;
+
+    Map<String, dynamic> customHeaders = {};
+    if (overrideTenant != null) customHeaders['X-Tenant'] = overrideTenant;
+
+    try {
+      final response = await dio.patch(
+        path,
+        data: data,
+        options: Options(
+          headers: customHeaders.isNotEmpty ? customHeaders : null,
+        ),
+      );
+      return checkForMaintenance(response);
+    } catch (e) {
+      if (kDebugMode) print('Erreur lors de la requête PATCH: $e');
+      rethrow;
+    }
+  }
+
   /// Méthode softDelete (PUT)
   Future<Response> softDelete(String suffixeUrl,
       {int? id, String? data}) async {

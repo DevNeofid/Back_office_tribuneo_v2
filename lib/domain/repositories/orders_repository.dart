@@ -148,25 +148,10 @@ class OrderRepository extends BaseRepository {
       print('###DEBUG### [${response.statusCode}] $code ${error?['description']}');
     }
     throw ApiException(
-        _idempotencyMessage(code) ?? tenantErrorMessageForCode(code) ?? fallback,
+        idempotencyMessageForCode(code) ??
+            tenantErrorMessageForCode(code) ??
+            fallback,
         code: code);
-  }
-
-  /// Messages des refus liés à l'en-tête `Idempotency-Key` (paiements et
-  /// commandes), `null` pour tout autre code.
-  String? _idempotencyMessage(String? code) {
-    switch (code) {
-      case 'IDEMPOTENCY_REQUEST_IN_PROGRESS':
-        return "L'enregistrement précédent est encore en cours. "
-            'Patientez quelques secondes.';
-      case 'IDEMPOTENCY_KEY_RETRY':
-        return "L'enregistrement précédent a échoué. Réessayez.";
-      case 'IDEMPOTENCY_KEY_REUSED':
-      case 'IDEMPOTENCY_KEY_INVALID':
-        return 'Une erreur technique est survenue. Réessayez.';
-      default:
-        return null;
-    }
   }
 
   /// Modifie une commande saisie à la main. Les bons ne sont plus recréés : l'API
@@ -557,7 +542,7 @@ class OrderRepository extends BaseRepository {
   /// message générique plutôt que sur la description anglaise de l'API.
   String _addPaymentMessage(String? code, String description) {
     final String? shared =
-        _idempotencyMessage(code) ?? tenantErrorMessageForCode(code);
+        idempotencyMessageForCode(code) ?? tenantErrorMessageForCode(code);
     if (shared != null) return shared;
     switch (code) {
       case 'BANK_ACCOUNT_REQUIRED':

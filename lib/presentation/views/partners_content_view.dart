@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/merchant_import_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
@@ -356,6 +357,19 @@ class PartnersContentViewState extends State<PartnersContentView>
     }
   }
 
+  /// Import assisté de commerçants, en plein écran. Recharge la liste si au
+  /// moins un commerçant a été importé.
+  Future<void> _openMerchantImport() async {
+    final bool? imported = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) =>
+            const Dialog.fullscreen(child: MerchantImportView()));
+    if (imported == true) {
+      _refreshPartners(withDelay: true);
+    }
+  }
+
   Future<void> _addAddress(EntityModel partner) async {
     final bool? shouldRefresh = await showDialog<bool>(
         useSafeArea: true,
@@ -554,14 +568,27 @@ class PartnersContentViewState extends State<PartnersContentView>
         const SizedBox(
           height: 10,
         ),
-        Center(
-          child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(kOrange),
-                iconColor: WidgetStateProperty.all(kWhite),
-              ),
-              onPressed: () => _checkSiretAndAddPartner(),
-              child: const Icon(Icons.add)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(kOrange),
+                  iconColor: WidgetStateProperty.all(kWhite),
+                ),
+                onPressed: () => _checkSiretAndAddPartner(),
+                child: const Icon(Icons.add)),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(kBlue),
+                  foregroundColor: WidgetStateProperty.all(kWhite),
+                  iconColor: WidgetStateProperty.all(kWhite),
+                ),
+                onPressed: _openMerchantImport,
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Importer des commerçants')),
+          ],
         ),
         const SizedBox(
           height: 20,

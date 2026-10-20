@@ -121,6 +121,23 @@ abstract class BaseRepository {
     }
   }
 
+  /// Messages des refus liés à l'en-tête `Idempotency-Key`, `null` pour tout
+  /// autre code.
+  String? idempotencyMessageForCode(String? code) {
+    switch (code) {
+      case 'IDEMPOTENCY_REQUEST_IN_PROGRESS':
+        return "L'enregistrement précédent est encore en cours. "
+            'Patientez quelques secondes.';
+      case 'IDEMPOTENCY_KEY_RETRY':
+        return "L'enregistrement précédent a échoué. Réessayez.";
+      case 'IDEMPOTENCY_KEY_REUSED':
+      case 'IDEMPOTENCY_KEY_INVALID':
+        return 'Une erreur technique est survenue. Réessayez.';
+      default:
+        return null;
+    }
+  }
+
   /// [tenantErrorMessageForCode] appliqué au corps d'une réponse en erreur.
   String? tenantErrorMessage(dynamic response) =>
       tenantErrorMessageForCode(apiErrorCode(decodeApiError(response.data)));
