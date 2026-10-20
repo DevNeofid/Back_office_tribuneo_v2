@@ -168,9 +168,41 @@ class MerchantImportRow {
   /// Texte affiché pour [field] (chaîne vide si absent).
   String textOf(String field) => displayText(fields[field]);
 
-  /// La valeur actuelle diffère de la valeur d'origine.
+  /// La valeur actuelle diffère de la valeur d'origine. La normalisation faite
+  /// par le serveur (espaces du SIRET, casse de l'email, `1` et `1.0`…) n'est
+  /// pas une modification : seul un vrai changement de valeur compte.
   bool isModified(String field) =>
-      !sameValue(fields[field], suggestedValues[field]);
+      normalized(field, fields[field]) !=
+      normalized(field, suggestedValues[field]);
+
+  /// Valeur comparable de [field], selon les règles de normalisation de l'API
+  /// (`MerchantImportFields::normalize`).
+  static String normalized(String field, dynamic value) {
+    final String text = displayText(value);
+    if (text.isEmpty) return '';
+    switch (field) {
+      case 'siret':
+        final String digits = text.replaceAll(RegExp(r'\D'), '');
+        return digits.isEmpty ? text : digits;
+      case 'phone':
+        return text.replaceAll(RegExp(r'[\s.]'), '');
+      case 'type':
+      case 'email':
+        return text.toLowerCase();
+      case 'code':
+      case 'bic':
+        return text.toUpperCase();
+      case 'iban':
+      case 'intracommunity_vat_number':
+        return text.replaceAll(RegExp(r'\s'), '').toUpperCase();
+      case 'lat':
+      case 'lng':
+        final num? number = num.tryParse(text.replaceAll(',', '.'));
+        return number == null ? text : number.toDouble().toString();
+      default:
+        return text;
+    }
+  }
 
   /// Provenance de la valeur d'origine, `null` si inconnue.
   String? sourceOf(String field) {

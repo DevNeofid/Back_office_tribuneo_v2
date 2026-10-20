@@ -103,6 +103,24 @@ void main() {
     expect(find.text('Enregistré'), findsOneWidget);
   });
 
+  testWidgets('le nom reste visible pendant le défilement horizontal',
+      (tester) async {
+    await _pumpGrid(tester, _FakeUseCase([_row(1, 'Boulangerie Paul')]));
+
+    final double cityBefore =
+        tester.getTopLeft(find.byKey(const ValueKey('cell-1-city'))).dx;
+    final double nameBefore =
+        tester.getTopLeft(find.text('Boulangerie Paul')).dx;
+
+    await tester.drag(
+        find.byKey(const ValueKey('cell-1-city')), const Offset(-600, 0));
+    await tester.pumpAndSettle();
+
+    expect(tester.getTopLeft(find.byKey(const ValueKey('cell-1-city'))).dx,
+        lessThan(cityBefore));
+    expect(tester.getTopLeft(find.text('Boulangerie Paul')).dx, nameBefore);
+  });
+
   testWidgets('modifier une cellule l\'enregistre aussitôt', (tester) async {
     final _FakeUseCase useCase = _FakeUseCase([_row(1, 'Boulangerie Paul')]);
     await _pumpGrid(tester, useCase);
@@ -158,17 +176,18 @@ void main() {
     expect(checkbox().onChanged, isNull);
 
     // Correction du SIRET : la case devient active sans recharger.
-    final Finder siretCell = find.byWidgetPredicate((widget) =>
-        widget is Container &&
-        widget.decoration is BoxDecoration &&
-        (widget.decoration as BoxDecoration).border != null);
-    await tester.tap(siretCell.first);
+    // Le statut dit ce qu'il reste à faire, la cellule vide est signalée.
+    expect(find.text('1 à corriger'), findsOneWidget);
+    expect(find.text('À renseigner'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('cell-1-siret')));
     await tester.pump();
     await tester.enterText(find.byType(TextField).last, '40305211102616');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
 
     expect(checkbox().onChanged, isNotNull);
+    expect(find.text('Prête à valider'), findsOneWidget);
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     expect(

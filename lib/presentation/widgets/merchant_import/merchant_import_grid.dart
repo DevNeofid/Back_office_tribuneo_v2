@@ -120,37 +120,59 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   Timer? _editDebounce;
   Timer? _pollTimer;
 
-  final ScrollController _vertical = ScrollController();
+  /// Volet figé à gauche (case, statut, nom) et volet défilant à droite :
+  /// défilement vertical synchronisé, horizontal propre au volet droit.
+  final ScrollController _leftVertical = ScrollController();
+  final ScrollController _rightVertical = ScrollController();
   final ScrollController _horizontal = ScrollController();
+  bool _syncingScroll = false;
+
+  /// Ligne survolée, surlignée dans les deux volets pour la suivre d'un bout
+  /// à l'autre.
+  final ValueNotifier<int?> _hoveredRowId = ValueNotifier<int?>(null);
 
   static const int _pageSize = 50;
-  static const double _rowHeight = 44;
+  static const double _rowHeight = 40;
+  static const double _headerHeight = 44;
   static const String _typePartner = 'partner';
   static const String _typeCustomer = 'customer';
 
-  static const double _checkWidth = 48;
-  static const double _warnWidth = 40;
-  static const double _actionsWidth = 90;
+  static const double _accentWidth = 3;
+  static const double _checkWidth = 44;
+  static const double _statusWidth = 140;
+  static const double _nameWidth = 240;
+  static const double _actionsWidth = 96;
+  static const double _leftWidth =
+      _accentWidth + _checkWidth + _statusWidth + _nameWidth;
 
-  static const List<_GridColumn> _fieldColumns = [
-    _GridColumn('name', 'Nom', 220),
-    _GridColumn('type', 'Type', 120, editor: _Editor.type),
+  /// Champs dont l'absence bloque la validation (le SIRET, pour un commerçant
+  /// seulement). Source : `MerchantImportValidator` de l'API.
+  static const Set<String> _requiredFields = {'name', 'type', 'email', 'siret'};
+
+  static const _GridColumn _nameColumn = _GridColumn('name', 'Nom', _nameWidth);
+
+  /// Colonnes du volet droit, dans l'ordre.
+  static const List<_GridColumn> _scrollColumns = [
+    _GridColumn('type', 'Type', 120,
+        editor: _Editor.type, hint: 'Commerçant ou client.'),
     _GridColumn('siret', 'SIRET', 150),
-    _GridColumn('email', 'Email', 200),
+    _GridColumn('email', 'Email', 210),
     _GridColumn('phone', 'Téléphone', 130),
     _GridColumn('street', 'Adresse', 220),
     _GridColumn('zip', 'CP', 80),
-    _GridColumn('city', 'Ville', 140),
+    _GridColumn('city', 'Ville', 150),
     _GridColumn('country', 'Pays', 100),
-    _GridColumn('lat', 'Latitude', 100, numeric: true),
-    _GridColumn('lng', 'Longitude', 100, numeric: true),
+    _GridColumn('lat', 'Latitude', 125,
+        numeric: true,
+        hint: "Sans coordonnées, le commerçant n'apparaît pas sur la carte."),
+    _GridColumn('lng', 'Longitude', 125, numeric: true),
     _GridColumn('activity_sectors', 'Secteurs', 180,
         hint: 'Plusieurs secteurs : séparez-les par « / ».'),
-    _GridColumn('code', 'Code', 100, hint: "Vide : généré à l'import."),
+    _GridColumn('code', 'Code', 110, hint: "Vide : généré à l'import."),
     _GridColumn('intracommunity_vat_number', 'TVA intracom.', 150),
-    _GridColumn('iban', 'IBAN', 230),
+    _GridColumn('iban', 'IBAN', 240),
     _GridColumn('bic', 'BIC', 110),
-    _GridColumn('bank_key', 'Clé RIB', 70),
+    _GridColumn('bank_key', 'Clé RIB', 80),
     _GridColumn('account_number', 'N° comptable', 120),
     _GridColumn('naf', 'NAF', 90,
         editor: _Editor.readOnly, hint: 'Rempli par la recherche automatique.'),
@@ -158,26 +180,14 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         editor: _Editor.readOnly, hint: 'Rempli par la recherche automatique.'),
   ];
 
-  static final List<_GridColumn> _textColumns =
-      _fieldColumns.where((column) => column.editor == _Editor.text).toList();
+  /// Colonnes texte, dans l'ordre de navigation au clavier (Tab).
+  static final List<_GridColumn> _textColumns = [_nameColumn, ..._scrollColumns]
+      .where((column) => column.editor == _Editor.text)
+      .toList();
 
-  static final Set<String> _visibleFields =
-      _fieldColumns.map((column) => column.key).toSet();
-
-  static final List<double> _columnWidths = [
-    _checkWidth,
-    _warnWidth,
-    ..._fieldColumns.map((column) => column.width),
-    _actionsWidth,
-  ];
-
-  static final double _tableWidth =
-      _columnWidths.fold<double>(0, (sum, width) => sum + width);
-
-  static final Map<int, TableColumnWidth> _tableColumnWidths = {
-    for (int i = 0; i < _columnWidths.length; i++)
-      i: FixedColumnWidth(_columnWidths[i]),
-  };
+  static final double _rightWidth =
+      _scrollColumns.fold<double>(0, (sum, column) => sum + column.width) +
+          _actionsWidth;
 
   @override
   void initState() {
@@ -203,6 +213,9 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         if (mounted) setState(() {});
       },
     );
+    _leftVertical.addListener(() => _syncScroll(_leftVertical, _rightVertical));
+    _rightVertical
+        .addListener(() => _syncScroll(_rightVertical, _leftVertical));
     _reloadAll();
   }
 
@@ -214,8 +227,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     _pollTimer?.cancel();
     _editing?.dispose();
     _searchController.dispose();
-    _vertical.dispose();
+    _leftVertical.dispose();
+    _rightVertical.dispose();
     _horizontal.dispose();
+    _hoveredRowId.dispose();
     super.dispose();
   }
 
@@ -861,6 +876,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           _buildFilters(counts),
           ..._buildBanners(),
           const SizedBox(height: 12),
+          _buildLegend(),
+          const SizedBox(height: 10),
           Expanded(
             child: _pageRows.isEmpty
                 ? Center(
@@ -1082,205 +1099,466 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   void _goToPage(int page) {
     _finishEdit(commit: true);
     setState(() => _page = page);
-    if (_vertical.hasClients) _vertical.jumpTo(0);
+    if (_leftVertical.hasClients) _leftVertical.jumpTo(0);
   }
 
-  /// En-tête figé en haut ; défilement horizontal commun à l'en-tête et au
-  /// corps, défilement vertical du corps seul. La barre verticale reste
-  /// visible au bord droit quel que soit le défilement horizontal.
+  /// Garde les deux volets à la même hauteur de défilement.
+  void _syncScroll(ScrollController from, ScrollController to) {
+    if (_syncingScroll || !from.hasClients || !to.hasClients) return;
+    final double offset = from.offset.clamp(0, to.position.maxScrollExtent);
+    if (offset == to.offset) return;
+    _syncingScroll = true;
+    to.jumpTo(offset);
+    _syncingScroll = false;
+  }
+
+  /// Amène la colonne de [issue] à l'écran et ouvre la cellule en édition.
+  void _jumpToIssue(MerchantImportRow row, MerchantImportIssue issue) {
+    final String? field = issue.field;
+    if (field == null) return;
+    _GridColumn? column;
+    double offset = 0;
+    if (field == _nameColumn.key) {
+      column = _nameColumn;
+    } else {
+      for (final _GridColumn candidate in _scrollColumns) {
+        if (candidate.key == field) {
+          column = candidate;
+          break;
+        }
+        offset += candidate.width;
+      }
+      if (column != null && _horizontal.hasClients) {
+        _horizontal.animateTo(
+            (offset - 40).clamp(0, _horizontal.position.maxScrollExtent),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut);
+      }
+    }
+    if (column != null) _startEdit(row, column);
+  }
+
+  /// Légende des repères de la grille.
+  Widget _buildLegend() {
+    final TextStyle style = GoogleFonts.poppins(fontSize: 12, color: kGrey);
+    Widget item(Widget marker, String text) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            marker,
+            const SizedBox(width: 6),
+            Text(text, style: style)
+          ],
+        );
+    return Wrap(
+      spacing: 24,
+      runSpacing: 6,
+      children: [
+        item(const Icon(Icons.error_outline, color: kRed, size: 16),
+            'À corriger : la ligne ne peut pas être validée'),
+        item(const Icon(Icons.warning_amber_rounded, color: kOrange, size: 16),
+            'À vérifier : n\'empêche pas l\'import'),
+        item(
+            CustomPaint(
+                size: const Size(10, 10), painter: _CornerMarkerPainter(kBlue)),
+            'Modifié par rapport au fichier'),
+        item(
+            Text('*',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w700, color: kOrange)),
+            'Obligatoire'),
+        item(const Icon(Icons.mouse_outlined, color: kGrey, size: 16),
+            'Survolez une cellule ou un statut pour le détail'),
+      ],
+    );
+  }
+
+  /// Volet figé à gauche (case, statut, nom) et volet défilant à droite. Le
+  /// défilement vertical est synchronisé ; la ligne survolée ou en cours
+  /// d'édition est surlignée dans les deux volets.
   Widget _buildGrid() {
-    return LayoutBuilder(
-      builder: (context, constraints) => Scrollbar(
-        controller: _vertical,
-        thumbVisibility: true,
-        notificationPredicate: (notification) => notification.depth == 1,
-        child: Scrollbar(
-          controller: _horizontal,
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            controller: _horizontal,
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: _tableWidth,
-              height: constraints.maxHeight,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderTable(),
-                  Expanded(
+    final ScrollBehavior noScrollbars =
+        ScrollConfiguration.of(context).copyWith(scrollbars: false);
+    const EdgeInsets listPadding = EdgeInsets.only(bottom: 14);
+
+    final Widget leftPane = Column(
+      children: [
+        _headerRow([
+          const SizedBox(width: _accentWidth),
+          _headerCell('', _checkWidth,
+              hint: 'Cochez les lignes une par une, une fois relues.'),
+          _headerCell('Statut', _statusWidth,
+              hint: 'Survolez le statut pour la liste des anomalies ; '
+                  'cliquez dessus pour aller à la première à corriger.'),
+          _headerCell(_nameColumn.label, _nameColumn.width,
+              required: _requiredHint(_nameColumn.key)),
+        ]),
+        Expanded(
+          child: ScrollConfiguration(
+            behavior: noScrollbars,
+            child: ListView.builder(
+              controller: _leftVertical,
+              padding: listPadding,
+              itemExtent: _rowHeight,
+              itemCount: _pageRows.length,
+              itemBuilder: (context, i) => _leftRow(_pageRows[i], i),
+            ),
+          ),
+        ),
+      ],
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: kPWhite,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: kLBlue.withValues(alpha: 0.7)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: _leftWidth),
+              child: Scrollbar(
+                controller: _rightVertical,
+                thumbVisibility: true,
+                notificationPredicate: (notification) =>
+                    notification.depth == 1,
+                child: Scrollbar(
+                  controller: _horizontal,
+                  thumbVisibility: true,
+                  child: ScrollConfiguration(
+                    behavior: noScrollbars,
                     child: SingleChildScrollView(
-                      controller: _vertical,
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Table(
-                        columnWidths: _tableColumnWidths,
-                        defaultVerticalAlignment:
-                            TableCellVerticalAlignment.middle,
-                        border: TableBorder(
-                            horizontalInside: BorderSide(
-                                color: kLBlue.withValues(alpha: 0.5))),
-                        children: [
-                          for (int i = 0; i < _pageRows.length; i++)
-                            _buildRow(_pageRows[i], i),
-                        ],
+                      controller: _horizontal,
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(
+                        width: _rightWidth,
+                        height: constraints.maxHeight,
+                        child: Column(
+                          children: [
+                            _headerRow([
+                              ..._scrollColumns.map((column) => _headerCell(
+                                  column.label, column.width,
+                                  hint: column.hint,
+                                  required: _requiredHint(column.key))),
+                              _headerCell('', _actionsWidth),
+                            ]),
+                            Expanded(
+                              child: ListView.builder(
+                                controller: _rightVertical,
+                                padding: listPadding,
+                                itemExtent: _rowHeight,
+                                itemCount: _pageRows.length,
+                                itemBuilder: (context, i) =>
+                                    _rightRow(_pageRows[i], i),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
+            // Le volet figé passe au-dessus, avec une ombre dès que le volet
+            // droit a défilé.
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: _leftWidth,
+              child: AnimatedBuilder(
+                animation: _horizontal,
+                builder: (context, child) => DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: kPWhite,
+                    border: Border(
+                        right:
+                            BorderSide(color: kLBlue.withValues(alpha: 0.9))),
+                    boxShadow: _horizontal.hasClients && _horizontal.offset > 0
+                        ? [
+                            BoxShadow(
+                                color: kBlueEnd.withValues(alpha: 0.18),
+                                blurRadius: 8,
+                                offset: const Offset(3, 0)),
+                          ]
+                        : null,
+                  ),
+                  child: child,
+                ),
+                child: leftPane,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// `Obligatoire…` pour l'info-bulle d'en-tête, `null` si le champ ne l'est
+  /// pas.
+  static String? _requiredHint(String field) {
+    if (!_requiredFields.contains(field)) return null;
+    return field == 'siret'
+        ? 'Obligatoire pour un commerçant.'
+        : 'Obligatoire.';
+  }
+
+  Widget _headerRow(List<Widget> cells) => Container(
+        height: _headerHeight,
+        color: kBlue,
+        child: Row(children: cells),
+      );
+
+  Widget _headerCell(String label, double width,
+      {String? hint, String? required}) {
+    final TextStyle style = GoogleFonts.poppins(
+        fontSize: 13, fontWeight: FontWeight.w600, color: kWhite);
+    Widget cell = SizedBox(
+      width: width,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text.rich(
+            TextSpan(text: label, children: [
+              if (required != null)
+                const TextSpan(text: ' *', style: TextStyle(color: kOrange)),
+            ]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: style,
           ),
         ),
       ),
     );
+    final String tooltip = [required, hint].whereType<String>().join('\n');
+    if (tooltip.isNotEmpty) cell = Tooltip(message: tooltip, child: cell);
+    return cell;
   }
 
-  Widget _buildHeaderTable() {
-    Widget label(String text, {String? hint}) {
-      final Widget child = Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Text(text,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-                fontSize: 13, fontWeight: FontWeight.w600, color: kWhite)),
-      );
-      return hint == null ? child : Tooltip(message: hint, child: child);
+  Color _rowColor(String status, int index) {
+    final Color tint;
+    switch (status) {
+      case MerchantImportRow.statusImported:
+        tint = kGreen.withValues(alpha: 0.10);
+        break;
+      case MerchantImportRow.statusRejected:
+        tint = Colors.grey.withValues(alpha: 0.14);
+        break;
+      case MerchantImportRow.statusValidated:
+        tint = kGreen.withValues(alpha: 0.06);
+        break;
+      default:
+        tint =
+            index.isOdd ? kLBlue.withValues(alpha: 0.10) : Colors.transparent;
     }
+    return Color.alphaBlend(tint, kPWhite);
+  }
 
-    return Table(
-      columnWidths: _tableColumnWidths,
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      children: [
-        TableRow(
-          decoration: const BoxDecoration(color: kBlue),
-          children: [
-            label('', hint: 'Cochez les lignes une par une une fois relues.'),
-            label('⚠', hint: 'Anomalies de la ligne'),
-            ..._fieldColumns
-                .map((column) => label(column.label, hint: column.hint)),
-            label(''),
-          ],
+  /// Fond, survol et repère gauche d'une ligne, communs aux deux volets.
+  Widget _rowShell(MerchantImportRow row, int index,
+      {required List<Widget> cells, bool leftPane = false}) {
+    final String status = _statusOf(row);
+    final Color base = _rowColor(status, index);
+    return MouseRegion(
+      onEnter: (_) => _hoveredRowId.value = row.id,
+      onExit: (_) {
+        if (_hoveredRowId.value == row.id) _hoveredRowId.value = null;
+      },
+      child: ValueListenableBuilder<int?>(
+        valueListenable: _hoveredRowId,
+        builder: (context, hovered, child) {
+          final bool active = hovered == row.id || _editing?.rowId == row.id;
+          Color accent = Colors.transparent;
+          if (status == MerchantImportRow.statusFailed) {
+            accent = kRed;
+          } else if (active) {
+            accent = kBlue;
+          }
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              color: active
+                  ? Color.alphaBlend(kBlue.withValues(alpha: 0.08), base)
+                  : base,
+              border: Border(
+                bottom: BorderSide(color: kLBlue.withValues(alpha: 0.45)),
+                left: leftPane
+                    ? BorderSide(color: accent, width: _accentWidth)
+                    : BorderSide.none,
+              ),
+            ),
+            child: child,
+          );
+        },
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: cells,
         ),
-      ],
+      ),
     );
   }
 
-  TableRow _buildRow(MerchantImportRow row, int index) {
+  Widget _leftRow(MerchantImportRow row, int index) {
+    final String status = _statusOf(row);
+    return _rowShell(row, index, leftPane: true, cells: [
+      _checkCell(row, status),
+      _statusCell(row, status),
+      _fieldCell(row, _nameColumn,
+          rowEditable: _rowEditable(row),
+          struck: status == MerchantImportRow.statusRejected),
+    ]);
+  }
+
+  Widget _rightRow(MerchantImportRow row, int index) {
     final String status = _statusOf(row);
     final bool rowEditable = _rowEditable(row);
     final bool struck = status == MerchantImportRow.statusRejected;
-
-    Color? background;
-    if (status == MerchantImportRow.statusImported) {
-      background = kGreen.withValues(alpha: 0.12);
-    } else if (status == MerchantImportRow.statusRejected) {
-      background = Colors.grey.withValues(alpha: 0.12);
-    } else if (status == MerchantImportRow.statusValidated) {
-      background = kGreen.withValues(alpha: 0.06);
-    } else if (index.isOdd) {
-      background = kLBlue.withValues(alpha: 0.10);
-    }
-
-    return TableRow(
-      decoration: BoxDecoration(
-        color: background,
-        border: status == MerchantImportRow.statusFailed
-            ? const Border(left: BorderSide(color: kRed, width: 3))
-            : null,
-      ),
-      children: [
-        _checkCell(row, status),
-        _warningCell(row),
-        ..._fieldColumns
-            .map((column) => _fieldCell(row, column, rowEditable, struck)),
-        _actionsCell(row, status),
-      ],
-    );
+    return _rowShell(row, index, cells: [
+      ..._scrollColumns.map((column) =>
+          _fieldCell(row, column, rowEditable: rowEditable, struck: struck)),
+      _actionsCell(row, status),
+    ]);
   }
 
   Widget _checkCell(MerchantImportRow row, String status) {
+    final Widget content;
     if (status == MerchantImportRow.statusImported) {
-      return const SizedBox(
-        height: _rowHeight,
-        child: Tooltip(
-            message: 'Importé',
-            child: Icon(Icons.check_circle, color: kGreen, size: 22)),
+      content = const Tooltip(
+          message: 'Importé',
+          child: Icon(Icons.check_circle, color: kGreen, size: 22));
+    } else {
+      final bool checked = status == MerchantImportRow.statusValidated;
+      final List<MerchantImportIssue> blocking = row.blockingIssues;
+      // Une ligne cochée qui serait devenue bloquante reste décochable.
+      final bool enabled = _editable &&
+          status != MerchantImportRow.statusRejected &&
+          (blocking.isEmpty || checked);
+      Widget box = Checkbox(
+        value: checked,
+        activeColor: kGreen,
+        onChanged:
+            enabled ? (value) => _toggleValidated(row, value == true) : null,
       );
-    }
-    final bool checked = status == MerchantImportRow.statusValidated;
-    final List<MerchantImportIssue> blocking = row.blockingIssues;
-    // Une ligne cochée qui serait devenue bloquante reste décochable.
-    final bool enabled = _editable &&
-        status != MerchantImportRow.statusRejected &&
-        (blocking.isEmpty || checked);
-
-    Widget box = Checkbox(
-      value: checked,
-      activeColor: kGreen,
-      onChanged:
-          enabled ? (value) => _toggleValidated(row, value == true) : null,
-    );
-    if (blocking.isNotEmpty && !checked) {
-      box = Tooltip(
-        message: 'À corriger avant validation :\n'
-            '${blocking.map((issue) => '• ${issue.message}').join('\n')}',
-        child: box,
-      );
+      if (blocking.isNotEmpty && !checked) {
+        box = Tooltip(
+          message: 'À corriger avant validation :\n'
+              '${blocking.map((issue) => '• ${issue.message}').join('\n')}',
+          child: box,
+        );
+      }
+      content = box;
     }
     return SizedBox(
-      height: _rowHeight,
+      width: _checkWidth,
       child: Stack(
         alignment: Alignment.center,
+        children: [content, _saveBadge(row.id, RowSaveQueue.statusField)],
+      ),
+    );
+  }
+
+  /// Résumé lisible de la ligne : ce qu'il reste à faire, en clair.
+  Widget _statusCell(MerchantImportRow row, String status) {
+    final List<MerchantImportIssue> errors = row.blockingIssues;
+    final List<MerchantImportIssue> warnings =
+        row.issues.where((issue) => issue.isWarning).toList();
+    final List<MerchantImportIssue> infos =
+        row.issues.where((issue) => issue.isInfo).toList();
+    final String importError = row.error ?? '';
+
+    String label;
+    Color color;
+    IconData icon;
+    if (status == MerchantImportRow.statusImported) {
+      (label, color, icon) = ('Importée', kGreen, Icons.check_circle);
+    } else if (status == MerchantImportRow.statusRejected) {
+      (label, color, icon) = ('Écartée', kGrey, Icons.remove_circle_outline);
+    } else if (status == MerchantImportRow.statusFailed && errors.isEmpty) {
+      (label, color, icon) = ('Échec import', kRed, Icons.error);
+    } else if (errors.isNotEmpty) {
+      (label, color, icon) =
+          ('${errors.length} à corriger', kRed, Icons.error_outline);
+    } else if (status == MerchantImportRow.statusValidated) {
+      (label, color, icon) = ('Validée', kGreen, Icons.check_circle_outline);
+    } else if (warnings.isNotEmpty) {
+      (label, color, icon) = (
+        '${warnings.length} à vérifier',
+        kOrange,
+        Icons.warning_amber_rounded
+      );
+    } else {
+      (label, color, icon) = ('Prête à valider', kBlue, Icons.done);
+    }
+
+    String section(String title, List<MerchantImportIssue> issues) =>
+        '$title\n${issues.map((issue) => '• ${issue.message}').join('\n')}';
+    final List<String> tooltip = [
+      if (status == MerchantImportRow.statusFailed && importError.isNotEmpty)
+        'Échec de l\'import : $importError',
+      if (errors.isNotEmpty)
+        section('À corriger (bloque la validation) :', errors),
+      if (warnings.isNotEmpty)
+        section('À vérifier (n\'empêche pas l\'import) :', warnings),
+      if (infos.isNotEmpty) section('Pour information :', infos),
+      if (row.issues.isEmpty && status == MerchantImportRow.statusPending)
+        'Aucune anomalie : cochez la ligne pour la valider.',
+    ];
+
+    Widget chip = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          box,
-          _saveBadge(row.id, RowSaveQueue.statusField),
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+          ),
         ],
       ),
     );
-  }
-
-  /// Anomalies sans colonne visible (ou de la ligne entière) et erreur d'import.
-  Widget _warningCell(MerchantImportRow row) {
-    final List<MerchantImportIssue> issues = row.issues
-        .where((issue) =>
-            issue.field == null || !_visibleFields.contains(issue.field))
-        .toList();
-    final List<String> lines = [
-      if (row.isFailed && (row.error ?? '').isNotEmpty)
-        'Échec de l\'import : ${row.error}',
-      ...issues.map((issue) => issue.message),
-    ];
-    if (lines.isEmpty) return const SizedBox(height: _rowHeight);
-
-    final bool error = (row.isFailed && (row.error ?? '').isNotEmpty) ||
-        issues.any((issue) => issue.isError);
-    final bool warning = issues.any((issue) => issue.isWarning);
-    return SizedBox(
-      height: _rowHeight,
-      child: Tooltip(
-        message: lines.join('\n'),
-        child: Icon(
-          error
-              ? Icons.error
-              : warning
-                  ? Icons.warning_amber_rounded
-                  : Icons.info_outline,
-          color: error
-              ? kRed
-              : warning
-                  ? kOrange
-                  : kBlue,
-          size: 20,
+    if (errors.isNotEmpty && _rowEditable(row)) {
+      chip = MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => _jumpToIssue(row, errors.first),
+          child: chip,
         ),
+      );
+    }
+    if (tooltip.isNotEmpty) {
+      chip = Tooltip(
+        message: tooltip.join('\n\n'),
+        waitDuration: const Duration(milliseconds: 300),
+        child: chip,
+      );
+    }
+    return SizedBox(
+      width: _statusWidth,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Align(alignment: Alignment.centerLeft, child: chip),
       ),
     );
   }
 
-  Widget _fieldCell(MerchantImportRow row, _GridColumn column, bool rowEditable,
-      bool struck) {
+  Widget _fieldCell(MerchantImportRow row, _GridColumn column,
+      {required bool rowEditable, required bool struck}) {
     final String field = column.key;
     final List<MerchantImportIssue> issues = row.issuesFor(field);
-    final bool hasError = issues.any((issue) => issue.isError);
+    final List<MerchantImportIssue> errors =
+        issues.where((issue) => issue.isError).toList();
     final bool hasWarning = issues.any((issue) => issue.isWarning);
     final bool hasInfo = issues.any((issue) => issue.isInfo);
     final bool pending = _queue.hasPending(row.id, field);
@@ -1290,15 +1568,22 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     final bool editable = rowEditable && column.editor != _Editor.readOnly;
     final bool editing = _isEditing(row, field);
     final RowEditState? saveState = _queue.stateOf(row.id, field);
+    final String text = _typeLabel(field, _displayValue(row, field));
+    // Cellule vide signalée : obligatoire (rouge) ou conseillée (gris).
+    final String? placeholder = text.isNotEmpty || editing
+        ? null
+        : errors.isNotEmpty
+            ? 'À renseigner'
+            : hasWarning
+                ? 'Non renseigné'
+                : null;
 
     final List<String> tooltip = [
       ...issues.map((issue) => issue.message),
       if (modified)
-        () {
-          final String original = _typeLabel(field, row.originalOf(field));
-          return 'Valeur d\'origine : ${original.isEmpty ? '(vide)' : original}';
-        }(),
-      if (source != null) 'Source : $source',
+        'Valeur du fichier : '
+            '${_typeLabel(field, row.originalOf(field)).isEmpty ? '(vide)' : _typeLabel(field, row.originalOf(field))}',
+      if (source != null && source != 'fichier') 'Source : $source',
       if (saveState == RowEditState.failed)
         'Enregistrement impossible : cliquez sur l\'icône pour réessayer.',
     ];
@@ -1306,75 +1591,98 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     final Widget content;
     if (editing) {
       final _EditingCell cell = _editing!;
-      content = Focus(
-        canRequestFocus: false,
-        skipTraversal: true,
-        onKeyEvent: (_, event) => _onEditKey(cell, event),
-        child: TextField(
-          controller: cell.controller,
-          focusNode: cell.focusNode,
-          autofocus: true,
-          keyboardType: column.numeric
-              ? const TextInputType.numberWithOptions(
-                  decimal: true, signed: true)
-              : TextInputType.text,
-          onSubmitted: (_) {
-            if (identical(_editing, cell)) _finishEdit(commit: true);
-          },
-          onTapOutside: (_) {
-            if (identical(_editing, cell)) _finishEdit(commit: true);
-          },
-          style: GoogleFonts.poppins(fontSize: 13, color: kBlueEnd),
-          decoration: const InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: kPWhite,
-            contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-            border: OutlineInputBorder(),
-            focusedBorder:
-                OutlineInputBorder(borderSide: BorderSide(color: kBlue)),
+      content = Padding(
+        padding: const EdgeInsets.all(3),
+        child: Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          onKeyEvent: (_, event) => _onEditKey(cell, event),
+          child: TextField(
+            controller: cell.controller,
+            focusNode: cell.focusNode,
+            autofocus: true,
+            keyboardType: column.numeric
+                ? const TextInputType.numberWithOptions(
+                    decimal: true, signed: true)
+                : TextInputType.text,
+            onSubmitted: (_) {
+              if (identical(_editing, cell)) _finishEdit(commit: true);
+            },
+            onTapOutside: (_) {
+              if (identical(_editing, cell)) _finishEdit(commit: true);
+            },
+            style: GoogleFonts.poppins(fontSize: 13, color: kBlueEnd),
+            decoration: const InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: kWhite,
+              contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              border: OutlineInputBorder(),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: kBlue, width: 2)),
+            ),
           ),
         ),
       );
     } else {
-      content = Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          _typeLabel(field, _displayValue(row, field)),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: struck ? kGrey : kBlueEnd,
-              decoration: struck ? TextDecoration.lineThrough : null),
+      final IconData? markerIcon = errors.isNotEmpty
+          ? Icons.error_outline
+          : hasWarning
+              ? Icons.warning_amber_rounded
+              : hasInfo
+                  ? Icons.info_outline
+                  : null;
+      final Color markerColor = errors.isNotEmpty
+          ? kRed
+          : hasWarning
+              ? kOrange
+              : kBlue;
+      content = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                placeholder ?? text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                // Italique de synthèse : pas de police italique à charger.
+                style: placeholder != null
+                    ? GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: errors.isNotEmpty ? kRed : kGrey)
+                        .copyWith(fontStyle: FontStyle.italic)
+                    : GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: struck ? kGrey : kBlueEnd,
+                        decoration: struck ? TextDecoration.lineThrough : null),
+              ),
+            ),
+            if (markerIcon != null) ...[
+              const SizedBox(width: 4),
+              Icon(markerIcon, color: markerColor, size: 15),
+            ],
+          ],
         ),
       );
     }
 
     Widget cell = Container(
-      height: _rowHeight - 4,
-      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
-      padding: EdgeInsets.symmetric(horizontal: editing ? 0 : 6),
-      decoration: BoxDecoration(
-        color: hasError
-            ? kRed.withValues(alpha: 0.08)
-            : aiValue
-                ? kOrange.withValues(alpha: 0.06)
-                : null,
-        border: hasError
-            ? Border.all(color: kRed)
-            : hasWarning
-                ? Border.all(color: kOrange)
-                : null,
-        borderRadius: BorderRadius.circular(4),
-      ),
+      key: ValueKey('cell-${row.id}-$field'),
+      width: column.width,
+      color: editing
+          ? null
+          : errors.isNotEmpty
+              ? kRed.withValues(alpha: 0.07)
+              : aiValue
+                  ? kOrange.withValues(alpha: 0.07)
+                  : null,
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
           Positioned.fill(child: content),
           if (modified && !editing)
             Positioned(
-              left: -4,
+              left: 0,
               top: 0,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -1382,19 +1690,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                     ? (details) =>
                         _offerRevert(row, field, details.globalPosition)
                     : null,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration:
-                      const BoxDecoration(color: kBlue, shape: BoxShape.circle),
-                ),
+                child: CustomPaint(
+                    size: const Size(10, 10),
+                    painter: _CornerMarkerPainter(kBlue)),
               ),
-            ),
-          if (hasInfo && !editing)
-            const Positioned(
-              right: 0,
-              bottom: 2,
-              child: Icon(Icons.info_outline, color: kBlue, size: 12),
             ),
           _saveBadge(row.id, field),
         ],
@@ -1404,7 +1703,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     if (!editing && tooltip.isNotEmpty) {
       cell = Tooltip(
         message: tooltip.join('\n'),
-        waitDuration: const Duration(milliseconds: 400),
+        waitDuration: const Duration(milliseconds: 300),
         child: cell,
       );
     }
@@ -1431,8 +1730,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       case RowEditState.queued:
       case RowEditState.saving:
         return const Positioned(
-          right: 1,
-          top: 1,
+          right: 2,
+          top: 2,
           child: SizedBox(
               height: 12,
               width: 12,
@@ -1440,8 +1739,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         );
       case RowEditState.failed:
         return Positioned(
-          right: 0,
-          top: 0,
+          right: 1,
+          top: 1,
           child: Tooltip(
             message: 'Enregistrement impossible : cliquer pour réessayer.',
             child: InkWell(
@@ -1457,11 +1756,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
   Widget _actionsCell(MerchantImportRow row, String status) {
     if (status == MerchantImportRow.statusImported) {
-      return const SizedBox(height: _rowHeight);
+      return const SizedBox(width: _actionsWidth);
     }
     final bool rejected = status == MerchantImportRow.statusRejected;
     return SizedBox(
-      height: _rowHeight,
+      width: _actionsWidth,
       child: Center(
         child: TextButton(
           style: TextButton.styleFrom(
@@ -1512,4 +1811,27 @@ Future<bool?> confirmCancelBatch(BuildContext context) {
       ],
     ),
   );
+}
+
+/// Petit triangle dans le coin d'une cellule modifiée (repère « à la tableur »).
+class _CornerMarkerPainter extends CustomPainter {
+  final Color color;
+
+  const _CornerMarkerPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, 0)
+        ..lineTo(size.width, 0)
+        ..lineTo(0, size.height)
+        ..close(),
+      Paint()..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CornerMarkerPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

@@ -112,8 +112,34 @@ void main() {
       expect(row.isModified('name'), isFalse);
     });
 
-    test('valeur normalisée différente de l\'origine', () {
-      expect(row.isModified('phone'), isTrue);
+    test('normalisation du serveur : pas une modification', () {
+      // « 03 20 00 00 00 » dans le fichier, « 0320000000 » après normalisation.
+      expect(row.isModified('phone'), isFalse);
+    });
+
+    test('vraie modification', () {
+      final MerchantImportRow edited = MerchantImportRow.fromJson(_rowJson(
+          fields: {'name': 'Paul & Fils', 'phone': '0611111111', 'lat': 1.0},
+          suggested: {'name': 'Paul', 'phone': '03 20 00 00 00', 'lat': '1'}));
+      expect(edited.isModified('name'), isTrue);
+      expect(edited.isModified('phone'), isTrue);
+      expect(edited.isModified('lat'), isFalse);
+    });
+
+    test('SIRET, email, IBAN : espaces et casse ignorés', () {
+      final MerchantImportRow normalized =
+          MerchantImportRow.fromJson(_rowJson(fields: {
+        'siret': '40305211102616',
+        'email': 'contact@paul.fr',
+        'iban': 'FR7630006000011234567890189',
+      }, suggested: {
+        'siret': '403 052 111 02616',
+        'email': 'Contact@Paul.fr',
+        'iban': 'fr76 3000 6000 0112 3456 7890 189',
+      }));
+      expect(normalized.isModified('siret'), isFalse);
+      expect(normalized.isModified('email'), isFalse);
+      expect(normalized.isModified('iban'), isFalse);
     });
 
     test('nombre et texte de même valeur', () {
