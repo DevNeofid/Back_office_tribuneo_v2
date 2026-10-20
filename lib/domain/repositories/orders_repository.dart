@@ -91,10 +91,13 @@ class OrderRepository extends BaseRepository {
     return 0;
   }
 
+  /// Crée une commande. Import par fichier : retourne `false` en cas d'échec.
+  /// Saisie manuelle (JSON) : lève une [ApiException] en cas d'échec ;
+  /// [idempotencyKey] y protège contre les doubles saisies (sans effet sur
+  /// l'import par fichier, que l'API ne dédoublonne pas).
   Future<bool> addOrders(OrderSendModel order,
-      {String? fileName, dynamic file}) async {
+      {String? fileName, dynamic file, String? idempotencyKey}) async {
     String tenant = await getTenantForCurrentNetwork();
-    String currentSuffix = file != null ? "$suffixe/file" : suffixe;
 
     if (file != null) {
       try {
@@ -105,7 +108,7 @@ class OrderRepository extends BaseRepository {
         });
 
         dynamic response =
-            await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
+            await _remoteData.post("$suffixe/file", data, overrideTenant: tenant);
 
         if (response.statusCode == 201 || response.statusCode == 200) {
           return true;
@@ -118,22 +121,51 @@ class OrderRepository extends BaseRepository {
         }
         return false;
       }
-    } else {
-      try {
-        String data = jsonEncode(order);
-        dynamic response =
-            await _remoteData.post(currentSuffix, data, overrideTenant: tenant);
-        if (response.statusCode == 201 || response.statusCode == 200) {
-          return true;
-        } else {
-          return false;
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('###DEBUG### Error: $e');
-        }
-        return false;
+    }
+
+    const String fallback = "Erreur lors de l’ajout de la commande";
+    dynamic response;
+    try {
+      response = await _remoteData.post(suffixe, jsonEncode(order),
+          overrideTenant: tenant,
+          headers: idempotencyKey == null
+              ? null
+              : {'Idempotency-Key': idempotencyKey});
+    } catch (e) {
+      if (kDebugMode) {
+        print('###DEBUG### Error: $e');
       }
+      throw ApiException(fallback);
+    }
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return true;
+    }
+
+    final Map<String, dynamic>? error = decodeApiError(response.data);
+    final String? code = apiErrorCode(error);
+    if (kDebugMode) {
+      print('###DEBUG### [${response.statusCode}] $code ${error?['description']}');
+    }
+    throw ApiException(
+        _idempotencyMessage(code) ?? tenantErrorMessageForCode(code) ?? fallback,
+        code: code);
+  }
+
+  /// Messages des refus liés à l'en-tête `Idempotency-Key` (paiements et
+  /// commandes), `null` pour tout autre code.
+  String? _idempotencyMessage(String? code) {
+    switch (code) {
+      case 'IDEMPOTENCY_REQUEST_IN_PROGRESS':
+        return "L'enregistrement précédent est encore en cours. "
+            'Patientez quelques secondes.';
+      case 'IDEMPOTENCY_KEY_RETRY':
+        return "L'enregistrement précédent a échoué. Réessayez.";
+      case 'IDEMPOTENCY_KEY_REUSED':
+      case 'IDEMPOTENCY_KEY_INVALID':
+        return 'Une erreur technique est survenue. Réessayez.';
+      default:
+        return null;
     }
   }
 
@@ -279,6 +311,7 @@ class OrderRepository extends BaseRepository {
       print('###DEBUG### [${response.statusCode}] $code ${error?['description']}');
     }
     final String message = overrides[code] ??
+        tenantErrorMessageForCode(code) ??
         OrderErrorMessages.forCode(code, apiErrorDetails(error)) ??
         (response.statusCode == 403
             ? "Vous n'avez pas accès à cette ressource."
@@ -420,6 +453,8 @@ class OrderRepository extends BaseRepository {
       description = data['error']['description']?.toString() ?? '';
     }
 
+    final String? tenantMessage = tenantErrorMessage(response);
+    if (tenantMessage != null) throw ApiException(tenantMessage);
     if (description.contains('assigned to a user')) {
       throw ApiException(
           'Impossible de désactiver ce bon : il est associé à un utilisateur.');
@@ -480,13 +515,20 @@ class OrderRepository extends BaseRepository {
 
   /// Enregistre un paiement et retourne le paiement tel que l'API l'a enregistré
   /// (`bank_account_code` y est toujours renseigné, même si le front n'a rien envoyé).
-  Future<PaymentModel> addPayment(Map payment) async {
+  ///
+  /// [idempotencyKey] : même clé pour un même paiement tant qu'il n'a pas réussi,
+  /// l'API renvoie alors la réponse d'origine sans créer de doublon.
+  Future<PaymentModel> addPayment(Map payment, {String? idempotencyKey}) async {
     String suffixe = 'payment';
     String data = jsonEncode(payment);
     String tenant = await getTenantForCurrentNetwork();
     dynamic response;
     try {
-      response = await _remoteData.post(suffixe, data, overrideTenant: tenant);
+      response = await _remoteData.post(suffixe, data,
+          overrideTenant: tenant,
+          headers: idempotencyKey == null
+              ? null
+              : {'Idempotency-Key': idempotencyKey});
     } catch (e) {
       if (kDebugMode) {
         print('Error: $e');
@@ -502,19 +544,21 @@ class OrderRepository extends BaseRepository {
     }
 
     final Map<String, dynamic>? error = decodeApiError(response.data);
-    final dynamic details = error?['details'];
-    final String? code = details is Map ? details['code']?.toString() : null;
+    final String? code = apiErrorCode(error);
     final String description = error?['description']?.toString() ?? '';
 
     if (kDebugMode) {
-      print('###DEBUG### $description');
+      print('###DEBUG### [${response.statusCode}] $code $description');
     }
     throw ApiException(_addPaymentMessage(code, description), code: code);
   }
 
-  /// Traduit les refus liés au compte bancaire. Les autres erreurs retombent sur un
+  /// Traduit les refus de `POST /payment`. Les autres erreurs retombent sur un
   /// message générique plutôt que sur la description anglaise de l'API.
   String _addPaymentMessage(String? code, String description) {
+    final String? shared =
+        _idempotencyMessage(code) ?? tenantErrorMessageForCode(code);
+    if (shared != null) return shared;
     switch (code) {
       case 'BANK_ACCOUNT_REQUIRED':
         return 'Choisissez le compte sur lequel le paiement a été encaissé.';
@@ -530,7 +574,13 @@ class OrderRepository extends BaseRepository {
       case 'NO_BANK_ACCOUNT':
         return "Aucun compte bancaire n'est configuré pour ce réseau. "
             'Contactez Neofid.';
+      case 'PAYMENT_EXCEEDS_ORDER_TOTAL':
+        // Même texte que le contrôle local de la vue.
+        return 'Le montant saisi dépasse le montant total de la commande.';
+      case 'RESOURCE_NOT_FOUND':
+        return "Cette commande n'existe plus (elle a peut-être été supprimée).";
       default:
+        // SERVER_ERROR compris : rien n'a été enregistré côté API.
         return "Erreur lors de l'enregistrement du paiement.";
     }
   }
@@ -553,6 +603,8 @@ class OrderRepository extends BaseRepository {
       description = data['error']['description']?.toString() ?? '';
     }
 
+    final String? tenantMessage = tenantErrorMessage(response);
+    if (tenantMessage != null) throw ApiException(tenantMessage);
     if (description.contains('accounting entries')) {
       throw ApiException(
           'Impossible de supprimer ce paiement : les écritures comptables ont déjà été générées.');

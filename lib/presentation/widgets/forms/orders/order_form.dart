@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
@@ -66,6 +68,10 @@ class _OrderFormState extends State<OrderForm> {
   String alternativeBy = '';
   bool showImportView = false;
   bool _isLoading = false;
+
+  /// Clé d'idempotence de la dernière saisie manuelle non aboutie : renvoyée
+  /// tant que la commande saisie est identique (coupure réseau, double clic).
+  final PendingIdempotencyKey _orderKey = PendingIdempotencyKey();
 
   String? fileName;
   String fileBase64 = '';
@@ -215,7 +221,9 @@ class _OrderFormState extends State<OrderForm> {
         result = await _orderUseCase.addOrder(order,
             fileName: fileName, file: fileBase64);
       } else {
-        result = await _orderUseCase.addOrder(order);
+        result = await _orderUseCase.addOrder(order,
+            idempotencyKey: _orderKey.keyFor(jsonEncode(order)));
+        _orderKey.clear();
       }
 
       if (!mounted) return;
@@ -227,6 +235,20 @@ class _OrderFormState extends State<OrderForm> {
         ));
       } else {
         throw Exception("Failed to add order");
+      }
+    } on ApiException catch (e) {
+      _orderKey.onError(e.code);
+      if (!mounted) return;
+      snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text(e.message),
+        backgroundColor: Colors.red,
+      ));
+      if (e.code == 'IDEMPOTENCY_REQUEST_IN_PROGRESS') {
+        // Le premier envoi est encore traité : on ne renvoie pas, on ferme le
+        // formulaire après quelques secondes pour que la liste soit rechargée.
+        await Future.delayed(const Duration(seconds: 3));
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (!mounted) return;

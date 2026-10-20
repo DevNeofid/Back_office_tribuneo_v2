@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/accounting_entries_config_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/accounting_entries_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
@@ -111,9 +112,10 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       return;
     }
 
-    snackbarKey.currentState?.showSnackBar(const SnackBar(
-        content:
-            Text('Erreur lors de la génération des écritures comptables.')));
+    snackbarKey.currentState?.showSnackBar(SnackBar(
+        content: Text(failure is ApiException
+            ? failure.message
+            : 'Erreur lors de la génération des écritures comptables.')));
   }
 
   @override

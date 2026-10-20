@@ -581,9 +581,23 @@ class StatsContentViewState extends State<StatsContentView> {
                           child: Text('Total injecté',
                               style: GoogleFonts.poppins()))),
                   DataColumn(
-                      label: Center(
-                          child: Text('Gain expiré total',
-                              style: GoogleFonts.poppins()))),
+                    label: Center(
+                      child: Tooltip(
+                        message: "Reste des bons dont la date d'expiration est "
+                            'comprise dans la période choisie.',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Gain expiré total',
+                                style: GoogleFonts.poppins()),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.info_outline,
+                                size: 16, color: kBlue),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
                 rows: data.map((item) {
                   final double expiredGain =

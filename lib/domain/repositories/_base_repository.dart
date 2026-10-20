@@ -105,6 +105,26 @@ abstract class BaseRepository {
     return type == null || type.isEmpty ? null : type;
   }
 
+  /// Message des refus d'accès au réseau (`X-Tenant` d'un réseau auquel
+  /// l'utilisateur n'est pas rattaché), `null` pour tout autre code.
+  ///
+  /// Ce 403 n'est pas une session expirée : on ne déconnecte pas, on invite
+  /// l'utilisateur à le faire.
+  String? tenantErrorMessageForCode(String? code) {
+    switch (code) {
+      case 'TENANT_FORBIDDEN':
+      case 'UNKNOWN_TENANT':
+        return "Vous n'avez pas accès à ce réseau. "
+            'Déconnectez-vous puis reconnectez-vous.';
+      default:
+        return null;
+    }
+  }
+
+  /// [tenantErrorMessageForCode] appliqué au corps d'une réponse en erreur.
+  String? tenantErrorMessage(dynamic response) =>
+      tenantErrorMessageForCode(apiErrorCode(decodeApiError(response.data)));
+
   /// `error.details` sous forme de Map (vide si absent).
   Map<String, dynamic> apiErrorDetails(Map<String, dynamic>? error) {
     final dynamic details = error?['details'];

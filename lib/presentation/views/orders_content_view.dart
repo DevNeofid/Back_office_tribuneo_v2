@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
@@ -903,6 +906,10 @@ class ShowPaymentState extends State<ShowPayment> {
   List<PaymentModel> _payments = [];
   bool _hasModifiedData = false;
   bool _isSubmitting = false;
+
+  /// Clé d'idempotence du dernier paiement non abouti : renvoyée tant que le
+  /// paiement saisi est identique (coupure réseau, double clic).
+  final PendingIdempotencyKey _paymentKey = PendingIdempotencyKey();
   final List<PaymentMethod> _paymentMethods = [
     PaymentMethod(1, "CASH"),
     PaymentMethod(2, "CHECK"),
@@ -1081,10 +1088,13 @@ class ShowPaymentState extends State<ShowPayment> {
         if (_bankAccountSelectRequired)
           'bank_account_code': _selectedBankAccount!.code,
       };
-      await orderUseCase.addPayment(payment);
+      await orderUseCase.addPayment(payment,
+          idempotencyKey: _paymentKey.keyFor(jsonEncode(payment)));
+      _paymentKey.clear();
       _hasModifiedData = true;
       await _refreshPayments();
     } on ApiException catch (e) {
+      _paymentKey.onError(e.code);
       snackbarKey.currentState?.showSnackBar(SnackBar(
           content: Text(e.message),
           backgroundColor: kRed,
@@ -1094,6 +1104,19 @@ class ShowPaymentState extends State<ShowPayment> {
       if (e.code == 'UNKNOWN_BANK_ACCOUNT' ||
           e.code == 'BANK_ACCOUNT_REQUIRED') {
         await _loadBankAccounts();
+      }
+      if (e.code == 'IDEMPOTENCY_REQUEST_IN_PROGRESS') {
+        // Le premier envoi est encore traité : on relit la liste au lieu de
+        // renvoyer (le bouton reste désactivé pendant l'attente).
+        await Future.delayed(const Duration(seconds: 3));
+        if (!mounted) return;
+        _hasModifiedData = true;
+        await _refreshPayments();
+      }
+      // Un autre poste a pu enregistrer un paiement entre-temps : le contrôle
+      // local se basait sur une liste périmée.
+      if (e.code == 'PAYMENT_EXCEEDS_ORDER_TOTAL') {
+        await _refreshPayments();
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

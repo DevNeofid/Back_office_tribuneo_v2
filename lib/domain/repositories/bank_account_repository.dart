@@ -31,7 +31,7 @@ class BankAccountRepository extends BaseRepository {
     if (kDebugMode) {
       print('###DEBUG### ${decodeApiError(data)?['description']}');
     }
-    throw ApiException(
+    throw ApiException(tenantErrorMessage(response) ??
         'Impossible de charger les comptes bancaires du réseau.');
   }
 }

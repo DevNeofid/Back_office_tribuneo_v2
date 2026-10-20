@@ -14,9 +14,9 @@ class OrderUseCase {
 
   // Function for adding a new order
   Future<bool> addOrder(OrderSendModel order,
-      {String? fileName, dynamic file}) async {
+      {String? fileName, dynamic file, String? idempotencyKey}) async {
     return await orderRepository.addOrders(order,
-        fileName: fileName, file: file);
+        fileName: fileName, file: file, idempotencyKey: idempotencyKey);
   }
 
   Future<OrderUpdateResult> updateOrder(
@@ -86,8 +86,9 @@ class OrderUseCase {
     return await orderRepository.getPayments(orderId);
   }
 
-  Future<PaymentModel> addPayment(Map payment) async {
-    return await orderRepository.addPayment(payment);
+  Future<PaymentModel> addPayment(Map payment, {String? idempotencyKey}) async {
+    return await orderRepository.addPayment(payment,
+        idempotencyKey: idempotencyKey);
   }
 
   Future<void> deletePayment(int idPayment) async {

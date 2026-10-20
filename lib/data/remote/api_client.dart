@@ -366,17 +366,22 @@ class ApiClient {
   }
 
   /// Méthode POST standard (envoi de JSON)
+  ///
+  /// [headers] : en-têtes propres à l'appel (ex. `Idempotency-Key`), ajoutés à
+  /// ceux par défaut.
   Future<Response> post(
     String suffixeUrl,
     dynamic data, {
     Map<String, dynamic>? queryParams,
     bool? bytesType,
     String? overrideTenant,
+    Map<String, String>? headers,
   }) async {
     await _ensureInitialized();
 
     Map<String, dynamic> customHeaders = {};
     if (overrideTenant != null) customHeaders['X-Tenant'] = overrideTenant;
+    if (headers != null) customHeaders.addAll(headers);
 
     try {
       final response = await dio.post(

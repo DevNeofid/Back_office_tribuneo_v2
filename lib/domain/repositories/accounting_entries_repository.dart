@@ -1,5 +1,6 @@
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/accounting_entries_config_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/accounting_entries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/_base_repository.dart';
@@ -45,6 +46,8 @@ class AccountingEntriesRepository extends BaseRepository {
     if (kDebugMode) {
       print('###DEBUG### ${error?['description']}');
     }
+    final String? tenantMessage = tenantErrorMessageForCode(apiErrorCode(error));
+    if (tenantMessage != null) throw ApiException(tenantMessage);
     return null;
   }
 

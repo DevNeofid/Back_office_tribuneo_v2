@@ -302,6 +302,8 @@ class TransferOrderRepository extends BaseRepository {
   /// inconnu : l'appelant choisit son message générique, jamais la description
   /// anglaise de l'API.
   String? _btoMessage(String? code, int? statusCode) {
+    final String? tenantMessage = tenantErrorMessageForCode(code);
+    if (tenantMessage != null) return tenantMessage;
     switch (code) {
       case 'INSUFFICIENT_PRIVILEGES':
         return "Vous n'avez pas accès à ce réseau.";
