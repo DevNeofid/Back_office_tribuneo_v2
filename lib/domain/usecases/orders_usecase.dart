@@ -51,6 +51,10 @@ class OrderUseCase {
         limit: limit, offset: offset, search: search);
   }
 
+  Future<OrderModel?> getOrder(int idOrder) async {
+    return await orderRepository.getOrder(idOrder);
+  }
+
   Future<bool> deleteOrder(int id) async {
     return await orderRepository.deleteOrder(id);
   }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 
 import 'package:back_office_tribuneo_v2/domain/models/invoice_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/document_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/invoice_download.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
@@ -27,41 +29,37 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
   late InvoiceDataSource _invoiceDataSource;
   late FeesDataSource _feesDataSource;
 
+  ScreenOpenRequests? _openRequests;
+
   @override
   void initState() {
     super.initState();
     _invoiceDataSource =
         InvoiceDataSource(_documentUseCase, _downloadFileInvoice);
     _feesDataSource = FeesDataSource(_documentUseCase, _downloadFileFees);
+    _openRequests = ScreenOpenRequests.maybeOf(context)
+      ?..addListener(_handleOpenRequest);
+    _handleOpenRequest();
+  }
+
+  @override
+  void dispose() {
+    _openRequests?.removeListener(_handleOpenRequest);
+    super.dispose();
+  }
+
+  /// Deep-link de l'assistant : onglet « Factures ».
+  void _handleOpenRequest() {
+    if (_openRequests?.take(const {'invoices'}) == null || !mounted) return;
+    setState(() {
+      _selectedButtonIndex = 0;
+    });
   }
 
   Future _downloadFileInvoice(InvoiceModel order) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Génération de la facture...');
-      },
-    );
-    try {
-      String? name = order.entityName;
-      name = name!.replaceAll(' ', '_');
-      String? number = order.orderNumber;
-      final result = await _documentUseCase.downloadFileInvoice(order.idOrder!);
-      if (result == null) throw Exception('Download failed');
-      List<dynamic> listDynamic = result['data'];
-      final String fileName =
-          result['filename'] ?? '${name}_$number';
-
-      FileDownloader.downloadLargeFile(
-          listDynamic, fileName, 'application/pdf',
-          fileExtension: 'pdf');
-    } catch (error) {
-      snackbarKey.currentState?.showSnackBar(const SnackBar(
-          content: Text('Erreur lors de la génération du fichier.')));
-    } finally {
-      navigatorKey.currentState?.pop();
-    }
+    final String name = order.entityName?.replaceAll(' ', '_') ?? 'Facture';
+    await downloadOrderInvoice(context, order.idOrder!,
+        fallbackName: '${name}_${order.orderNumber}');
   }
 
   Future _downloadFileFees(InvoiceModel fee) async {

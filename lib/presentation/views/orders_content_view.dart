@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
@@ -50,6 +51,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   final OrderUseCase _orderUseCase = OrderUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   late final OrderDataSource _dataSource;
+  ScreenOpenRequests? _openRequests;
 
   @override
   void initState() {
@@ -68,6 +70,42 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       onChangeExpiryDate: _changeExpiryDate,
       onDelete: _deleteOrder,
     );
+    _openRequests = ScreenOpenRequests.maybeOf(context)
+      ?..addListener(_handleOpenRequest);
+    // Une demande déposée avant l'ouverture de l'écran : on attend la première
+    // frame pour pouvoir afficher des dialogues.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _handleOpenRequest());
+  }
+
+  @override
+  void dispose() {
+    _openRequests?.removeListener(_handleOpenRequest);
+    super.dispose();
+  }
+
+  /// Deep-link de l'assistant : `order` filtre la liste sur la commande,
+  /// `payments` ouvre en plus sa modale de paiement.
+  Future<void> _handleOpenRequest() async {
+    if (!mounted) return;
+    final ScreenOpenRequest? request =
+        _openRequests?.take(const {'order', 'payments'});
+    final int? idOrder = request?.id;
+    if (request == null || idOrder == null) return;
+
+    final OrderModel? order = await LoadingDialog.run(context,
+        'Chargement de la commande...', () => _orderUseCase.getOrder(idOrder));
+    if (!mounted) return;
+    if (order == null) {
+      snackbarKey.currentState?.showSnackBar(
+          const SnackBar(content: Text('Élément introuvable')));
+      return;
+    }
+    final String number = order.orderNumber ?? '';
+    if (number.isNotEmpty) {
+      _searchController.text = number;
+      _dataSource.updateSearch(number);
+    }
+    if (request.screen == 'payments') await _showPayments(order);
   }
 
   /// Le statut de la commande (facturée, importée, boutique) est lu avant

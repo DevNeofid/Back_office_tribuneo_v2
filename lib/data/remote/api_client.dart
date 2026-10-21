@@ -369,6 +369,9 @@ class ApiClient {
   ///
   /// [headers] : en-têtes propres à l'appel (ex. `Idempotency-Key`), ajoutés à
   /// ceux par défaut.
+  ///
+  /// [receiveTimeout] : remplace le délai de réception par défaut pour cet
+  /// appel seulement (ex. assistant, dont la réponse peut prendre longtemps).
   Future<Response> post(
     String suffixeUrl,
     dynamic data, {
@@ -376,6 +379,7 @@ class ApiClient {
     bool? bytesType,
     String? overrideTenant,
     Map<String, String>? headers,
+    Duration? receiveTimeout,
   }) async {
     await _ensureInitialized();
 
@@ -392,6 +396,7 @@ class ApiClient {
           headers: customHeaders.isNotEmpty ? customHeaders : null,
           responseType:
               bytesType == true ? ResponseType.bytes : ResponseType.json,
+          receiveTimeout: receiveTimeout,
         ),
       );
       return checkForMaintenance(response);

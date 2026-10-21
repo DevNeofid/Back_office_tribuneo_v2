@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Visuel PROVISOIRE de l'assistant : remplacer ce fichier par le visuel définitif. -->
+  <circle cx="32" cy="32" r="32" fill="#3A4276"/>
+  <path d="M22 17 H42 A8 8 0 0 1 50 25 V35 A8 8 0 0 1 42 43 H30 L21 50 L22 43 A8 8 0 0 1 14 35 V25 A8 8 0 0 1 22 17 Z" fill="#FFFFFF"/>
+  <ellipse cx="26" cy="28" rx="2.6" ry="3.4" fill="#3A4276"/>
+  <ellipse cx="38" cy="28" rx="2.6" ry="3.4" fill="#3A4276"/>
+  <path d="M25 34 Q32 40 39 34" fill="none" stroke="#FFAC30" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -59,6 +59,26 @@ class OrderRepository extends BaseRepository {
     return PaginatedResult<OrderModel>(items: orders, total: total);
   }
 
+  /// Une commande par son id ; `null` si elle est introuvable (supprimée, autre
+  /// réseau) ou en cas d'erreur.
+  Future<OrderModel?> getOrder(int idOrder) async {
+    try {
+      final String tenant = await getTenantForCurrentNetwork();
+      final dynamic response =
+          await _remoteData.get(suffixe, id: idOrder, overrideTenant: tenant);
+      final dynamic data =
+          response.statusCode == 200 && response.data is Map
+              ? response.data['data']
+              : null;
+      if (data is Map) {
+        return OrderModel.fromJson(Map<String, dynamic>.from(data));
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error: $e');
+    }
+    return null;
+  }
+
   int _extractTotal(dynamic response, int fallback) {
     if (response is! Map) return fallback;
 

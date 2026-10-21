@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 import 'package:back_office_tribuneo_v2/config/responsive.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
+import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/invoice_download.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/url_opener.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/accounting_entries.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/customers_content_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/dashboard_content_view.dart';
@@ -17,6 +22,9 @@ import 'package:back_office_tribuneo_v2/presentation/views/partners_content_view
 import 'package:back_office_tribuneo_v2/presentation/views/sector_activity_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/stats_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/transfert_order_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_deep_link.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_overlay.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/header_widget.dart';
 
 class MySinglePage extends StatefulWidget {
@@ -197,11 +205,46 @@ class MySinglePageState extends State<MySinglePage> {
     );
   }
 
+  /// Assistant : son état vit avec la page, il survit donc au changement
+  /// d'écran et disparaît à la déconnexion (conversation effacée).
+  late final AssistantController _assistant = AssistantController()
+    ..onNavigate = _openAssistantLink
+    ..onDownloadDocument = _downloadAssistantDocument
+    ..onOpenUrl = openExternalUrl;
+  final ScreenOpenRequests _openRequests = ScreenOpenRequests();
+
+  /// Deep-link de l'assistant : affiche le menu cible et lui transmet la
+  /// demande d'ouverture (élément, onglet) s'il y en a une.
+  void _openAssistantLink(AssistantLinkBlock link) {
+    final AssistantDeepLink? target = AssistantDeepLink.fromLink(link);
+    if (target == null) return;
+    final int? index = menuItems.entries
+        .where((entry) => entry.value['name'] == target.menu)
+        .firstOrNull
+        ?.key;
+    if (index == null) return;
+    if (target.request != null) _openRequests.request(target.request!);
+    callBackMenu(index);
+  }
+
+  void _downloadAssistantDocument(AssistantDocumentBlock document) {
+    downloadOrderInvoice(context, document.idOrder,
+        fallbackName: 'Facture_${document.idOrder}');
+  }
+
   @override
   void initState() {
     super.initState();
     dataRecovery();
     checkForNewRefunds();
+    _assistant.load();
+  }
+
+  @override
+  void dispose() {
+    _assistant.dispose();
+    _openRequests.dispose();
+    super.dispose();
   }
 
   /* Test Graph - End */
@@ -210,6 +253,16 @@ class MySinglePageState extends State<MySinglePage> {
     buildMenu();
     SizeConfig().init(context);
 
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AssistantController>.value(value: _assistant),
+        ChangeNotifierProvider<ScreenOpenRequests>.value(value: _openRequests),
+      ],
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       key: _drawerKey,
       drawer: SizedBox(
@@ -234,105 +287,114 @@ class MySinglePageState extends State<MySinglePage> {
               child: SizedBox(),
             ),
       body: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            if (Responsive.isDesktop(context))
-              SizedBox(
-                width: _sideMenuWidth,
-                child: menu,
-              ),
-            if (loadedData)
-              Expanded(
-                flex: 10,
-                child: SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 30, horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Header(title: contentTitle),
-                        SizedBox(
-                          height: SizeConfig.blockSizeVertical * 4,
-                        ),
-                        content,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            if (!loadedData)
-              const Expanded(
-                flex: 10,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-            if (Responsive.isDesktop(context) && selectedMenu == 'dashboard')
-              Expanded(
-                flex: 3,
-                child: SafeArea(
-                  child: Container(
-                    width: double.infinity,
-                    height: SizeConfig.screenHeight,
-                    decoration: const BoxDecoration(color: kLBlue),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 20, horizontal: 20),
-                      child: Column(
-                        children: [
-                          Container(
-                            constraints: const BoxConstraints(
-                                minWidth: 220,
-                                minHeight: 220,
-                                maxWidth: 350,
-                                maxHeight: 300),
-                            decoration: const BoxDecoration(
-                              color: kTransparent,
-                            ),
-                          ),
-                          Container(
-                            constraints: const BoxConstraints(
-                                minWidth: 220,
-                                minHeight: 220,
-                                maxWidth: 350,
-                                maxHeight: 300),
-                            decoration: const BoxDecoration(
-                              color: kTransparent,
-                            ),
-                          ),
-                          Container(
-                            constraints: const BoxConstraints(
-                                minWidth: 220,
-                                minHeight: 220,
-                                maxWidth: 350,
-                                maxHeight: 300),
-                            decoration: const BoxDecoration(
-                              color: kTransparent,
-                            ),
-                          ),
-                          Container(
-                            constraints: const BoxConstraints(
-                                minWidth: 220,
-                                minHeight: 220,
-                                maxWidth: 350,
-                                maxHeight: 300),
-                            decoration: const BoxDecoration(
-                              color: kTransparent,
-                            ),
-                          ),
-                          // AppBarActionItems(),
-                          // PaymentDetailList(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            _buildContent(context),
+            const Positioned.fill(child: AssistantOverlay()),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (Responsive.isDesktop(context))
+          SizedBox(
+            width: _sideMenuWidth,
+            child: menu,
+          ),
+        if (loadedData)
+          Expanded(
+            flex: 10,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 30, horizontal: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Header(title: contentTitle),
+                    SizedBox(
+                      height: SizeConfig.blockSizeVertical * 4,
+                    ),
+                    content,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        if (!loadedData)
+          const Expanded(
+            flex: 10,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        if (Responsive.isDesktop(context) && selectedMenu == 'dashboard')
+          Expanded(
+            flex: 3,
+            child: SafeArea(
+              child: Container(
+                width: double.infinity,
+                height: SizeConfig.screenHeight,
+                decoration: const BoxDecoration(color: kLBlue),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 20, horizontal: 20),
+                  child: Column(
+                    children: [
+                      Container(
+                        constraints: const BoxConstraints(
+                            minWidth: 220,
+                            minHeight: 220,
+                            maxWidth: 350,
+                            maxHeight: 300),
+                        decoration: const BoxDecoration(
+                          color: kTransparent,
+                        ),
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(
+                            minWidth: 220,
+                            minHeight: 220,
+                            maxWidth: 350,
+                            maxHeight: 300),
+                        decoration: const BoxDecoration(
+                          color: kTransparent,
+                        ),
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(
+                            minWidth: 220,
+                            minHeight: 220,
+                            maxWidth: 350,
+                            maxHeight: 300),
+                        decoration: const BoxDecoration(
+                          color: kTransparent,
+                        ),
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(
+                            minWidth: 220,
+                            minHeight: 220,
+                            maxWidth: 350,
+                            maxHeight: 300),
+                        decoration: const BoxDecoration(
+                          color: kTransparent,
+                        ),
+                      ),
+                      // AppBarActionItems(),
+                      // PaymentDetailList(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

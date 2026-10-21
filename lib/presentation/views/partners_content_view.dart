@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
+import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/merchant_import_view.dart';
@@ -63,16 +64,22 @@ class PartnersContentViewState extends State<PartnersContentView>
   Color _buttonColor2 = kBlue;
   Color _buttonColor3 = kBlue;
 
+  ScreenOpenRequests? _openRequests;
+  bool _partnersLoaded = false;
+
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 3, vsync: this);
     neoCurrentIndex = neoInitialIndex;
+    _openRequests = ScreenOpenRequests.maybeOf(context)
+      ?..addListener(_handleOpenRequest);
     _refreshPartners();
   }
 
   @override
   void dispose() {
+    _openRequests?.removeListener(_handleOpenRequest);
     _searchDebounce?.cancel();
     searchController.dispose();
     tabController.dispose();
@@ -109,12 +116,45 @@ class PartnersContentViewState extends State<PartnersContentView>
           _partners = sortedEntities[_filter] ?? [];
         }
         _isLoading = false;
+        _partnersLoaded = true;
       });
+      _handleOpenRequest();
     }).catchError((error) {
       setState(() {
         _isLoading = false;
       });
+      // Liste indisponible : une demande d'ouverture ne peut pas aboutir.
+      if (_openRequests?.take(const {'bank_accounts'}) != null) {
+        _showNotFound();
+      }
     });
+  }
+
+  /// Deep-link de l'assistant : fiche du commerçant, onglet « Informations
+  /// bancaires ». Attend que la liste soit chargée.
+  void _handleOpenRequest() {
+    if (!mounted || !_partnersLoaded) return;
+    final int? idPartner = _openRequests?.take(const {'bank_accounts'})?.id;
+    if (idPartner == null) return;
+    final EntityModel? partner =
+        allPartners.where((p) => p.id == idPartner).firstOrNull;
+    if (partner == null) {
+      _showNotFound();
+      return;
+    }
+    final String name = partner.name ?? '';
+    setState(() {
+      _searchDebounce?.cancel();
+      searchController.text = name;
+      _lastSearch = name;
+      _partners = [partner];
+    });
+    _setNeoInitialIndex(2);
+  }
+
+  void _showNotFound() {
+    snackbarKey.currentState
+        ?.showSnackBar(const SnackBar(content: Text('Élément introuvable')));
   }
 
   void search(String text) {

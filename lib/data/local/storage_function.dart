@@ -6,6 +6,8 @@ import 'package:back_office_tribuneo_v2/domain/models/network_model.dart';
 
 class StorageFunction {
   static const String _lastViewedKey = 'box_last_viewed_1';
+  static const String _assistantHiddenKey = 'assistant_hidden';
+  static const String _assistantOpenedOnceKey = 'assistant_opened_once';
 
   Future<void> saveNetwork(Map<String, dynamic> network) async {
     final networkJson = jsonEncode(network);
@@ -129,6 +131,26 @@ class StorageFunction {
     } catch (_) {
       return raw;
     }
+  }
+
+  // Réglages de l'assistant : propres au poste, conservés à la déconnexion
+  // (pas effacés par clearUser).
+
+  Future<void> saveAssistantHidden(bool hidden) async {
+    await _storage
+        .writeSecureData(StorageItem(_assistantHiddenKey, hidden.toString()));
+  }
+
+  Future<bool> readAssistantHidden() async {
+    return await _storage.readSecureData(_assistantHiddenKey) == 'true';
+  }
+
+  Future<void> saveAssistantOpenedOnce() async {
+    await _storage.writeSecureData(StorageItem(_assistantOpenedOnceKey, 'true'));
+  }
+
+  Future<bool> readAssistantOpenedOnce() async {
+    return await _storage.readSecureData(_assistantOpenedOnceKey) == 'true';
   }
 
   Future<Network?> readNetwork() async {
