@@ -8,6 +8,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_avatar.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_markdown.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/tribuneo_mascot.dart';
 
 const TextStyle _messageStyle =
     TextStyle(fontSize: 14, height: 1.4, color: kBlack);
@@ -318,7 +319,10 @@ class _AssistantTypingIndicatorState extends State<AssistantTypingIndicator>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AssistantAvatar(size: _avatarSize),
+            const TribuneoMascot(
+              width: 120,
+              mood: TribuneoMascotMood.thinking,
+            ),
             const SizedBox(width: _avatarGap),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

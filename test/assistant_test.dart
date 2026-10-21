@@ -13,6 +13,7 @@ import 'package:back_office_tribuneo_v2/domain/repositories/assistant_repository
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_deep_link.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_overlay.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/tribuneo_mascot.dart';
 
 class _MemoryPreferences implements AssistantPreferences {
   bool hidden;
@@ -64,12 +65,16 @@ AssistantController _controller(
     AssistantController(repository: repository, preferences: preferences);
 
 Future<void> _pumpOverlay(WidgetTester tester, AssistantController controller,
-    {Size size = const Size(1400, 900)}) async {
+    {Size size = const Size(1400, 900), bool reduceMotion = false}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await controller.load();
   await tester.pumpWidget(MaterialApp(
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+      child: child!,
+    ),
     home: Scaffold(
       body: ChangeNotifierProvider<AssistantController>.value(
         value: controller,
@@ -79,13 +84,25 @@ Future<void> _pumpOverlay(WidgetTester tester, AssistantController controller,
       ),
     ),
   ));
-  // Entrée + 3 pulsations d'attention.
-  await tester.pumpAndSettle();
+  // Entrée du lanceur (le rebond continue ensuite).
+  await _pumpAnimations(tester);
+}
+
+// Les animations de repos sont continues : avancer une durée bornée permet
+// aux transitions et aux pulsations finies de terminer sans attendre le repos.
+Finder get _animatedMascot => find
+    .byWidgetPredicate((widget) => widget is TribuneoMascot && widget.animate);
+
+Future<void> _pumpAnimations(WidgetTester tester) async {
+  await tester.pump();
+  for (var i = 0; i < 15; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
 
 Future<void> _openPanel(WidgetTester tester) async {
   await tester.tap(find.byKey(const ValueKey('assistant-launcher')));
-  await tester.pumpAndSettle();
+  await _pumpAnimations(tester);
 }
 
 /// Envoie [text] depuis le champ de saisie (réponse laissée en attente).
@@ -261,6 +278,23 @@ void main() {
   });
 
   group('AssistantOverlay', () {
+    testWidgets('mascotte : accueil, réflexion puis retrait à la réponse',
+        (tester) async {
+      final repository = _ScriptedRepository();
+      final controller = _controller(repository, _MemoryPreferences());
+      await _pumpOverlay(tester, controller);
+      await _openPanel(tester);
+      expect(tester.widget<TribuneoMascot>(_animatedMascot).mood,
+          TribuneoMascotMood.welcome);
+      await _sendFromInput(tester, 'Bonjour');
+      expect(tester.widget<TribuneoMascot>(_animatedMascot).mood,
+          TribuneoMascotMood.thinking);
+      repository.reply(_textReply);
+      await _pumpAnimations(tester);
+      expect(_animatedMascot, findsNothing);
+      expect(find.textContaining('la réponse'), findsOneWidget);
+    });
+
     testWidgets('masquer puis réafficher, état mémorisé', (tester) async {
       final _MemoryPreferences preferences = _MemoryPreferences();
       final AssistantController controller =
@@ -269,12 +303,12 @@ void main() {
       await _pumpOverlay(tester, controller, size: const Size(1000, 800));
 
       await tester.tap(find.byTooltip("Masquer l'assistant"));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.state, AssistantLauncherState.hidden);
       expect(preferences.hidden, isTrue);
 
       await tester.tap(find.byKey(const ValueKey('assistant-tab')));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.state, AssistantLauncherState.visible);
       expect(preferences.hidden, isFalse);
     });
@@ -286,7 +320,7 @@ void main() {
 
       expect(controller.state, AssistantLauncherState.hidden);
       await tester.tap(find.byKey(const ValueKey('assistant-tab')));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.state, AssistantLauncherState.visible);
     });
 
@@ -299,7 +333,7 @@ void main() {
       // Sans survol, la pastille ne reçoit pas les clics.
       await tester.tap(find.byTooltip("Masquer l'assistant"),
           warnIfMissed: false);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.state, AssistantLauncherState.visible);
 
       final TestGesture mouse =
@@ -308,7 +342,7 @@ void main() {
       addTearDown(mouse.removePointer);
       await mouse.moveTo(
           tester.getCenter(find.byKey(const ValueKey('assistant-launcher'))));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
 
       final Offset chip =
           tester.getCenter(find.byTooltip("Masquer l'assistant"));
@@ -316,32 +350,48 @@ void main() {
       await tester.pump(kDoubleTapTimeout);
       await mouse.down(chip);
       await mouse.up();
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.state, AssistantLauncherState.hidden);
     });
 
-    testWidgets('les pulsations cessent après la première ouverture',
+    testWidgets('le rebond respecte la réduction des animations',
         (tester) async {
-      final _MemoryPreferences preferences = _MemoryPreferences();
-      final AssistantController controller =
-          _controller(_ScriptedRepository(), preferences);
+      final controller =
+          _controller(_ScriptedRepository(), _MemoryPreferences());
+      await _pumpOverlay(tester, controller, reduceMotion: true);
+      final transform = tester
+          .widget<Transform>(find.byKey(const ValueKey('assistant-bump')));
+      expect(transform.transform.storage[13], 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('rebond continu visible, arrêté masqué ou panneau ouvert',
+        (tester) async {
+      final controller =
+          _controller(_ScriptedRepository(), _MemoryPreferences());
       await _pumpOverlay(tester, controller);
-      expect(find.byKey(const ValueKey('assistant-halo')), findsNothing);
-
-      // Pulsation toutes les 30 s tant que l'assistant n'a jamais été ouvert.
+      double offset() => tester
+          .widget<Transform>(find.byKey(const ValueKey('assistant-bump')))
+          .transform
+          .storage[13];
+      final before = offset();
+      await tester.pump(const Duration(milliseconds: 550));
+      expect(offset(), isNot(closeTo(before, .01)));
+      controller.hide();
+      await _pumpAnimations(tester);
+      expect(offset(), 0);
+      expect(tester.binding.hasScheduledFrame, isFalse);
       await tester.pump(const Duration(seconds: 30));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byKey(const ValueKey('assistant-halo')), findsOneWidget);
-      await tester.pumpAndSettle();
-
-      await _openPanel(tester);
-      expect(preferences.openedOnce, isTrue);
-      await tester.tap(find.byTooltip('Réduire'));
-      await tester.pumpAndSettle();
-
-      await tester.pump(const Duration(seconds: 31));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byKey(const ValueKey('assistant-halo')), findsNothing);
+      expect(offset(), 0);
+      controller.show();
+      await _pumpAnimations(tester);
+      expect(offset(), lessThan(0));
+      controller.open();
+      await _pumpAnimations(tester);
+      expect(offset(), 0);
+      controller.minimize();
+      await _pumpAnimations(tester);
+      expect(offset(), lessThan(0));
     });
 
     testWidgets('Réduire garde le fil, pastille si la réponse arrive fermé',
@@ -360,7 +410,7 @@ void main() {
       expect(controller.isOpen, isFalse);
 
       repository.reply(_textReply);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.byKey(const ValueKey('assistant-unread')), findsOneWidget);
 
       await _openPanel(tester);
@@ -377,10 +427,10 @@ void main() {
       await _openPanel(tester);
       await _sendFromInput(tester, 'Question');
       repository.reply(_textReply);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.isOpen, isFalse);
       expect(controller.messages, hasLength(2));
     });
@@ -413,20 +463,20 @@ void main() {
       await _openPanel(tester);
       await _sendFromInput(tester, 'Question');
       repository.reply(_textReply);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
 
       await tester.tap(find.byTooltip('Fermer'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.text('Fermer la conversation ?'), findsOneWidget);
       await tester.tap(find.text('Annuler'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.isOpen, isTrue);
       expect(controller.messages, hasLength(2));
 
       await tester.tap(find.byTooltip('Fermer'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       await tester.tap(find.text('Fermer et effacer'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.isOpen, isFalse);
       expect(controller.messages, isEmpty);
     });
@@ -439,7 +489,7 @@ void main() {
       expect(find.text('Comment créer une commande ?'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Fermer'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.text('Fermer la conversation ?'), findsNothing);
       expect(controller.isOpen, isFalse);
     });
@@ -458,7 +508,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       repository.reply(_textReply);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(controller.messages, isEmpty);
       expect(find.byKey(const ValueKey('assistant-unread')), findsNothing);
     });
@@ -492,7 +542,7 @@ void main() {
           {'type': 'link', 'screen': 'payments', 'id': 4},
         ],
       }));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
 
       expect(find.text('Facture'), findsOneWidget);
       expect(find.text('Que voulez-vous ?'), findsOneWidget);
@@ -509,7 +559,7 @@ void main() {
           tester.widget(find.widgetWithText(OutlinedButton, 'Option A'));
       expect(optionA.onPressed, isNull);
       repository.reply(_textReply);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.text('Option B'), findsNWidgets(2));
       final OutlinedButton optionAAfter =
           tester.widget(find.widgetWithText(OutlinedButton, 'Option A'));
@@ -519,7 +569,7 @@ void main() {
       await tester
           .ensureVisible(find.text('Ouvrir les paiements de la commande'));
       await tester.tap(find.text('Ouvrir les paiements de la commande'));
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(navigated?.screen, 'payments');
       expect(navigated?.id, 4);
       expect(controller.isOpen, isFalse);
@@ -536,13 +586,13 @@ void main() {
 
       await _sendFromInput(tester, 'Question');
       repository.fail(AssistantErrorKind.unavailable);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.textContaining('ne répond pas'), findsOneWidget);
 
       await tester.tap(find.text('Réessayer'));
       await tester.pump();
       repository.fail(AssistantErrorKind.quota);
-      await tester.pumpAndSettle();
+      await _pumpAnimations(tester);
       expect(find.textContaining('quota mensuel'), findsOneWidget);
       expect(find.text('Réessayer'), findsNothing);
     });

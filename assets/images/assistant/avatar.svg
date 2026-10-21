@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Visuel PROVISOIRE de l'assistant : remplacer ce fichier par le visuel définitif. -->
-  <circle cx="32" cy="32" r="32" fill="#3A4276"/>
-  <path d="M22 17 H42 A8 8 0 0 1 50 25 V35 A8 8 0 0 1 42 43 H30 L21 50 L22 43 A8 8 0 0 1 14 35 V25 A8 8 0 0 1 22 17 Z" fill="#FFFFFF"/>
-  <ellipse cx="26" cy="28" rx="2.6" ry="3.4" fill="#3A4276"/>
-  <ellipse cx="38" cy="28" rx="2.6" ry="3.4" fill="#3A4276"/>
-  <path d="M25 34 Q32 40 39 34" fill="none" stroke="#FFAC30" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="190 145 420 290">
+<g transform="translate(210 172.5) scale(.55709)"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3a4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/>
+<path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#f7a935" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></g>
+<g fill="white" stroke="#3a4276" stroke-width="2.5"><ellipse cx="337" cy="270" rx="24" ry="32"/><ellipse cx="391" cy="267" rx="24" ry="32"/></g>
+<g fill="#24294b"><ellipse cx="340" cy="274" rx="10" ry="15"/><ellipse cx="394" cy="271" rx="10" ry="15"/></g>
+<g fill="white"><circle cx="343" cy="268" r="3.5"/><circle cx="397" cy="265" r="3.5"/></g>
+<g transform="translate(545 345) rotate(12)"></g>
 </svg>

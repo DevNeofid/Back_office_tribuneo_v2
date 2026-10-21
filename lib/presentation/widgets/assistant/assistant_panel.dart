@@ -7,6 +7,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_avatar.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_message_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/tribuneo_mascot.dart';
 
 /// Panneau de conversation de l'assistant (§ 3.3 et § 5 de la spec).
 ///
@@ -241,7 +242,7 @@ class _AssistantPanelState extends State<AssistantPanel> {
       child: Column(
         children: [
           const SizedBox(height: 12),
-          const AssistantAvatar(size: 56),
+          const TribuneoMascot(mood: TribuneoMascotMood.welcome),
           const SizedBox(height: 12),
           const Text(
             'Bonjour !',

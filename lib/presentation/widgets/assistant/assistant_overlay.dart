@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -146,16 +145,14 @@ class _LauncherButton extends StatefulWidget {
 
 class _LauncherButtonState extends State<_LauncherButton>
     with TickerProviderStateMixin {
-  static const Duration _pulseInterval = Duration(seconds: 30);
-  static const int _introPulses = 3;
+  /// Entrée à l'apparition et rebond tant que le lanceur est visible.
 
-  /// Entrée à l'apparition. Les contrôleurs ne tournent que pendant leur
-  /// animation : pas de boucle infinie, coûteuse en Flutter web.
   late final AnimationController _entry = AnimationController(
       vsync: this, duration: const Duration(milliseconds: 600));
   late final AnimationController _pulse = AnimationController(
       vsync: this, duration: const Duration(milliseconds: 1200));
-  Timer? _pulseTimer;
+  late final AnimationController _bump = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 2200));
   bool _hovering = false;
   bool _reduceMotion = false;
   bool _started = false;
@@ -167,6 +164,7 @@ class _LauncherButtonState extends State<_LauncherButton>
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.of(context).disableAnimations;
     _entry.duration = Duration(milliseconds: _reduceMotion ? 150 : 600);
+    _syncBump();
     if (!_started && _visible) {
       _started = true;
       _appear();
@@ -181,45 +179,33 @@ class _LauncherButtonState extends State<_LauncherButton>
       _started = true;
       _appear();
     }
-    if (widget.openedOnce && !oldWidget.openedOnce) {
-      // Arrêt définitif des pulsations d'attention.
-      _pulseTimer?.cancel();
-      _pulseTimer = null;
-      _pulse.reset();
-    }
+    _syncBump();
     if (widget.replyPulses > oldWidget.replyPulses) _pulseOnce();
   }
 
   @override
   void dispose() {
-    _pulseTimer?.cancel();
+    _bump.dispose();
     _entry.dispose();
     _pulse.dispose();
     super.dispose();
   }
 
-  Future<void> _appear() async {
-    try {
-      await _entry.forward(from: 0).orCancel;
-    } on TickerCanceled {
-      return;
+  void _appear() {
+    _entry.forward(from: 0);
+  }
+
+  void _syncBump() {
+    if (_visible && !_reduceMotion) {
+      if (!_bump.isAnimating) _bump.repeat();
+    } else {
+      _bump.reset();
+      _pulse.reset();
     }
-    if (!mounted || _reduceMotion || widget.openedOnce) return;
-    for (int i = 0; i < _introPulses; i++) {
-      if (!mounted || !_visible || widget.openedOnce) return;
-      try {
-        await _pulse.forward(from: 0).orCancel;
-      } on TickerCanceled {
-        break;
-      }
-    }
-    _pulseTimer ??= Timer.periodic(_pulseInterval, (_) {
-      if (_visible && !widget.openedOnce && !_pulse.isAnimating) _pulseOnce();
-    });
   }
 
   void _pulseOnce() {
-    if (_reduceMotion || !mounted) return;
+    if (_reduceMotion || !mounted || !_visible) return;
     _pulse.forward(from: 0);
   }
 
@@ -262,7 +248,19 @@ class _LauncherButtonState extends State<_LauncherButton>
                   Positioned(
                     right: 0,
                     bottom: 0,
-                    child: _buildButton(),
+                    child: AnimatedBuilder(
+                      animation: _bump,
+                      child: _buildButton(),
+                      builder: (context, child) {
+                        final lift =
+                            (1 - math.cos(_bump.value * 2 * math.pi)) / 2;
+                        return Transform.translate(
+                          key: const ValueKey('assistant-bump'),
+                          offset: Offset(0, -6 * lift),
+                          child: child,
+                        );
+                      },
+                    ),
                   ),
                   if (widget.hasUnread)
                     const Positioned(
