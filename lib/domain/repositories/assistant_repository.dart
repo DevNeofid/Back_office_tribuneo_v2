@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
@@ -10,12 +11,18 @@ import 'package:back_office_tribuneo_v2/domain/repositories/fake_assistant_repos
 ///
 /// Toute erreur est levée en [AssistantException], déjà classée pour l'affichage.
 abstract class AssistantRepository {
-  /// La passerelle `/chat` (prérequis P2) n'est pas encore développée : tant
-  /// que ce drapeau est faux, l'assistant répond avec [FakeAssistantRepository].
-  static const bool gatewayReady = false;
+  /// Activation explicite à la compilation, sans clé ni JWT dans le navigateur.
+  static const bool gatewayReady =
+      bool.fromEnvironment('NEO_CHAT_ENABLED', defaultValue: false);
+  static const bool demoEnabled =
+      kDebugMode && bool.fromEnvironment('NEO_CHAT_DEMO', defaultValue: false);
+  static const bool visible = gatewayReady || demoEnabled;
 
-  factory AssistantRepository() =>
-      gatewayReady ? ApiAssistantRepository() : FakeAssistantRepository();
+  factory AssistantRepository() => gatewayReady
+      ? ApiAssistantRepository()
+      : demoEnabled
+          ? FakeAssistantRepository()
+          : DisabledAssistantRepository();
 
   /// Crée une session de chat et retourne son identifiant.
   Future<String> createSession();
@@ -23,13 +30,37 @@ abstract class AssistantRepository {
   Future<AssistantReply> sendMessage(String sessionId, String message);
 }
 
-/// Implémentation sur le contrat **provisoire** du § 7 de la spec (à aligner
-/// avec P2) :
+/// Assistant désactivé : aucune réponse métier factice en production.
+class DisabledAssistantRepository implements AssistantRepository {
+  @override
+  Future<String> createSession() async =>
+      throw const AssistantException(AssistantErrorKind.unavailable);
+
+  @override
+  Future<AssistantReply> sendMessage(String sessionId, String message) async =>
+      throw const AssistantException(AssistantErrorKind.unavailable);
+}
+
+/// Implémentation sur la passerelle authentifiée Tribuneo :
 /// - `POST chat/sessions` → `{ "data": { "id": "…" } }`
-/// - `POST chat/sessions/{id}/messages` `{ "message": "…" }` →
+/// - `POST chat/sessions/{id}/messages` `{ "message": "…", "request_id": "…" }` →
 ///   `{ "data": { "reply": { "text": "…", "blocks": [ … ] } } }`
 class ApiAssistantRepository extends BaseRepository
     implements AssistantRepository {
+  ApiAssistantRepository({
+    Future<String> Function()? tenantResolver,
+    Future<Response> Function(String, dynamic, String, Duration?)? post,
+  })  : _tenantResolver = tenantResolver,
+        _postOverride = post;
+
+  final Future<String> Function()? _tenantResolver;
+  final Future<Response> Function(String, dynamic, String, Duration?)?
+      _postOverride;
+  String? _requestKey;
+  String? _requestId;
+
+  static final RegExp _opaqueId = RegExp(r'^[a-f0-9]{32}$');
+
   /// La réponse passe par la boucle d'outils de l'agent : elle peut être longue.
   static const Duration _messageTimeout = Duration(seconds: 90);
 
@@ -44,7 +75,7 @@ class ApiAssistantRepository extends BaseRepository
     final Response response = await _post('chat/sessions', null);
     final dynamic data = response.data is Map ? response.data['data'] : null;
     final String? id = data is Map ? data['id']?.toString() : null;
-    if (id == null || id.isEmpty) {
+    if (id == null || !_opaqueId.hasMatch(id)) {
       throw const AssistantException(AssistantErrorKind.other);
     }
     return id;
@@ -52,9 +83,22 @@ class ApiAssistantRepository extends BaseRepository
 
   @override
   Future<AssistantReply> sendMessage(String sessionId, String message) async {
+    if (!_opaqueId.hasMatch(sessionId) ||
+        message.trim().isEmpty ||
+        message.runes.length > 1000) {
+      throw const AssistantException(AssistantErrorKind.other);
+    }
+    final String key = '$sessionId\u0000$message';
+    if (_requestKey != key) {
+      final Random random = Random.secure();
+      _requestId = List.generate(
+              16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'))
+          .join();
+      _requestKey = key;
+    }
     final Response response = await _post(
       'chat/sessions/$sessionId/messages',
-      {'message': message},
+      {'message': message, 'request_id': _requestId},
       receiveTimeout: _messageTimeout,
     );
     final dynamic data = response.data is Map ? response.data['data'] : null;
@@ -62,20 +106,31 @@ class ApiAssistantRepository extends BaseRepository
     if (reply is! Map) {
       throw const AssistantException(AssistantErrorKind.other);
     }
-    return AssistantReply.fromJson(Map<String, dynamic>.from(reply));
+    final AssistantReply result =
+        AssistantReply.fromJson(Map<String, dynamic>.from(reply));
+    _requestKey = null;
+    _requestId = null;
+    return result;
   }
 
   Future<Response> _post(String path, dynamic body,
       {Duration? receiveTimeout}) async {
     final Response response;
     try {
-      final String tenant = await getTenantForCurrentNetwork();
-      response = await apiClient.post(path, body,
-          overrideTenant: tenant, receiveTimeout: receiveTimeout);
+      final String tenant =
+          await (_tenantResolver?.call() ?? getTenantForCurrentNetwork());
+      if (tenant != 'tribuneo_cci04') {
+        throw const AssistantException(AssistantErrorKind.unavailable);
+      }
+      response = _postOverride != null
+          ? await _postOverride!(path, body, tenant, receiveTimeout)
+          : await apiClient.post(path, body,
+              overrideTenant: tenant, receiveTimeout: receiveTimeout);
+    } on AssistantException {
+      rethrow;
     } on DioException catch (e) {
       throw AssistantException(_kindForDioException(e));
     } catch (e) {
-      if (kDebugMode) print('###DEBUG### Assistant $path : $e');
       throw const AssistantException(AssistantErrorKind.other);
     }
     final int status = response.statusCode ?? 0;

@@ -172,7 +172,7 @@ class _AssistantPanelState extends State<AssistantPanel> {
         focusNode: _panelFocus,
         child: Semantics(
           container: true,
-          label: 'Assistant Tribuneo',
+          label: 'Néo — assistant Tribuneo',
           child: Material(
             color: kPWhite,
             elevation: 8,
@@ -206,7 +206,7 @@ class _AssistantPanelState extends State<AssistantPanel> {
           const SizedBox(width: 10),
           const Expanded(
             child: Text(
-              'Assistant',
+              'Néo',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,

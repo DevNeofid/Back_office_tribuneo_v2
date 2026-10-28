@@ -8,6 +8,7 @@ import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/assistant_repository.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/invoice_download.dart';
@@ -290,7 +291,8 @@ class MySinglePageState extends State<MySinglePage> {
         child: Stack(
           children: [
             _buildContent(context),
-            const Positioned.fill(child: AssistantOverlay()),
+            if (AssistantRepository.visible)
+              const Positioned.fill(child: AssistantOverlay()),
           ],
         ),
       ),

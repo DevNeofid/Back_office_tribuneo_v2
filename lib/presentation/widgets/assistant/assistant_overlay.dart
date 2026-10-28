@@ -322,7 +322,7 @@ class _LauncherButtonState extends State<_LauncherButton>
       child: ScaleTransition(
         scale: scale,
         child: Tooltip(
-          message: 'Assistant Tribuneo',
+          message: 'Néo — assistant Tribuneo',
           // Au-dessus de la pastille « masquer », sinon l'infobulle la couvre
           // au survol et intercepte son clic.
           preferBelow: false,
