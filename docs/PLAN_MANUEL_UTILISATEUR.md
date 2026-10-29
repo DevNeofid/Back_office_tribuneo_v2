@@ -1,6 +1,6 @@
 # Plan du manuel utilisateur du back-office Tribuneo
 
-Plan établi le 12 octobre 2026 à partir du code du back-office (`lib/presentation/`). Le manuel n'existe pas encore : ce document fixe sa structure avant la rédaction.
+Plan établi le 12 octobre 2026 à partir du code du back-office (`lib/presentation/`). Le manuel est rédigé progressivement : ce document en fixe la structure. La première fiche, [Rechercher une commande](manuel/rechercher-commande.md), a été rédigée le 29 octobre 2026 à partir du code de l'interface ; sa validation visuelle sur la préproduction reste à faire.
 
 **Lecteur visé :** l'administrateur d'un réseau (rôle `NETWORK_ADMIN`). Il n'existe qu'un compte par réseau, éventuellement partagé par plusieurs personnes.
 
