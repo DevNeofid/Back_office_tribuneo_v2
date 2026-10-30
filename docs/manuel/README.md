@@ -30,6 +30,23 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Renseigner les informations bancaires accessibles pour un client](renseigner-coordonnees-bancaires-client.md) | Lot 02 (M04) ; numéro comptable et intracommunautaire seulement, aucun IBAN client. |
 | [Dupliquer un client en partenaire](dupliquer-client-en-partenaire.md) | Lot 02 (M04) ; message de succès possiblement anticipé, à vérifier. |
 | [Désactiver un client et comprendre les refus](desactiver-client.md) | Lot 02 (M04) ; suppression possible de l'entité commune, non testée ; message d'impayés trop général. |
+| [Ajouter un partenaire ou reprendre une entité existante](ajouter-partenaire.md) | Lot 03 (M05) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; ajout partiel possible avant une erreur. |
+| [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md) | Lot 03 (M05) ; recherche sur le nom seulement ; IBAN affiché en clair. |
+| [Modifier les informations générales d'un partenaire](modifier-partenaire.md) | Lot 03 (M05) ; code partenaire obligatoire mais non repris par l'API ; message d'erreur unique. |
+| [Attribuer des secteurs d'activité à un partenaire](attribuer-secteurs-partenaire.md) | Lot 03 (M05) ; sélection remplaçant la précédente ; **Créer** immédiat dans le catalogue commun. |
+| [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md) | Lot 03 (M05) ; rue, code postal et ville requis pour le remboursement. |
+| [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md) | Lot 03 (M05) ; IBAN français seulement ; contrôle de clé non bloquant. |
+| [Donner accès à l'application à un partenaire](donner-acces-application-partenaire.md) | Lot 03 (M05) ; QR et lien de première connexion générés au clic ; aucune génération ni envoi réel. |
+| [Générer le QR code de réception d'un partenaire](generer-qr-reception-partenaire.md) | Lot 03 (M05) ; distinct du QR de première connexion et des QR de commande ; échec sans message. |
+| [Dupliquer un partenaire en client](dupliquer-partenaire-en-client.md) | Lot 03 (M05) ; même entité, refus sans message. |
+| [Désactiver un partenaire et comprendre les refus](desactiver-partenaire.md) | Lot 03 (M05) ; refus si solde non nul ; aucune réactivation dans le BO, réversibilité non établie. |
+| [Consulter les bons d'une commande](consulter-bons-commande.md) | Lot 03 (M06) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; liste vide possible après un échec de lecture. |
+| [Désactiver un bon d'une commande](desactiver-bon.md) | Lot 03 (M06) ; refus serveur possible malgré un bouton actif ; aucune réactivation. |
+| [Changer la date d'expiration d'un bon individuel](changer-expiration-bon.md) | Lot 03 (M06) ; un seul bon ; envoi dès la validation du calendrier : recette par annulation uniquement. |
+| [Générer et télécharger les QR codes d'une commande](generer-qr-codes-commande.md) | Lot 03 (M06) ; génération en arrière-plan ; erreurs partielles possibles dans le manifeste ; aucune génération réelle. |
+| [Utiliser « Générer le CSV » pour les bons d'une commande](generer-csv-bons-commande.md) | Lot 03 (M06) ; UUID seulement, distinct du récapitulatif. |
+| [Consulter les bénéficiaires d'une commande importée](consulter-beneficiaires-commande-importee.md) | Lot 03 (M06) ; fenêtre éditable : consulter sans enregistrer. |
+| [Renvoyer l'e-mail cadeau à un bénéficiaire](renvoyer-cadeau-beneficiaire.md) | Lot 03 (M06) ; envoi immédiat sans confirmation ; aucun envoi réel. |
 
 Le [plan du manuel](../PLAN_MANUEL_UTILISATEUR.md) conserve la liste des chapitres
 à rédiger. Il ne remplace pas les procédures détaillées.
@@ -50,4 +67,13 @@ Après publication, déploiement et recette du lot 01, le propriétaire a décla
 « C'est validé ! ». Ce retour global ne détaille pas les scénarios vérifiés et
 ne vaut pas opération métier réelle. Les livrables du lot 02 (M03 commandes,
 M04 clients) et leur raccordement sont sous `docs/livrables/M03/`, `M04/` et
-`M12/lot-02/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le lot 02.
+`M12/lot-02/` du dépôt Néo. Après publication et déploiement du lot 02, le
+propriétaire a confirmé « Oui, déployé et vérifié », sans détail des scénarios
+transmis.
+
+Les livrables du lot 03 (M05 partenaires, M06 bons, QR, exports et
+bénéficiaires) et leur raccordement sont sous `docs/livrables/M05/`, `M06/` et
+`M12/lot-03/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le lot 03.
+Les QR d'un partenaire (accès, réception) sont distincts du ZIP des QR des bons
+d'une commande ; **Générer le CSV** (UUID) est distinct du récapitulatif ;
+l'expiration d'un bon est distincte de la validité de toute la commande.

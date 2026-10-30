@@ -52,15 +52,15 @@ commande déjà présente, distinct de la première facturation.
 - 1.8 [Désactiver un client](manuel/desactiver-client.md) — M04 ; refus si une commande est marquée non payée ; suppression possible de l'entité commune.
 
 ### 2. Gérer les partenaires (commerces où les chèques sont dépensés)
-- 2.1 Ajouter un partenaire (recherche SIRET, reprise d'un partenaire existant)
-- 2.2 Rechercher et consulter un partenaire (solde Tribuneo, secteurs, dématérialisation)
-- 2.3 Modifier les informations générales — le code partenaire devient obligatoire
-- 2.4 Attribuer des secteurs d'activité
-- 2.5 Renseigner l'adresse et les informations bancaires — **indispensables pour rembourser**
-- 2.6 Donner accès à l'application au partenaire : QR code de première connexion, lien de première connexion (copie ou envoi par e-mail)
-- 2.7 Générer le QR code de réception
-- 2.8 Dupliquer un partenaire en client
-- 2.9 Désactiver un partenaire
+- 2.1 [Ajouter un partenaire (recherche SIRET, reprise d'une entité existante)](manuel/ajouter-partenaire.md) — M05 intégrée localement (lot 03) ; recette à faire ; ajout partiel possible avant une erreur.
+- 2.2 [Rechercher et consulter un partenaire](manuel/rechercher-consulter-partenaire.md) — M05 ; recherche sur le nom seulement ; distinction partenaire, client et bénéficiaire.
+- 2.3 [Modifier les informations générales](manuel/modifier-partenaire.md) — M05 ; code partenaire obligatoire dans le formulaire mais non repris par l'action API lue.
+- 2.4 [Attribuer des secteurs d'activité](manuel/attribuer-secteurs-partenaire.md) — M05 ; la sélection remplace la précédente ; **Créer** ajoute immédiatement au catalogue commun.
+- 2.5 [Renseigner l'adresse](manuel/renseigner-adresse-partenaire.md) et [les informations bancaires](manuel/renseigner-coordonnees-bancaires-partenaire.md) — **indispensables pour rembourser** (rue, code postal, ville, IBAN et BIC) ; M05 ; IBAN français seulement par ce parcours.
+- 2.6 [Donner accès à l'application au partenaire](manuel/donner-acces-application-partenaire.md) : QR code et lien de première connexion (copie ou envoi par e-mail) — M05 ; génération au clic, sans confirmation.
+- 2.7 [Générer le QR code de réception](manuel/generer-qr-reception-partenaire.md) — M05 ; distinct du QR de première connexion et des QR de commande (6.5).
+- 2.8 [Dupliquer un partenaire en client](manuel/dupliquer-partenaire-en-client.md) — M05 ; ajout du rôle client à la même entité ; refus sans message.
+- 2.9 [Désactiver un partenaire](manuel/desactiver-partenaire.md) — M05 ; refus si le solde n'est pas nul ; aucune réactivation dans le BO, réversibilité non établie.
 
 ### 3. Gérer les secteurs d'activité
 - 3.1 Créer un secteur (depuis le menu Secteurs ou depuis une fiche partenaire)
@@ -88,12 +88,14 @@ commande déjà présente, distinct de la première facturation.
 - 6.2 Télécharger à nouveau une facture (menu Documents)
 - 6.3 [Générer le bon de livraison](manuel/generer-bon-livraison-commande.md) — M01 intégrée ; facture préalable, limite URL à confirmer.
 - 6.4 [Générer le récapitulatif](manuel/generer-recapitulatif-commande.md) — M01 intégrée ; CSV des bons ; recette distante à faire.
-- 6.5 Générer les QR codes (ZIP, génération en arrière-plan) et le CSV des bons
+- 6.5 [Générer les QR codes (ZIP, génération en arrière-plan)](manuel/generer-qr-codes-commande.md) et [le CSV des UUID des bons](manuel/generer-csv-bons-commande.md) — M06 intégrée localement (lot 03) ; erreurs partielles possibles dans le manifeste du ZIP ; CSV distinct du récapitulatif (6.4).
 
 ### 7. Gérer les bons d'une commande
-- 7.1 Consulter les bons (montant restant, bénéficiaire, donation, expiration)
-- 7.2 Désactiver un bon — impossible s'il est associé à un utilisateur
-- 7.3 Modifier la date d'expiration d'un bon
+- 7.1 [Consulter les bons](manuel/consulter-bons-commande.md) (montant restant, donation, expiration, suppression) — M06 ; liste vide possible après un échec de lecture.
+- 7.2 [Désactiver un bon](manuel/desactiver-bon.md) — impossible s'il est associé à un utilisateur ; M06 ; aucune réactivation proposée.
+- 7.3 [Modifier la date d'expiration d'un bon](manuel/changer-expiration-bon.md) — M06 ; un seul bon, distinct de la validité de toute la commande (4.8).
+- 7.4 [Consulter les bénéficiaires d'une commande importée](manuel/consulter-beneficiaires-commande-importee.md) — M06 ; fenêtre aussi éditable : consulter sans enregistrer.
+- 7.5 [Renvoyer l'e-mail cadeau à un bénéficiaire](manuel/renvoyer-cadeau-beneficiaire.md) — M06 ; envoi immédiat sans confirmation, à l'adresse enregistrée.
 
 ### 8. Rembourser les partenaires
 - 8.1 Comprendre le cycle : demande du partenaire → justificatif → ordre de virement SEPA
@@ -141,7 +143,9 @@ commande déjà présente, distinct de la première facturation.
 | Générer les écritures comptables | Comptes bancaires configurés par Neofid (journal, compte 512) |
 | Désactiver un client | Aucune commande associée marquée non payée |
 | Supprimer une commande | Aucun bon non annulé attribué ou utilisé ; commande non facturée |
-| Désactiver un bon | Bon non associé à un utilisateur |
+| Désactiver un bon | Bon non associé à un utilisateur et non déjà désactivé |
+| Désactiver un partenaire | Solde Tribuneo du partenaire nul dans le réseau |
+| Renvoyer l'e-mail cadeau | Bon non annulé, non attribué, avec une adresse e-mail enregistrée |
 
 ---
 
@@ -154,7 +158,9 @@ commande déjà présente, distinct de la première facturation.
 - Tuile « Deconnexion » sans accent sur le tableau de bord.
 - Formulaire d'adresse intitulé « …de ce commerçant » aussi pour les clients.
 - Paiement sans méthode sélectionnée : message « Le montant saisi dépasse le montant total de la commande » au lieu de « choisissez une méthode » (`orders_content_view.dart:934-939`).
-- « Code du partenaire » facultatif à la création, obligatoire à la modification (`update_partner_info_form.dart:189`).
+- « Code du partenaire » facultatif à la création, obligatoire à la modification (`update_partner_info_form.dart:189`) ; l'action API de mise à jour lue ne l'enregistre pas (relevé M05 du 30 octobre 2026).
+- Menu Qrcode d'un partenaire : génération au clic sans confirmation, échec du QR sans message ; refus de désactivation d'un partenaire affiché par un message générique (relevé M05).
+- Gestion des bons : bouton de désactivation fondé sur les contacts affichés, pas sur l'attribution vérifiée par l'API ; « Aucun bon associé à cette commande. » aussi après un échec de lecture ; ZIP QR sans affichage des erreurs partielles du manifeste (relevé M06 du 30 octobre 2026).
 - Colonne « Facturé » de la liste des commandes : affiche le total de la commande, pas le montant facturé.
 - Import de commande : le contrôle de l'occasion URSSAF est sauté, mais l'occasion est lue juste après (`order_form.dart:131-155`) ; un import sans occasion risque une erreur générique.
 - Client professionnel : la fenêtre s'intitule « Partenaire existant », mais l'API cherche une entité par SIRET sans filtre partenaire ni réseau (relevé M04 du 30 octobre 2026). À confirmer comme voulu.
