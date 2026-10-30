@@ -2,6 +2,14 @@
 
 Plan établi le 12 octobre 2026 à partir du code du back-office (`lib/presentation/`). Le manuel est rédigé progressivement : ce document en fixe la structure. La première fiche, [Rechercher une commande](manuel/rechercher-commande.md), a été rédigée le 29 octobre 2026 à partir du code de l'interface ; sa validation visuelle sur la préproduction reste à faire.
 
+La fiche [Consulter les paiements d'une commande](manuel/consulter-paiements-commande.md)
+est également rédigée à partir du code de l'interface. L'[index du manuel](manuel/README.md)
+recense les fiches disponibles et leur état de validation.
+
+La fiche [Retélécharger une facture existante](manuel/retelecharger-facture-existante.md)
+décrit le parcours Documents → Factures → Télécharger pour une facture de
+commande déjà présente, distinct de la première facturation.
+
 **Lecteur visé :** l'administrateur d'un réseau (rôle `NETWORK_ADMIN`). Il n'existe qu'un compte par réseau, éventuellement partagé par plusieurs personnes.
 
 **Double usage :** le manuel sert aux utilisateurs **et** de base de connaissances au futur chatbot du back-office. D'où les choix ci-dessous.
@@ -60,17 +68,17 @@ Plan établi le 12 octobre 2026 à partir du code du back-office (`lib/presentat
 
 ### 4. Créer et suivre une commande
 - 4.1 Comprendre une commande : offert par, occasion, lignes de chèques, date d'expiration, bons générés
-- 4.2 Créer une commande en saisie manuelle (une ou plusieurs valeurs de chèque, message personnalisé, personnalisation « offert par »)
+- 4.2 [Créer une commande en saisie manuelle](manuel/creer-commande-manuelle.md) — fiche rédigée ; chat, refus de création par Néo et formulaire confirmés sans enregistrement de commande.
 - 4.3 Créer une commande par import de fichier (CSV / XLSX) : une ligne = un chèque nominatif, et le bénéficiaire reçoit un e-mail cadeau (format en annexe B)
 - 4.4 Créer une commande depuis la fiche d'un client
 - 4.5 Rechercher une commande et lire la liste (colonnes, couleurs payé / non payé, pagination)
 - 4.6 Supprimer une commande — impossible dès qu'un bon a été scanné
 
 ### 5. Encaisser les paiements d'une commande
-- 5.1 Enregistrer un paiement (date, méthode, montant, confirmation)
-- 5.2 Choisir le compte encaisseur (réseau à plusieurs comptes ; cas du compte imposé)
+- 5.1 [Enregistrer un paiement](manuel/enregistrer-paiement-commande.md) — fiche rédigée ; guidage et champs confirmés sans enregistrement de paiement réel.
+- 5.2 Choisir le compte encaisseur — cas du compte proposé ou imposé décrits dans la fiche [Enregistrer un paiement](manuel/enregistrer-paiement-commande.md).
 - 5.3 Règles : pas de dépassement du total, pas de date antérieure au dernier paiement
-- 5.4 Supprimer un paiement (et pourquoi c'est parfois refusé : écritures comptables déjà générées)
+- 5.4 [Supprimer un paiement](manuel/supprimer-paiement-commande.md) — fiche rédigée ; retour global positif de l’exploitant, sans détail des scénarios ni suppression réelle.
 - 5.5 Savoir si une commande est soldée
 
 ### 6. Produire les documents d'une commande
