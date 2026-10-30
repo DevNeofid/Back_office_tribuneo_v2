@@ -35,9 +35,9 @@ commande déjà présente, distinct de la première facturation.
 ## Structure du manuel
 
 ### 0. Prise en main
-- 0.1 Se connecter (identifiant, mot de passe, messages d'erreur : accès refusé, identifiants invalides, trop de tentatives). Pas de « mot de passe oublié » dans le back-office : c'est voulu. En cas d'oubli, l'administrateur contacte Neofid, qui réinitialise le mot de passe
-- 0.2 Se repérer : menu latéral (10 entrées), en-tête, nom du réseau, déconnexion
-- 0.3 Le tableau de bord et ses raccourcis
+- 0.1 [Se connecter](manuel/se-connecter-back-office.md) et [résoudre un problème de connexion](manuel/resoudre-probleme-connexion.md) (identifiant, mot de passe, messages d'erreur : accès refusé, identifiants invalides, trop de tentatives, session expirée) — M10 (lot 05). Pas de « mot de passe oublié » dans le back-office : c'est voulu. En cas d'oubli, l'administrateur contacte Neofid, qui réinitialise le mot de passe ; la fiche ne cite aucun contact ni procédure, faute de les trouver dans le code
+- 0.2 [Se repérer](manuel/naviguer-back-office.md) : menu latéral (10 entrées), en-tête, nom du réseau ; [se déconnecter](manuel/se-deconnecter-back-office.md) — M10 ; aucun menu **Configuration**.
+- 0.3 [Le tableau de bord et ses raccourcis](manuel/comprendre-tableau-bord.md) — M10 ; trois raccourcis et **Deconnexion**, aucun indicateur chiffré actif ; la pastille de **Prochain virement** n'est pas une preuve de paiement.
 - 0.4 La pastille rouge du menu « Prochain virement » : voir [Consulter les demandes de remboursement](manuel/consulter-demandes-remboursement.md) — M07 ; le menu « Remboursement » du plan initial s'appelle désormais **Prochain virement**.
 - 0.5 Glossaire : client, partenaire, commande, bon / chèque, occasion URSSAF, offert par, frais de gestion, justificatif, ordre de virement, écriture comptable, compte encaisseur / payeur
 
@@ -63,8 +63,8 @@ commande déjà présente, distinct de la première facturation.
 - 2.9 [Désactiver un partenaire](manuel/desactiver-partenaire.md) — M05 ; refus si le solde n'est pas nul ; aucune réactivation dans le BO, réversibilité non établie.
 
 ### 3. Gérer les secteurs d'activité
-- 3.1 Créer un secteur (depuis le menu Secteurs ou depuis une fiche partenaire)
-- 3.2 Supprimer un secteur (conséquence sur les partenaires associés)
+- 3.1 [Créer un secteur](manuel/creer-secteur-activite.md) (depuis le menu Secteurs ; le bouton **Créer** d'une fiche partenaire relève de 2.4) — M10 ; catalogue commun aux réseaux, ajout immédiat, unicité imposée par le schéma.
+- 3.2 [Supprimer un secteur](manuel/supprimer-secteur-activite.md) — M10 ; refus de l'API si le secteur est lié à une entité, aucun détachement automatique ni restauration.
 
 ### 4. Créer et suivre une commande
 - 4.1 [Comprendre une commande](manuel/comprendre-commande.md) : offert par, occasion, lignes de chèques, date d'expiration, bons générés — M03 intégrée localement (lot 02).
@@ -112,9 +112,9 @@ commande déjà présente, distinct de la première facturation.
 - 9.4 [Factures de frais de gestion](manuel/consulter-telecharger-factures-frais-gestion.md) (menu Documents) — M08 ; distinctes des factures de commande ; le téléchargement peut émettre et numéroter une facture et un justificatif manquants.
 
 ### 10. Statistiques et exports
-- 10.1 Choisir un rapport, filtrer par période, exporter en CSV
-- 10.2 Fiche par rapport : à quoi il sert, colonnes, période (11 rapports)
-- 10.3 Retrouver les bons d'un bénéficiaire (rapport « Statut des QR codes par client »)
+- 10.1 [Choisir un rapport, filtrer par période, exporter en CSV](manuel/consulter-exporter-statistiques.md) — M09 (lot 05) ; bornes de période propres à chaque rapport ; export de toutes les lignes, sans masquage.
+- 10.2 Fiche par rapport : [Comptes utilisateurs](manuel/statistiques-comptes-utilisateurs.md), [Montant total des partenaires](manuel/statistiques-montant-total-partenaires.md), [Montant total du réseau](manuel/statistiques-montant-total-reseau.md), [Montant total des bons par clients](manuel/statistiques-montant-total-bons-clients.md), [Partenaires jamais connectés](manuel/statistiques-partenaires-jamais-connectes.md), [Somme des coupons expirés par client](manuel/statistiques-coupons-expires-clients.md), [Partenaires sans transactions](manuel/statistiques-partenaires-sans-transactions.md), [Toutes les infos partenaires](manuel/statistiques-informations-partenaires.md), [Toutes les infos clients](manuel/statistiques-informations-clients.md), [Support technique - commandes](manuel/statistiques-support-technique-commandes.md) — M09.
+- 10.3 [Retrouver les bons d'un bénéficiaire](manuel/statistiques-statut-qr-codes-client.md) (rapport « Statut des QR codes par client ») — M09 ; lecture seule, ne génère aucun QR (voir 6.5).
 
 ### 11. Questions fréquentes et dépannage
 - Regroupe les messages d'erreur de tout le back-office, avec cause et solution (« Pensez à vérifier que votre client a une adresse… », « Le montant saisi dépasse… », « Aucun ordre de virement généré », etc.)
@@ -129,7 +129,7 @@ commande déjà présente, distinct de la première facturation.
   - une ligne = un chèque ; les lignes de même montant sont regroupées dans la commande ;
   - la date d'expiration, « Offert par » et l'occasion sont saisis dans le formulaire, pas dans le fichier ;
   - [CSV synthétique volontairement non importable](manuel/exemples/commande-import-exemple.csv) ; conserver le marqueur invalide et ne pas enregistrer pendant la recette.
-- C. Ce que fait Neofid pour le réseau (comptes bancaires, journaux comptables, paramètres) et comment le contacter
+- C. [Ce que fait Neofid pour le réseau](manuel/comprendre-configuration-reseau.md) (comptes bancaires, journaux comptables, paramètres) — M10 ; aucun écran de gestion des comptes bancaires du réseau prouvé, fiche conditionnelle non produite ; aucun contact ni adresse de support trouvé dans le code.
 
 ---
 
@@ -166,8 +166,10 @@ commande déjà présente, distinct de la première facturation.
 - Client professionnel : la fenêtre s'intitule « Partenaire existant », mais l'API cherche une entité par SIRET sans filtre partenaire ni réseau (relevé M04 du 30 octobre 2026). À confirmer comme voulu.
 - Ordre de virement : enregistré avant l'écriture des fichiers, alors que le message d'échec affirme qu'aucun virement n'est enregistré ; l'échec du retéléchargement parle de « génération » ; la fenêtre **Libérer** annonce l'inclusion au prochain virement même si un autre motif l'écarte ; la notification au partenaire annonce un remboursement effectué dès la création de la demande (relevé M07 du 30 octobre 2026).
 - Comptabilité : un lot vide avance le seuil de suppression des paiements ; texte d'attente « Génération… » aussi pour un retéléchargement ; listes vides après une erreur de lecture ; le téléchargement d'une facture de frais peut émettre des documents (relevé M08 du 30 octobre 2026).
+- Statistiques : une même date en début et en fin est acceptée par l'écran mais refusée par le serveur ; bornes de période différentes selon les rapports (23:59:59 du jour de début, ou jour de fin exclu) ; « Erreur: Exception: Aucune donnée CSV reçue » pour toute absence, refus ou échec ; menu affiché sans filtrage de rôle ; IBAN et BIC exportés en clair sans confirmation ; « Date de debut » sans accent (relevé M09 du 30 octobre 2026).
+- Secteurs : l'avertissement de suppression évoque des partenaires associés alors que l'API refuse la suppression d'un secteur lié ; une erreur de rechargement peut suivre un ajout ou une suppression réussis ; pastille de **Prochain virement** non éteinte si la sélection devient vide (relevé M10 du 30 octobre 2026).
 
-**Code non accessible depuis l'interface** (hors manuel) : `VoucherView`, `CardAction`, `list_test_widget`, `side_menu_widget.dart` (commenté), `tabbar_controller.dart`. `UpdateOrderForm` est en revanche ouvert par **Edition → Modifier** (relevé M03 du 30 octobre 2026).
+**Code non accessible depuis l'interface** (hors manuel) : `VoucherView`, `CardAction`, `list_test_widget`, `side_menu_widget.dart` (commenté), `tabbar_controller.dart`, route API `/stats/order/{id}` non appelée par les onze rapports et méthodes BO `getPartnerAcc`, `getPartnerUnBalance`, `getPartnerActivated` (relevé M09), réinitialisation de mot de passe côté API sans parcours BO et gestion des comptes bancaires du réseau sans écran (relevé M10). `UpdateOrderForm` est en revanche ouvert par **Edition → Modifier** (relevé M03 du 30 octobre 2026).
 
 ---
 

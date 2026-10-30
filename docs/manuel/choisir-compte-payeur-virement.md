@@ -8,7 +8,7 @@ choisit dans le menu **Prochain virement**, sur la ligne **Compte payeur :**
 de l'en-tête.
 
 Les comptes bancaires du réseau ne se créent ni ne se modifient dans le
-back-office : leur configuration n'est pas décrite ici.
+back-office : voir [Comprendre la configuration du réseau](comprendre-configuration-reseau.md).
 
 ## Ce qu'affiche l'écran
 

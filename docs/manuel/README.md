@@ -33,7 +33,7 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Ajouter un partenaire ou reprendre une entité existante](ajouter-partenaire.md) | Lot 03 (M05) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; ajout partiel possible avant une erreur. |
 | [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md) | Lot 03 (M05) ; recherche sur le nom seulement ; IBAN affiché en clair. |
 | [Modifier les informations générales d'un partenaire](modifier-partenaire.md) | Lot 03 (M05) ; code partenaire obligatoire mais non repris par l'API ; message d'erreur unique. |
-| [Attribuer des secteurs d'activité à un partenaire](attribuer-secteurs-partenaire.md) | Lot 03 (M05) ; sélection remplaçant la précédente ; **Créer** immédiat dans le catalogue commun. |
+| [Attribuer des secteurs d'activité à un partenaire](attribuer-secteurs-partenaire.md) | Lot 03 (M05) ; sélection remplaçant la précédente ; **Créer** immédiat dans le catalogue commun ; renvoi vers la gestion du catalogue des secteurs ajouté au lot 05. |
 | [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md) | Lot 03 (M05) ; rue, code postal et ville requis pour le remboursement ; renvoi vers les demandes écartées ajouté au lot 04. |
 | [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md) | Lot 03 (M05) ; IBAN français seulement ; contrôle de clé non bloquant ; renvoi vers les demandes écartées ajouté au lot 04. |
 | [Donner accès à l'application à un partenaire](donner-acces-application-partenaire.md) | Lot 03 (M05) ; QR et lien de première connexion générés au clic ; aucune génération ni envoi réel. |
@@ -49,7 +49,7 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Renvoyer l'e-mail cadeau à un bénéficiaire](renvoyer-cadeau-beneficiaire.md) | Lot 03 (M06) ; envoi immédiat sans confirmation ; aucun envoi réel. |
 | [Consulter les demandes de remboursement des partenaires](consulter-demandes-remboursement.md) | Lot 04 (M07) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; aucune demande créée par le BO, notification « remboursement effectué » non probante. |
 | [Consulter le justificatif d'une demande de remboursement](consulter-justificatif-remboursement.md) | Lot 04 (M07) ; justificatifs créés à la génération de l'ordre ; entrées `.pdf` du ZIP des documents contenant une archive d'après le code, non observé. |
-| [Choisir le compte payeur d'un ordre de virement](choisir-compte-payeur-virement.md) | Lot 04 (M07) ; choix dans **Prochain virement** seulement ; comptes du réseau configurés hors BO. |
+| [Choisir le compte payeur d'un ordre de virement](choisir-compte-payeur-virement.md) | Lot 04 (M07) ; choix dans **Prochain virement** seulement ; comptes du réseau configurés hors BO ; renvoi vers la configuration du réseau ajouté au lot 05. |
 | [Générer l'ordre de virement des remboursements](generer-ordre-virement.md) | Lot 04 (M07) ; ZIP `BTO_<plus ancienne>_<plus récente>_<HHMMSS>.zip` lu dans le code ; ordre enregistré avant les fichiers : vérifier avant toute relance ; aucune génération réelle. |
 | [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md) | Lot 04 (M07) ; cinq motifs ; une demande écartée ne bloque plus les autres. |
 | [Mettre en attente ou libérer une demande de remboursement](mettre-en-attente-liberer-demande-remboursement.md) | Lot 04 (M07) ; parcours actif ; la libération ne lève pas les autres motifs malgré le texte de la fenêtre. |
@@ -58,6 +58,26 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Générer les écritures comptables](generer-ecritures-comptables.md) | Lot 04 (M08) ; bouton immédiat sans confirmation ; période calculée, seconde de recouvrement et fuseau SQL non établi ; lot vide enregistré ; aucune génération réelle. |
 | [Retélécharger un fichier d'écritures comptables](retelecharger-ecritures-comptables.md) | Lot 04 (M08) ; ZIP existant sans recalcul ni avancement du seuil de suppression. |
 | [Consulter et télécharger les factures de frais de gestion](consulter-telecharger-factures-frais-gestion.md) | Lot 04 (M08), format harmonisé par M12 avec M07 ; téléchargement pouvant émettre facture et justificatif ; distinctes des factures de commande. |
+| [Consulter et exporter les statistiques](consulter-exporter-statistiques.md) | Lot 05 (M09) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; même date en début et en fin refusée ; export complet, non masqué ; message **Aucune donnée CSV reçue** ambigu. |
+| [Statistiques : Comptes utilisateurs](statistiques-comptes-utilisateurs.md) | Lot 05 (M09) ; porte-monnaie consommateur à date, sans période. |
+| [Statistiques : Montant total des partenaires](statistiques-montant-total-partenaires.md) | Lot 05 (M09) ; annulations non déduites de la ligne du commerçant ; bornes à 23:59:59. |
+| [Statistiques : Montant total du réseau](statistiques-montant-total-reseau.md) | Lot 05 (M09) ; trois colonnes, trois bases de date ; frais de gestion distincts des factures de frais. |
+| [Statistiques : Montant total des bons par clients](statistiques-montant-total-bons-clients.md) | Lot 05 (M09) ; client acheteur ; expiration de commande, pas de bon. |
+| [Statistiques : Partenaires jamais connectés](statistiques-partenaires-jamais-connectes.md) | Lot 05 (M09) ; accès de première connexion non utilisé, sans historique de connexion. |
+| [Statistiques : Somme des coupons expirés par client](statistiques-coupons-expires-clients.md) | Lot 05 (M09) ; période sur la création de commande, jour de fin exclu ; donations exclues. |
+| [Statistiques : Partenaires sans transactions](statistiques-partenaires-sans-transactions.md) | Lot 05 (M09) ; un compte rattaché sans transaction suffit ; ID absent du CSV. |
+| [Statistiques : Toutes les infos partenaires](statistiques-informations-partenaires.md) | Lot 05 (M09) ; IBAN et BIC en clair ; fiches incomplètes absentes. |
+| [Statistiques : Toutes les infos clients](statistiques-informations-clients.md) | Lot 05 (M09) ; conditions d'apparition ; aucun IBAN client. |
+| [Statistiques : Support technique - commandes](statistiques-support-technique-commandes.md) | Lot 05 (M09) ; compte support technique ; montant = reste des bons. |
+| [Statistiques : Statut des QR codes par client](statistiques-statut-qr-codes-client.md) | Lot 05 (M09) ; bons d'un bénéficiaire, lecture seule ; ne génère aucun QR ; export selon les filtres appliqués. |
+| [Se connecter au back-office](se-connecter-back-office.md) | Lot 05 (M10) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; aucun identifiant essayé. |
+| [Résoudre un problème de connexion au back-office](resoudre-probleme-connexion.md) | Lot 05 (M10) ; aucun parcours « mot de passe oublié » dans le BO ; aucun contact inventé. |
+| [Se déconnecter du back-office](se-deconnecter-back-office.md) | Lot 05 (M10) ; action immédiate ; révocation serveur non garantie par le seul retour à l'écran de connexion. |
+| [Naviguer dans le back-office](naviguer-back-office.md) | Lot 05 (M10) ; dix menus actifs ; aucun menu **Configuration** ; renvoi statistiques ajouté par M12. |
+| [Comprendre le tableau de bord](comprendre-tableau-bord.md) | Lot 05 (M10) ; trois raccourcis et **Deconnexion** ; pastille sans valeur de preuve ; aucun indicateur chiffré. |
+| [Créer un secteur d'activité](creer-secteur-activite.md) | Lot 05 (M10) ; catalogue commun, ajout immédiat ; unicité imposée par le schéma ; aucun ajout réel. |
+| [Supprimer un secteur d'activité](supprimer-secteur-activite.md) | Lot 05 (M10) ; refus API si le secteur est lié ; aucune restauration ; aucune suppression réelle. |
+| [Comprendre la configuration du réseau](comprendre-configuration-reseau.md) | Lot 05 (M10) ; aucun écran de gestion des comptes bancaires du réseau prouvé (fiche conditionnelle non produite) ; renvoi statistiques ajouté par M12. |
 
 Le [plan du manuel](../PLAN_MANUEL_UTILISATEUR.md) conserve la liste des chapitres
 à rédiger. Il ne remplace pas les procédures détaillées.
@@ -93,10 +113,22 @@ l'expiration d'un bon est distincte de la validité de toute la commande.
 
 Les livrables du lot 04 (M07 remboursements et virements, M08 comptabilité et
 factures de frais) et leur raccordement sont sous `docs/livrables/M07/`, `M08/`
-et `M12/lot-04/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le lot 04.
+et `M12/lot-04/` du dépôt Néo. Après publication du lot 04, le propriétaire a
+indiqué « Ok C'est validé et tester sur le front back-office ! », sans détail
+des scénarios transmis ni opération métier réelle revendiquée.
 Une demande de remboursement, son justificatif, l'ordre de virement généré, la
 transmission du fichier à la banque et l'exécution du virement sont des étapes
 distinctes : aucune ne prouve seule que le partenaire a été payé. Les factures
 de frais de gestion sont distinctes des factures de commande et des écritures
 comptables ; certains téléchargements peuvent produire ou enregistrer des
 documents.
+
+Les livrables du lot 05 (M09 statistiques et exports, M10 navigation,
+connexion et secteurs) et leur raccordement sont sous `docs/livrables/M09/`,
+`M10/` et `M12/lot-05/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le
+lot 05. Les rapports et exports CSV de **Statistiques** sont distincts du
+récapitulatif, du CSV des UUID et de l'import d'une commande ; **Statut des QR
+codes par client** ne génère aucun QR. Le catalogue des secteurs est distinct
+des secteurs attribués à un partenaire. Les fiches de connexion ne concernent
+que les demandes d'accès. La fiche conditionnelle de gestion des comptes
+bancaires du réseau n'a pas été produite, faute d'écran prouvé.

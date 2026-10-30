@@ -36,7 +36,8 @@ automatiquement. Les messages sont **Le secteur d’activité a été ajouté** 
 refusé. Le catalogue n'a pas de séparation par réseau dans les sources lues.
 
 La gestion du catalogue, dont la suppression d'un secteur, se fait depuis le
-menu **Secteurs** et n'est pas décrite ici.
+menu **Secteurs** : voir [Créer un secteur d'activité](creer-secteur-activite.md)
+et [Supprimer un secteur d'activité](supprimer-secteur-activite.md).
 
 ## Erreurs et vérifications
 
