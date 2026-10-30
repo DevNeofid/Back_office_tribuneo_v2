@@ -42,14 +42,14 @@ commande déjà présente, distinct de la première facturation.
 - 0.5 Glossaire : client, partenaire, commande, bon / chèque, occasion URSSAF, offert par, frais de gestion, justificatif, ordre de virement, écriture comptable, compte encaisseur / payeur
 
 ### 1. Gérer les clients (entreprises et particuliers qui achètent des chèques)
-- 1.1 Ajouter un client particulier
-- 1.2 Ajouter un client professionnel (recherche SIRET)
-- 1.3 Rechercher et filtrer les clients (recherche, A–Z, onglets d'affichage)
-- 1.4 Modifier les informations générales
-- 1.5 Renseigner ou modifier l'adresse — **indispensable pour facturer**
-- 1.6 Renseigner ou modifier les informations bancaires (remplissage automatique depuis l'IBAN)
-- 1.7 Dupliquer un client en partenaire
-- 1.8 Désactiver un client — impossible tant qu'une commande n'est pas entièrement payée
+- 1.1 [Ajouter un client particulier](manuel/ajouter-client-particulier.md) — M04 intégrée localement (lot 02) ; recette à faire.
+- 1.2 [Ajouter un client professionnel (recherche SIRET)](manuel/ajouter-client-professionnel.md) — M04 ; recherche SIRET interne à Tribuneo, sans registre externe établi.
+- 1.3 [Rechercher et filtrer les clients](manuel/rechercher-client.md) — M04 ; les icônes « Filtres » choisissent l'onglet affiché.
+- 1.4 [Modifier les informations générales](manuel/modifier-client.md) — M04 ; code client non repris par l'API.
+- 1.5 [Renseigner ou modifier l'adresse](manuel/renseigner-adresse-client.md) — **indispensable pour facturer** ; M04.
+- 1.6 [Renseigner les informations bancaires accessibles](manuel/renseigner-coordonnees-bancaires-client.md) — M04 ; côté client, numéro comptable et intracommunautaire seulement : IBAN, BIC et RIB réservés au type partenaire.
+- 1.7 [Dupliquer un client en partenaire](manuel/dupliquer-client-en-partenaire.md) — M04 ; ajout du rôle partenaire à la même entité.
+- 1.8 [Désactiver un client](manuel/desactiver-client.md) — M04 ; refus si une commande est marquée non payée ; suppression possible de l'entité commune.
 
 ### 2. Gérer les partenaires (commerces où les chèques sont dépensés)
 - 2.1 Ajouter un partenaire (recherche SIRET, reprise d'un partenaire existant)
@@ -67,19 +67,21 @@ commande déjà présente, distinct de la première facturation.
 - 3.2 Supprimer un secteur (conséquence sur les partenaires associés)
 
 ### 4. Créer et suivre une commande
-- 4.1 Comprendre une commande : offert par, occasion, lignes de chèques, date d'expiration, bons générés
+- 4.1 [Comprendre une commande](manuel/comprendre-commande.md) : offert par, occasion, lignes de chèques, date d'expiration, bons générés — M03 intégrée localement (lot 02).
 - 4.2 [Créer une commande en saisie manuelle](manuel/creer-commande-manuelle.md) — fiche rédigée ; chat, refus de création par Néo et formulaire confirmés sans enregistrement de commande.
 - 4.3 [Créer une commande par import CSV/XLSX](manuel/creer-commande-import-fichier.md) — M02 intégrée localement ; une ligne = un chèque, tentatives d'e-mails après création (pas une preuve de réception) ; recette distante à faire.
-- 4.4 Créer une commande depuis la fiche d'un client
-- 4.5 Rechercher une commande et lire la liste (colonnes, couleurs payé / non payé, pagination)
-- 4.6 Supprimer une commande — impossible dès qu'un bon a été scanné
+- 4.4 [Créer une commande depuis la fiche d'un client](manuel/creer-commande-depuis-client.md) — M03 ; icône sans libellé dans l'en-tête du client.
+- 4.5 [Rechercher une commande](manuel/rechercher-commande.md) et lire la liste (colonnes, couleurs payé / non payé, pagination)
+- 4.6 [Supprimer une commande](manuel/supprimer-commande.md) — M03 ; refus dès qu'un bon non annulé est attribué à un consommateur ou utilisé (y compris en papier) ; commande facturée à ne pas supprimer (règle du propriétaire, non imposée par le code lu).
+- 4.7 [Modifier une commande](manuel/modifier-commande.md) — M03 ; lignes en lecture seule après facturation, import ou boutique en ligne.
+- 4.8 [Changer la date de validité d'une commande](manuel/changer-validite-commande.md) — M03 ; toute la commande et ses bons non annulés.
 
 ### 5. Encaisser les paiements d'une commande
 - 5.1 [Enregistrer un paiement](manuel/enregistrer-paiement-commande.md) — fiche rédigée ; guidage et champs confirmés sans enregistrement de paiement réel.
 - 5.2 Choisir le compte encaisseur — cas du compte proposé ou imposé décrits dans la fiche [Enregistrer un paiement](manuel/enregistrer-paiement-commande.md).
 - 5.3 Règles : pas de dépassement du total, pas de date antérieure au dernier paiement
 - 5.4 [Supprimer un paiement](manuel/supprimer-paiement-commande.md) — fiche rédigée ; retour global positif de l’exploitant, sans détail des scénarios ni suppression réelle.
-- 5.5 Savoir si une commande est soldée
+- 5.5 [Savoir si une commande est soldée](manuel/verifier-solde-commande.md) — M03 ; se fier aux montants si l'indicateur « payée » diverge.
 
 ### 6. Produire les documents d'une commande
 - 6.1 [Générer la facture](manuel/generer-facture-commande.md) — M01 intégrée localement ; adresse préalable, référence modifiée si facture existante ; recette distante à faire.
@@ -137,8 +139,8 @@ commande déjà présente, distinct de la première facturation.
 | Générer une facture | L'adresse du client |
 | Rembourser un partenaire | Adresse + IBAN/BIC du partenaire, justificatif édité, montant > 0 |
 | Générer les écritures comptables | Comptes bancaires configurés par Neofid (journal, compte 512) |
-| Désactiver un client | Toutes ses commandes payées |
-| Supprimer une commande | Aucun bon scanné |
+| Désactiver un client | Aucune commande associée marquée non payée |
+| Supprimer une commande | Aucun bon non annulé attribué ou utilisé ; commande non facturée |
 | Désactiver un bon | Bon non associé à un utilisateur |
 
 ---
@@ -155,9 +157,9 @@ commande déjà présente, distinct de la première facturation.
 - « Code du partenaire » facultatif à la création, obligatoire à la modification (`update_partner_info_form.dart:189`).
 - Colonne « Facturé » de la liste des commandes : affiche le total de la commande, pas le montant facturé.
 - Import de commande : le contrôle de l'occasion URSSAF est sauté, mais l'occasion est lue juste après (`order_form.dart:131-155`) ; un import sans occasion risque une erreur générique.
-- Client professionnel : la recherche SIRET passe par la recherche de **partenaire**. À confirmer comme voulu.
+- Client professionnel : la fenêtre s'intitule « Partenaire existant », mais l'API cherche une entité par SIRET sans filtre partenaire ni réseau (relevé M04 du 30 octobre 2026). À confirmer comme voulu.
 
-**Code non accessible depuis l'interface** (hors manuel) : `VoucherView`, `UpdateOrderForm`, `CardAction`, `list_test_widget`, `side_menu_widget.dart` (commenté), `tabbar_controller.dart`.
+**Code non accessible depuis l'interface** (hors manuel) : `VoucherView`, `CardAction`, `list_test_widget`, `side_menu_widget.dart` (commenté), `tabbar_controller.dart`. `UpdateOrderForm` est en revanche ouvert par **Edition → Modifier** (relevé M03 du 30 octobre 2026).
 
 ---
 
