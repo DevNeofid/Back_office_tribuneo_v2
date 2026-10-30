@@ -3,6 +3,23 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 06 — FAQ, définitions et prérequis
+
+Six fiches transversales M11 raccordées localement par M12, recette lot 06 à faire.
+Une question sur une tâche précise conserve sa procédure. Règle souhaitée et
+refus réellement imposé restent distincts ; vérifier les données avant répétition.
+
+- [Glossaire Tribuneo](glossaire-tribuneo.md)
+- [Comprendre les prérequis entre les tâches](comprendre-prerequis-entre-taches.md)
+- [Distinguer commande, paiement, facture et remboursement](distinguer-commande-paiement-facture-remboursement.md)
+- [Comprendre les refus du back-office](comprendre-refus-operations-back-office.md)
+- [Réagir à une liste vide ou à un document introuvable](reagir-liste-vide-document-introuvable.md)
+- [Réagir à un échec ou à un résultat incertain](reagir-echec-operation-resultat-incertain.md)
+
+Retour du propriétaire sur le lot 05 : **« J'ai tester et tout est bon de mon côté ! »**.
+Retour global, sans détail de scénario ni opération métier réelle rapportée.
+
+
 | Fiche | État au 30 octobre 2026 |
 |---|---|
 | [Rechercher une commande](rechercher-commande.md) | Libellés et fonctionnement vérifiés dans le code ; recette visuelle en préproduction à confirmer. |

@@ -39,7 +39,7 @@ commande déjà présente, distinct de la première facturation.
 - 0.2 [Se repérer](manuel/naviguer-back-office.md) : menu latéral (10 entrées), en-tête, nom du réseau ; [se déconnecter](manuel/se-deconnecter-back-office.md) — M10 ; aucun menu **Configuration**.
 - 0.3 [Le tableau de bord et ses raccourcis](manuel/comprendre-tableau-bord.md) — M10 ; trois raccourcis et **Deconnexion**, aucun indicateur chiffré actif ; la pastille de **Prochain virement** n'est pas une preuve de paiement.
 - 0.4 La pastille rouge du menu « Prochain virement » : voir [Consulter les demandes de remboursement](manuel/consulter-demandes-remboursement.md) — M07 ; le menu « Remboursement » du plan initial s'appelle désormais **Prochain virement**.
-- 0.5 Glossaire : client, partenaire, commande, bon / chèque, occasion URSSAF, offert par, frais de gestion, justificatif, ordre de virement, écriture comptable, compte encaisseur / payeur
+- 0.5 [Glossaire Tribuneo](manuel/glossaire-tribuneo.md) — M11, lot 06 : client, partenaire, commande, bon / chèque, occasion URSSAF, offert par, frais de gestion, justificatif, ordre de virement, écriture comptable, compte encaisseur / payeur
 
 ### 1. Gérer les clients (entreprises et particuliers qui achètent des chèques)
 - 1.1 [Ajouter un client particulier](manuel/ajouter-client-particulier.md) — M04 intégrée localement (lot 02) ; recette à faire.
@@ -117,11 +117,14 @@ commande déjà présente, distinct de la première facturation.
 - 10.3 [Retrouver les bons d'un bénéficiaire](manuel/statistiques-statut-qr-codes-client.md) (rapport « Statut des QR codes par client ») — M09 ; lecture seule, ne génère aucun QR (voir 6.5).
 
 ### 11. Questions fréquentes et dépannage
-- Regroupe les messages d'erreur de tout le back-office, avec cause et solution (« Pensez à vérifier que votre client a une adresse… », « Le montant saisi dépasse… », « Aucun ordre de virement généré », etc.)
-- Questions du type « pourquoi » : pourquoi je ne peux pas supprimer cette commande, désactiver ce client, ce bon…
+- [Distinguer commande, paiement, facture et remboursement](manuel/distinguer-commande-paiement-facture-remboursement.md).
+- [Comprendre les refus du back-office](manuel/comprendre-refus-operations-back-office.md) : origine formulaire/serveur et règles non bloquées.
+- [Liste vide ou document introuvable](manuel/reagir-liste-vide-document-introuvable.md).
+- [Échec ou résultat incertain](manuel/reagir-echec-operation-resultat-incertain.md) : contrôler avant de répéter.
+- M11, lot 06, recette à faire. Les questions propres à une tâche conservent leur fiche détaillée.
 
 ### Annexes
-- A. Prérequis entre écrans (voir ci-dessous)
+- A. [Comprendre les prérequis entre les tâches](manuel/comprendre-prerequis-entre-taches.md) — M11, lot 06 ; niveaux de contrôle et règles non bloquées (résumé ci-dessous).
 - B. [Format du fichier d'import de commande](manuel/annexes/format-import-commande.md) — annexe M02 issue du code :
   - fichier **XLSX ou CSV** ; virgule recommandée ; points-virgules et tabulations remplacés globalement, y compris dans les valeurs ; conversion XLSX non exécutée ;
   - première ligne = en-têtes, sans tenir compte des majuscules ;
@@ -142,7 +145,7 @@ commande déjà présente, distinct de la première facturation.
 | Rembourser un partenaire | Adresse (rue, code postal, ville) + IBAN/BIC du partenaire, montant net > 0, demande non mise en attente ; justificatif créé automatiquement à la génération |
 | Générer les écritures comptables | Écritures activées et paramètres vérifiés par Neofid (journal et compte 512 des comptes utilisés, compte par défaut, journaux et comptes du réseau) |
 | Désactiver un client | Aucune commande associée marquée non payée |
-| Supprimer une commande | Aucun bon non annulé attribué ou utilisé ; commande non facturée |
+| Supprimer une commande | Serveur : aucun bon non annulé attribué ou utilisé. « Commande non facturée » est une règle souhaitée non bloquée par le code lu (E08-06), sans garantie de refus automatique. |
 | Désactiver un bon | Bon non associé à un utilisateur et non déjà désactivé |
 | Désactiver un partenaire | Solde Tribuneo du partenaire nul dans le réseau |
 | Renvoyer l'e-mail cadeau | Bon non annulé, non attribué, avec une adresse e-mail enregistrée |
