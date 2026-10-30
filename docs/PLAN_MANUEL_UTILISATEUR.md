@@ -69,7 +69,7 @@ commande déjà présente, distinct de la première facturation.
 ### 4. Créer et suivre une commande
 - 4.1 Comprendre une commande : offert par, occasion, lignes de chèques, date d'expiration, bons générés
 - 4.2 [Créer une commande en saisie manuelle](manuel/creer-commande-manuelle.md) — fiche rédigée ; chat, refus de création par Néo et formulaire confirmés sans enregistrement de commande.
-- 4.3 Créer une commande par import de fichier (CSV / XLSX) : une ligne = un chèque nominatif, et le bénéficiaire reçoit un e-mail cadeau (format en annexe B)
+- 4.3 [Créer une commande par import CSV/XLSX](manuel/creer-commande-import-fichier.md) — M02 intégrée localement ; une ligne = un chèque, tentatives d'e-mails après création (pas une preuve de réception) ; recette distante à faire.
 - 4.4 Créer une commande depuis la fiche d'un client
 - 4.5 Rechercher une commande et lire la liste (colonnes, couleurs payé / non payé, pagination)
 - 4.6 Supprimer une commande — impossible dès qu'un bon a été scanné
@@ -82,10 +82,10 @@ commande déjà présente, distinct de la première facturation.
 - 5.5 Savoir si une commande est soldée
 
 ### 6. Produire les documents d'une commande
-- 6.1 Générer la facture (informations supplémentaires, référence commande) — prérequis : adresse du client
+- 6.1 [Générer la facture](manuel/generer-facture-commande.md) — M01 intégrée localement ; adresse préalable, référence modifiée si facture existante ; recette distante à faire.
 - 6.2 Télécharger à nouveau une facture (menu Documents)
-- 6.3 Générer le bon de livraison
-- 6.4 Générer le récapitulatif
+- 6.3 [Générer le bon de livraison](manuel/generer-bon-livraison-commande.md) — M01 intégrée ; facture préalable, limite URL à confirmer.
+- 6.4 [Générer le récapitulatif](manuel/generer-recapitulatif-commande.md) — M01 intégrée ; CSV des bons ; recette distante à faire.
 - 6.5 Générer les QR codes (ZIP, génération en arrière-plan) et le CSV des bons
 
 ### 7. Gérer les bons d'une commande
@@ -118,13 +118,13 @@ commande déjà présente, distinct de la première facturation.
 
 ### Annexes
 - A. Prérequis entre écrans (voir ci-dessous)
-- B. Format du fichier d'import de commande (d'après `OrderFileCreateAction.php` de l'API) :
-  - fichier **XLSX ou CSV** ; en CSV, séparateur `,`, `;` ou tabulation ;
+- B. [Format du fichier d'import de commande](manuel/annexes/format-import-commande.md) — annexe M02 issue du code :
+  - fichier **XLSX ou CSV** ; virgule recommandée ; points-virgules et tabulations remplacés globalement, y compris dans les valeurs ; conversion XLSX non exécutée ;
   - première ligne = en-têtes, sans tenir compte des majuscules ;
   - colonnes : `montant` (obligatoire, > 0), `email` et/ou `mobile` (au moins une des deux colonnes, et au moins une valeur par ligne ; e-mail au format valide), `prenom` et `nom` (facultatives) ;
   - une ligne = un chèque ; les lignes de même montant sont regroupées dans la commande ;
   - la date d'expiration, « Offert par » et l'occasion sont saisis dans le formulaire, pas dans le fichier ;
-  - fournir un fichier exemple téléchargeable.
+  - [CSV synthétique volontairement non importable](manuel/exemples/commande-import-exemple.csv) ; conserver le marqueur invalide et ne pas enregistrer pendant la recette.
 - C. Ce que fait Neofid pour le réseau (comptes bancaires, journaux comptables, paramètres) et comment le contacter
 
 ---
