@@ -38,7 +38,7 @@ commande déjà présente, distinct de la première facturation.
 - 0.1 Se connecter (identifiant, mot de passe, messages d'erreur : accès refusé, identifiants invalides, trop de tentatives). Pas de « mot de passe oublié » dans le back-office : c'est voulu. En cas d'oubli, l'administrateur contacte Neofid, qui réinitialise le mot de passe
 - 0.2 Se repérer : menu latéral (10 entrées), en-tête, nom du réseau, déconnexion
 - 0.3 Le tableau de bord et ses raccourcis
-- 0.4 Le point rouge sur « Remboursement »
+- 0.4 La pastille rouge du menu « Prochain virement » : voir [Consulter les demandes de remboursement](manuel/consulter-demandes-remboursement.md) — M07 ; le menu « Remboursement » du plan initial s'appelle désormais **Prochain virement**.
 - 0.5 Glossaire : client, partenaire, commande, bon / chèque, occasion URSSAF, offert par, frais de gestion, justificatif, ordre de virement, écriture comptable, compte encaisseur / payeur
 
 ### 1. Gérer les clients (entreprises et particuliers qui achètent des chèques)
@@ -98,18 +98,18 @@ commande déjà présente, distinct de la première facturation.
 - 7.5 [Renvoyer l'e-mail cadeau à un bénéficiaire](manuel/renvoyer-cadeau-beneficiaire.md) — M06 ; envoi immédiat sans confirmation, à l'adresse enregistrée.
 
 ### 8. Rembourser les partenaires
-- 8.1 Comprendre le cycle : demande du partenaire → justificatif → ordre de virement SEPA
-- 8.2 Éditer les justificatifs
-- 8.3 Déclencher un remboursement et choisir le compte payeur
-- 8.4 Remboursement bloqué : lire la liste des motifs et les corriger (justificatif, adresse, IBAN/BIC, montant nul)
-- 8.5 Consulter l'historique des ordres de virement et retélécharger un fichier (menu Virements)
-- 8.6 Le fichier à transmettre à la banque : le fichier `.TXT.SCT` contenu dans le ZIP `BTO_<date>.zip`. La procédure d'envoi propre à chaque banque est expliquée directement par Neofid au réseau, en amont : le manuel renvoie vers Neofid sans la détailler
+- 8.1 [Consulter les demandes de remboursement](manuel/consulter-demandes-remboursement.md) — M07 ; cycle demande (créée côté partenaire, aucun bouton BO) → justificatif → ordre de virement → transmission à la banque → exécution bancaire ; aucune étape ne prouve seule le paiement.
+- 8.2 [Consulter le justificatif d'une demande](manuel/consulter-justificatif-remboursement.md) — M07 ; le bouton « Éditer les justificatifs » du plan initial n'existe plus : justificatifs et factures de frais créés automatiquement à la génération de l'ordre.
+- 8.3 [Choisir le compte payeur](manuel/choisir-compte-payeur-virement.md) puis [générer l'ordre de virement](manuel/generer-ordre-virement.md) — M07 ; ordre enregistré avant l'écriture des fichiers : vérifier **Prochain virement** et **Virements** avant toute relance.
+- 8.4 [Traiter les demandes écartées](manuel/traiter-demandes-remboursement-bloquees.md) — M07 ; motifs adresse, IBAN/BIC, mise en attente, montant net nul, commerçant introuvable ; une demande écartée ne bloque plus les autres. [Mettre en attente ou libérer une demande](manuel/mettre-en-attente-liberer-demande-remboursement.md) — M07.
+- 8.5 [Consulter et retélécharger un ordre de virement](manuel/consulter-retelecharger-ordre-virement.md) (menu Virements) — M07 ; ZIP conservé, sans régénération.
+- 8.6 Le fichier à transmettre à la banque : `<JJMMAAAA_HHMMSS>.TXT.SCT` (XML `pain.001.001.02`) dans le ZIP `BTO_<plus ancienne demande>_<plus récente>_<HHMMSS>.zip` d'après le code ; `BTO_<date>.zip` n'est que le nom de repli du BO. La procédure d'envoi propre à chaque banque n'est pas vérifiable dans le code et n'est pas décrite par le manuel.
 
 ### 9. Comptabilité
-- 9.1 Générer les écritures comptables. Période couverte : du jour du dernier fichier généré jusqu'à **la veille** de la génération (le fichier est nommé `ECRITURES_<veille>.zip`). Les opérations du jour même seront dans le fichier suivant
-- 9.2 Retélécharger un fichier d'écritures
-- 9.3 Erreur de configuration (journal ou compte 512 manquant) : contacter Neofid
-- 9.4 Factures de frais de gestion (menu Documents)
+- 9.1 [Générer les écritures comptables](manuel/generer-ecritures-comptables.md) — M08 ; fin de période à la veille, 23:59:59, d'après le code ; borne BETWEEN incluant une seconde avant le début annoncé et fuseau de la session SQL non établi. Nom serveur et historique `ECRITURES_<début>_<fin>.zip` ; `ECRITURES_<veille>.zip` n'est que le nom imposé par le BO au téléchargement initial. Lot vide enregistré.
+- 9.2 [Retélécharger un fichier d'écritures](manuel/retelecharger-ecritures-comptables.md) — M08 ; sans recalcul.
+- 9.3 [Faire configurer les écritures comptables](manuel/configurer-ecritures-comptables.md) (journal, compte 512 et paramètres du réseau) — M08 ; aucun formulaire BO, vérification par Neofid.
+- 9.4 [Factures de frais de gestion](manuel/consulter-telecharger-factures-frais-gestion.md) (menu Documents) — M08 ; distinctes des factures de commande ; le téléchargement peut émettre et numéroter une facture et un justificatif manquants.
 
 ### 10. Statistiques et exports
 - 10.1 Choisir un rapport, filtrer par période, exporter en CSV
@@ -139,8 +139,8 @@ commande déjà présente, distinct de la première facturation.
 |---|---|
 | Créer une commande | Un client existant (« Offert par ») |
 | Générer une facture | L'adresse du client |
-| Rembourser un partenaire | Adresse + IBAN/BIC du partenaire, justificatif édité, montant > 0 |
-| Générer les écritures comptables | Comptes bancaires configurés par Neofid (journal, compte 512) |
+| Rembourser un partenaire | Adresse (rue, code postal, ville) + IBAN/BIC du partenaire, montant net > 0, demande non mise en attente ; justificatif créé automatiquement à la génération |
+| Générer les écritures comptables | Écritures activées et paramètres vérifiés par Neofid (journal et compte 512 des comptes utilisés, compte par défaut, journaux et comptes du réseau) |
 | Désactiver un client | Aucune commande associée marquée non payée |
 | Supprimer une commande | Aucun bon non annulé attribué ou utilisé ; commande non facturée |
 | Désactiver un bon | Bon non associé à un utilisateur et non déjà désactivé |
@@ -164,6 +164,8 @@ commande déjà présente, distinct de la première facturation.
 - Colonne « Facturé » de la liste des commandes : affiche le total de la commande, pas le montant facturé.
 - Import de commande : le contrôle de l'occasion URSSAF est sauté, mais l'occasion est lue juste après (`order_form.dart:131-155`) ; un import sans occasion risque une erreur générique.
 - Client professionnel : la fenêtre s'intitule « Partenaire existant », mais l'API cherche une entité par SIRET sans filtre partenaire ni réseau (relevé M04 du 30 octobre 2026). À confirmer comme voulu.
+- Ordre de virement : enregistré avant l'écriture des fichiers, alors que le message d'échec affirme qu'aucun virement n'est enregistré ; l'échec du retéléchargement parle de « génération » ; la fenêtre **Libérer** annonce l'inclusion au prochain virement même si un autre motif l'écarte ; la notification au partenaire annonce un remboursement effectué dès la création de la demande (relevé M07 du 30 octobre 2026).
+- Comptabilité : un lot vide avance le seuil de suppression des paiements ; texte d'attente « Génération… » aussi pour un retéléchargement ; listes vides après une erreur de lecture ; le téléchargement d'une facture de frais peut émettre des documents (relevé M08 du 30 octobre 2026).
 
 **Code non accessible depuis l'interface** (hors manuel) : `VoucherView`, `CardAction`, `list_test_widget`, `side_menu_widget.dart` (commenté), `tabbar_controller.dart`. `UpdateOrderForm` est en revanche ouvert par **Edition → Modifier** (relevé M03 du 30 octobre 2026).
 

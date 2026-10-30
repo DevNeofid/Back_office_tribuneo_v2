@@ -34,8 +34,8 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md) | Lot 03 (M05) ; recherche sur le nom seulement ; IBAN affiché en clair. |
 | [Modifier les informations générales d'un partenaire](modifier-partenaire.md) | Lot 03 (M05) ; code partenaire obligatoire mais non repris par l'API ; message d'erreur unique. |
 | [Attribuer des secteurs d'activité à un partenaire](attribuer-secteurs-partenaire.md) | Lot 03 (M05) ; sélection remplaçant la précédente ; **Créer** immédiat dans le catalogue commun. |
-| [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md) | Lot 03 (M05) ; rue, code postal et ville requis pour le remboursement. |
-| [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md) | Lot 03 (M05) ; IBAN français seulement ; contrôle de clé non bloquant. |
+| [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md) | Lot 03 (M05) ; rue, code postal et ville requis pour le remboursement ; renvoi vers les demandes écartées ajouté au lot 04. |
+| [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md) | Lot 03 (M05) ; IBAN français seulement ; contrôle de clé non bloquant ; renvoi vers les demandes écartées ajouté au lot 04. |
 | [Donner accès à l'application à un partenaire](donner-acces-application-partenaire.md) | Lot 03 (M05) ; QR et lien de première connexion générés au clic ; aucune génération ni envoi réel. |
 | [Générer le QR code de réception d'un partenaire](generer-qr-reception-partenaire.md) | Lot 03 (M05) ; distinct du QR de première connexion et des QR de commande ; échec sans message. |
 | [Dupliquer un partenaire en client](dupliquer-partenaire-en-client.md) | Lot 03 (M05) ; même entité, refus sans message. |
@@ -47,6 +47,17 @@ fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 | [Utiliser « Générer le CSV » pour les bons d'une commande](generer-csv-bons-commande.md) | Lot 03 (M06) ; UUID seulement, distinct du récapitulatif. |
 | [Consulter les bénéficiaires d'une commande importée](consulter-beneficiaires-commande-importee.md) | Lot 03 (M06) ; fenêtre éditable : consulter sans enregistrer. |
 | [Renvoyer l'e-mail cadeau à un bénéficiaire](renvoyer-cadeau-beneficiaire.md) | Lot 03 (M06) ; envoi immédiat sans confirmation ; aucun envoi réel. |
+| [Consulter les demandes de remboursement des partenaires](consulter-demandes-remboursement.md) | Lot 04 (M07) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; aucune demande créée par le BO, notification « remboursement effectué » non probante. |
+| [Consulter le justificatif d'une demande de remboursement](consulter-justificatif-remboursement.md) | Lot 04 (M07) ; justificatifs créés à la génération de l'ordre ; entrées `.pdf` du ZIP des documents contenant une archive d'après le code, non observé. |
+| [Choisir le compte payeur d'un ordre de virement](choisir-compte-payeur-virement.md) | Lot 04 (M07) ; choix dans **Prochain virement** seulement ; comptes du réseau configurés hors BO. |
+| [Générer l'ordre de virement des remboursements](generer-ordre-virement.md) | Lot 04 (M07) ; ZIP `BTO_<plus ancienne>_<plus récente>_<HHMMSS>.zip` lu dans le code ; ordre enregistré avant les fichiers : vérifier avant toute relance ; aucune génération réelle. |
+| [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md) | Lot 04 (M07) ; cinq motifs ; une demande écartée ne bloque plus les autres. |
+| [Mettre en attente ou libérer une demande de remboursement](mettre-en-attente-liberer-demande-remboursement.md) | Lot 04 (M07) ; parcours actif ; la libération ne lève pas les autres motifs malgré le texte de la fenêtre. |
+| [Consulter et retélécharger un ordre de virement](consulter-retelecharger-ordre-virement.md) | Lot 04 (M07) ; ZIP conservé, sans régénération ; message d'échec parlant à tort de génération. |
+| [Faire configurer les écritures comptables](configurer-ecritures-comptables.md) | Lot 04 (M08) ; paramétrage par Neofid, aucun formulaire BO ; aucune valeur comptable recommandée. |
+| [Générer les écritures comptables](generer-ecritures-comptables.md) | Lot 04 (M08) ; bouton immédiat sans confirmation ; période calculée, seconde de recouvrement et fuseau SQL non établi ; lot vide enregistré ; aucune génération réelle. |
+| [Retélécharger un fichier d'écritures comptables](retelecharger-ecritures-comptables.md) | Lot 04 (M08) ; ZIP existant sans recalcul ni avancement du seuil de suppression. |
+| [Consulter et télécharger les factures de frais de gestion](consulter-telecharger-factures-frais-gestion.md) | Lot 04 (M08), format harmonisé par M12 avec M07 ; téléchargement pouvant émettre facture et justificatif ; distinctes des factures de commande. |
 
 Le [plan du manuel](../PLAN_MANUEL_UTILISATEUR.md) conserve la liste des chapitres
 à rédiger. Il ne remplace pas les procédures détaillées.
@@ -73,7 +84,19 @@ transmis.
 
 Les livrables du lot 03 (M05 partenaires, M06 bons, QR, exports et
 bénéficiaires) et leur raccordement sont sous `docs/livrables/M05/`, `M06/` et
-`M12/lot-03/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le lot 03.
+`M12/lot-03/` du dépôt Néo. Après publication et déploiement du lot 03, le
+propriétaire a confirmé « Oui, déployé et vérifié », sans détail des scénarios
+transmis.
 Les QR d'un partenaire (accès, réception) sont distincts du ZIP des QR des bons
 d'une commande ; **Générer le CSV** (UUID) est distinct du récapitulatif ;
 l'expiration d'un bon est distincte de la validité de toute la commande.
+
+Les livrables du lot 04 (M07 remboursements et virements, M08 comptabilité et
+factures de frais) et leur raccordement sont sous `docs/livrables/M07/`, `M08/`
+et `M12/lot-04/` du dépôt Néo. Aucun déploiement n'est revendiqué pour le lot 04.
+Une demande de remboursement, son justificatif, l'ordre de virement généré, la
+transmission du fichier à la banque et l'exécution du virement sont des étapes
+distinctes : aucune ne prouve seule que le partenaire a été payé. Les factures
+de frais de gestion sont distinctes des factures de commande et des écritures
+comptables ; certains téléchargements peuvent produire ou enregistrer des
+documents.

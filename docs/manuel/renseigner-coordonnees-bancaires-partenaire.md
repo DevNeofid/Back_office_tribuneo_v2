@@ -61,8 +61,8 @@ entité.
 
 Le code de remboursement considère les coordonnées bancaires d'un commerçant
 comme manquantes si l'IBAN ou le BIC est vide. L'écran **Prochain virement**
-affiche alors **IBAN ou BIC du commerçant manquant**. Le cycle de remboursement
-n'est pas décrit ici.
+affiche alors **IBAN ou BIC du commerçant manquant**. Pour rendre la demande
+payable, voir [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md).
 
 ## Erreurs et vérifications
 

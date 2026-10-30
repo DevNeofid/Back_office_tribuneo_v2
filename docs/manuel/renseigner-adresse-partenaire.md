@@ -45,8 +45,8 @@ l'ouest de Greenwich) est refusée. L'API ne refait aucun contrôle de ces champ
 Le code de remboursement considère l'adresse d'un commerçant comme incomplète
 si la rue, le code postal ou la ville manquent ; le pays et les coordonnées GPS
 ne font pas partie de ce contrôle. L'écran **Prochain virement** affiche alors
-le motif **Adresse du commerçant incomplète**. Le cycle de remboursement n'est
-pas décrit ici.
+le motif **Adresse du commerçant incomplète**. Pour rendre la demande payable,
+voir [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md).
 
 ## Erreurs et vérifications
 
