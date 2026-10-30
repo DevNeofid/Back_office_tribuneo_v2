@@ -1,0 +1,4 @@
+montant,email,mobile,prenom,nom
+25.00,NE_PAS_IMPORTER_M02,,Alice,Exemple
+25.00,beneficiaire-b@example.invalid,,Benoit,Exemple
+20.00,beneficiaire-c@example.invalid,,Camille,Exemple
