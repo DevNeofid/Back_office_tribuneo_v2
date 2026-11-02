@@ -13,8 +13,7 @@ Quitter votre session de gestion lorsque vous avez terminé votre travail.
 3. Vérifiez le retour à l'écran **Backoffice**, avec les champs
    **Nom d'utilisateur**, **Mot de passe** et le bouton **Connexion**.
 
-Depuis **Accueil**, la tuile **Deconnexion** mène à la même action. Ce libellé
-est sans accent dans le tableau de bord, contrairement à celui du menu supérieur.
+Depuis **Accueil**, la tuile **Déconnexion** mène à la même action.
 
 ## Effets et limites
 
@@ -35,3 +34,6 @@ Néo peut indiquer où se trouve **Déconnexion** ; il ne ferme pas votre sessio
 
 Vérification au 30 octobre 2026 : en-tête actif, raccourci, repository et action
 API lus. Aucune déconnexion réelle effectuée.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

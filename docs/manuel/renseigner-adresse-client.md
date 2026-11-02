@@ -16,8 +16,7 @@ fiche [Générer la facture d'une commande](generer-facture-commande.md).
 1. Dans **Clients**, retrouvez la fiche et consultez l'onglet **Adresse**.
 2. Ouvrez le menu d'édition dans l'en-tête de la fiche et choisissez
    **Editer l'adresse**.
-3. La fenêtre porte le titre **Indiquer l'adresse de ce commerçant** : ce
-   libellé est aussi utilisé dans le parcours client. Si une adresse existe,
+3. La fenêtre porte le titre **Indiquer l'adresse**. Si une adresse existe,
    les champs sont préremplis ; sinon le formulaire permet son ajout.
 4. Renseignez **Adresse**, **Code postal**, **Ville** et **Pays**.
 5. Cliquez sur **Enregistrer** pour envoyer l'ajout ou la modification. Pour
@@ -57,3 +56,6 @@ pas la facturation.
 Vérification au 30 octobre 2026 : accès depuis la fiche client, formulaires,
 repositories et utilisation de l'adresse en facturation lus dans le code.
 Rendu, fermeture en session, enregistrement et génération de facture non testés.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

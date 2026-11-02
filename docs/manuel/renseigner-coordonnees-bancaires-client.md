@@ -17,12 +17,12 @@ du formulaire partagé sont conditionnés au type partenaire.
 2. Ouvrez le menu d'édition dans l'en-tête et choisissez
    **Editer informations bancaires**.
 3. Sans informations existantes, le titre est
-   **Indiquer les informations bancaires de ce commerçant**. Renseignez selon
+   **Informations bancaires**. Renseignez selon
    le besoin **Numéro de compte comptabilité** et **Numéro intracommunautaire**.
 4. Si des informations existent déjà, le formulaire est prérempli. Son titre
-   est **Indiquer les informations bancaire de ce commerçant** et ses champs
+   est **Informations bancaires** et ses champs
    sont **Numéro de comptabilité** et **Numéro intra communautaire**.
-   Ces différences de libellé sont celles de l'écran actuel.
+   Ces différences de libellé des champs restent celles de l'écran actuel.
 5. Cliquez sur **Enregistrer** pour envoyer les informations. Pour abandonner,
    fermez sans enregistrer, notamment par clic à l'extérieur de la boîte de
    dialogue ; aucun bouton **Annuler** n'est prévu dans ces formulaires.
@@ -65,3 +65,6 @@ réalise pas de paiement et n'a pas besoin d'un IBAN réel pour expliquer l'écr
 Vérification au 30 octobre 2026 : formulaires client, modèle, repositories et
 actions API lus. Affichage, fermeture en session, validations exécutées et
 persistance réelle non testés.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

@@ -14,9 +14,8 @@ ses autres rôles et réseaux. Le numéro comptable est propre au réseau couran
 
 1. Sur la carte, ouvrez l'icône d'édition (**Menu Edition**), puis
    **Editer informations bancaires**.
-2. Sans informations existantes, le formulaire est vide et titré
-   **Indiquer les informations bancaires de ce commerçant**. S'il en existe,
-   il est prérempli et titré **Indiquer les informations bancaire de ce commerçant**.
+2. Le formulaire est titré **Informations bancaires**. Sans informations
+   existantes, il est vide ; sinon, il est prérempli.
 3. Saisissez l'**Iban**. Les espaces sont ajoutés automatiquement tous les
    quatre caractères.
 4. Lorsque l'IBAN complet est valide, **Code établissement**, **Code guichet**,
@@ -81,3 +80,6 @@ ne saisit aucune coordonnée et n'effectue aucun virement.
 Vérification au 30 octobre 2026 : menu, deux formulaires, validateurs, modèle,
 repository, actions API et contrôle des prérequis de remboursement lus.
 Enregistrement réel, refus API en session et fermeture sans sauvegarde non testés.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

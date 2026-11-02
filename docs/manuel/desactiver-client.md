@@ -18,9 +18,8 @@ avant de confirmer, notamment si l'entité existe dans d'autres réseaux.
 1. Dans **Clients**, retrouvez le client et contrôlez son nom et ses informations.
 2. Ouvrez le menu d'actions à trois points dans l'en-tête, puis choisissez
    **Désactiver ce client**.
-3. Le dialogue est titré **Désactiver le partenaire**, bien que la question
-   soit **Êtes-vous sûr de vouloir désactiver ce client ?**. Ce titre est
-   incohérent : le parcours documenté reste celui de **Clients**.
+3. Le dialogue est titré **Désactiver le client** et pose la question
+   **Êtes-vous sûr de vouloir désactiver ce client ?**.
 4. Choisissez **Annuler** pour fermer sans opération. **Désactiver** envoie la
    demande réelle ; ne l'utilisez pas pour une recette documentaire.
 5. Après **Client désactivé avec succès !**, vérifiez l'état des données avant
@@ -66,3 +65,6 @@ n'effectue aucune suppression ou opération de paiement.
 Vérification au 30 octobre 2026 : interface, repository, action API et requête
 des commandes non payées lus. Confirmation en session, refus réels, suppression,
 effets sur d'autres réseaux et restauration non testés.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

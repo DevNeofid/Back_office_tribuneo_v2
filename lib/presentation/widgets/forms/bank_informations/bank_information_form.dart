@@ -197,7 +197,7 @@ class _BankInformationsFormState extends State<BankInformationsForm> {
                     children: <Widget>[
                       Center(
                         child: SelectableText(
-                          "Indiquer les informations bancaires de ce commerçant",
+                          "Informations bancaires",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,

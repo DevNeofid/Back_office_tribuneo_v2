@@ -294,7 +294,7 @@ class CustomersContentViewState extends State<CustomersContentView>
         context: context,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            title: const Text('Désactiver le partenaire'),
+            title: const Text('Désactiver le client'),
             content:
                 const Text('Êtes-vous sûr de vouloir désactiver ce client ?'),
             actions: <Widget>[

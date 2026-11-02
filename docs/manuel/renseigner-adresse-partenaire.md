@@ -15,7 +15,7 @@ d'un autre réseau, c'est la même adresse qui y est utilisée.
    **Editer l'adresse**.
 2. Le BO choisit seul entre ajout et modification : sans adresse enregistrée,
    le formulaire est vide ; sinon il est prérempli. Dans les deux cas, son
-   titre est **Indiquer l'adresse de ce commerçant**.
+   titre est **Indiquer l'adresse**.
 3. Renseignez **Adresse**, **Code postal**, **Ville** et **Pays**.
 4. **Latitude** et **Longitude** sont facultatives. Saisissez-les avec un point
    comme séparateur décimal, par exemple `44.09` (valeur fictive).
@@ -62,3 +62,6 @@ Néo explique la saisie ; il n'enregistre aucune adresse.
 Vérification au 30 octobre 2026 : menu, deux formulaires, validateurs,
 repository, actions API, table des adresses et contrôle des prérequis de
 remboursement lus. Enregistrement réel et fermeture sans sauvegarde non testés.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.

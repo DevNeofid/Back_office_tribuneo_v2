@@ -214,7 +214,7 @@ class _UpadateBankInformationsFormState
                     children: <Widget>[
                       Center(
                         child: SelectableText(
-                          "Indiquer les informations bancaire de ce commerçant",
+                          "Informations bancaires",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,

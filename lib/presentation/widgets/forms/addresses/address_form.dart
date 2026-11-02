@@ -144,7 +144,7 @@ class _AddressFormState extends State<AddressForm> {
                     children: <Widget>[
                       Center(
                         child: SelectableText(
-                          "Indiquer l'adresse de ce commerçant",
+                          "Indiquer l'adresse",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                               fontSize: 32,

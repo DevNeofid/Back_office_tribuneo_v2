@@ -3,9 +3,21 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 07 — libellés, 2 novembre 2026
+
+Sept fiches client, partenaire, tableau de bord et déconnexion sont actualisées
+pour la tranche 1 M15 : titres **Désactiver le client**, **Indiquer l'adresse**,
+**Informations bancaires** et tuile **Déconnexion**. Les parcours, champs,
+validations, effets et réserves métier restent identiques. Les 79 sujets et
+leurs alias sont conservés. Les copies et la provenance avant/après sont dans
+le dépôt Néo, `docs/livrables/M12/lot-07/`. Recette visuelle lot 07 non exécutée.
+Paiement, Facturé, import/occasion, code partenaire et SIRET restent à traiter
+dans une autre tranche. M16/ChatGateway restent reportés.
+
 ## Lot 06 — FAQ, définitions et prérequis
 
-Six fiches transversales M11 raccordées localement par M12, recette lot 06 à faire.
+Six fiches transversales M11 raccordées par M12. Retour exact lot 06 du
+propriétaire : **« Oui, déployé et testé »**, sans détail de cas individuel.
 Une question sur une tâche précise conserve sa procédure. Règle souhaitée et
 refus réellement imposé restent distincts ; vérifier les données avant répétition.
 
@@ -91,7 +103,7 @@ Retour global, sans détail de scénario ni opération métier réelle rapporté
 | [Résoudre un problème de connexion au back-office](resoudre-probleme-connexion.md) | Lot 05 (M10) ; aucun parcours « mot de passe oublié » dans le BO ; aucun contact inventé. |
 | [Se déconnecter du back-office](se-deconnecter-back-office.md) | Lot 05 (M10) ; action immédiate ; révocation serveur non garantie par le seul retour à l'écran de connexion. |
 | [Naviguer dans le back-office](naviguer-back-office.md) | Lot 05 (M10) ; dix menus actifs ; aucun menu **Configuration** ; renvoi statistiques ajouté par M12. |
-| [Comprendre le tableau de bord](comprendre-tableau-bord.md) | Lot 05 (M10) ; trois raccourcis et **Deconnexion** ; pastille sans valeur de preuve ; aucun indicateur chiffré. |
+| [Comprendre le tableau de bord](comprendre-tableau-bord.md) | Lot 05 (M10), libellé actualisé au lot 07 ; trois raccourcis et **Déconnexion** ; pastille sans valeur de preuve ; aucun indicateur chiffré. |
 | [Créer un secteur d'activité](creer-secteur-activite.md) | Lot 05 (M10) ; catalogue commun, ajout immédiat ; unicité imposée par le schéma ; aucun ajout réel. |
 | [Supprimer un secteur d'activité](supprimer-secteur-activite.md) | Lot 05 (M10) ; refus API si le secteur est lié ; aucune restauration ; aucune suppression réelle. |
 | [Comprendre la configuration du réseau](comprendre-configuration-reseau.md) | Lot 05 (M10) ; aucun écran de gestion des comptes bancaires du réseau prouvé (fiche conditionnelle non produite) ; renvoi statistiques ajouté par M12. |

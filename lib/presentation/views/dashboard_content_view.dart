@@ -296,7 +296,7 @@ class _DashboardContentViewState extends State<DashboardContentView> {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Deconnexion',
+                            'Déconnexion',
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,

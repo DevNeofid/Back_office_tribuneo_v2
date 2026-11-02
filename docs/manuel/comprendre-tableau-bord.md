@@ -13,10 +13,10 @@ Ouvrez **Accueil** dans le menu latéral. La vue affiche le message
 | **Commandes** | **Liste des commandes**, comme le menu **Commandes**. |
 | **Partenaires** | **Liste des magasins partenaires**, comme le menu **Partenaires**. |
 | **Clients** | **Liste des clients**, comme le menu **Clients**. |
-| **Deconnexion** | Déconnexion immédiate et retour à l'écran de connexion, sans confirmation. |
+| **Déconnexion** | Déconnexion immédiate et retour à l'écran de connexion, sans confirmation. |
 
 Les trois premières tuiles ouvrent leurs listes ; elles ne créent ni client,
-ni partenaire, ni commande. Ne cliquez sur **Deconnexion** que pour quitter
+ni partenaire, ni commande. Ne cliquez sur **Déconnexion** que pour quitter
 votre session. La procédure figure dans
 [Se déconnecter](se-deconnecter-back-office.md).
 
@@ -55,3 +55,6 @@ en preuve de paiement et ne déclenche aucun virement.
 
 Vérification au 30 octobre 2026 : vue, indices des callbacks, calcul de la
 pastille, repository et sélection API lus. Aucun aperçu live appelé.
+
+Libellés relus le 2 novembre 2026 : tranche 1 M15, sans changement de logique.
+Recette visuelle et opérations en session non exécutées pour cette mise à jour.
