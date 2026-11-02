@@ -46,7 +46,7 @@ consommateur, par exemple scanné ou utilisé, n'est jamais retiré.
    **Continuer** envoie la modification.
 8. En cas de succès, le formulaire se ferme et le message **Commande modifiée :**
    indique le nombre de bons créés et retirés. La liste se recharge : contrôlez
-   **Qté**, **Facturé**, **Occasion** et **Expiration**.
+   **Qté**, **Montant total**, **Occasion** et **Expiration**.
 
 Pour quitter sans enregistrer, cliquez sur **Fermer** : les changements non
 enregistrés sont perdus.

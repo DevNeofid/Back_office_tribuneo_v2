@@ -10,11 +10,11 @@ payer, sans enregistrer ni supprimer de paiement.
 1. Ouvrez **Commandes** et retrouvez la commande, par exemple avec son numéro
    commercial : voir [Rechercher une commande](rechercher-commande.md).
 2. Sur sa ligne, lisez **Payé**, le cumul des paiements enregistrés, et
-   **Facturé**, le montant total de la commande.
+   **Montant total**, le montant total de la commande.
 3. Interprétez la couleur des deux montants :
    - **vert** : le cumul payé est égal au total, la commande est soldée ;
    - **rouge** : les deux montants sont différents.
-4. S'il reste un montant à payer, calculez-le : **Facturé** moins **Payé**.
+4. S'il reste un montant à payer, calculez-le : **Montant total** moins **Payé**.
    La liste n'affiche pas directement de reste à payer.
 
 ## Contrôler le détail dans la fenêtre Paiements
@@ -31,13 +31,13 @@ payer, sans enregistrer ni supprimer de paiement.
 
 - **Rouge** ne distingue pas une commande sans paiement d'une commande
   partiellement payée : lisez le montant **Payé**.
-- Si **Payé** dépasse **Facturé**, le total de la commande a pu être diminué
+- Si **Payé** dépasse **Montant total**, le total de la commande a pu être diminué
   après l'enregistrement de paiements. Ne corrigez pas l'écart au hasard :
   vérifiez les paiements et les lignes de la commande, puis signalez l'écart à
   la personne qui gère les encaissements.
 - Le solde ne renseigne pas sur la facture. Une commande soldée peut ne pas
-  être facturée, et une commande facturée peut rester à payer. Le titre de la
-  colonne **Facturé** ne prouve pas qu'une facture existe.
+  être facturée, et une commande facturée peut rester à payer. La
+  colonne **Montant total** ne prouve pas qu'une facture existe.
 - La liste est chargée à l'ouverture de l'écran. Après un paiement enregistré
   sur un autre poste, rechargez la page avant de conclure.
 - Un tableau de paiements vide ou un cumul à zéro peut aussi venir d'une

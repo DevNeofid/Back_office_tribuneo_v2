@@ -25,12 +25,12 @@ Pour lire chaque élément, voir
 
 | Notion | Où la lire | À retenir |
 | --- | --- | --- |
-| **Total** | Colonne **Facturé** ; second montant de **Montant payé:** | Somme des lignes. Le titre **Facturé** ne prouve pas qu'une facture existe. |
+| **Total** | Colonne **Montant total** ; second montant de **Montant payé:** | Somme des lignes. Ce montant ne prouve pas qu'une facture existe. |
 | **Payé** | Colonne **Payé** ; premier montant de **Montant payé:** | Cumul des paiements enregistrés. |
-| **Reste à payer** | À calculer : **Facturé** moins **Payé** | La liste ne l'affiche pas. Vert : soldé ; rouge : montants différents. |
+| **Reste à payer** | À calculer : **Montant total** moins **Payé** | La liste ne l'affiche pas. Vert : soldé ; rouge : montants différents. |
 | **Indicateur « payée »** | Lu par Néo et par certains contrôles | Non recalculé après un changement du total : les montants font foi. |
 
-Si **Payé** dépasse **Facturé**, le total a pu être diminué après des
+Si **Payé** dépasse **Montant total**, le total a pu être diminué après des
 paiements. Ne corrigez pas l'écart au hasard : voir
 [Vérifier le solde et le statut payé](verifier-solde-commande.md).
 

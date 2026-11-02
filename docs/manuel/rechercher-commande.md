@@ -36,12 +36,12 @@ de la mention « Offert par » ou de son occasion.
 - **Occasion** : occasion renseignée sur la commande.
 - **Qté** : quantité de bons de la commande.
 - **Payé** : montant déjà payé.
-- **Facturé** : montant total de la commande affiché dans cette liste.
+- **Montant total** : montant total de la commande affiché dans cette liste.
 - **Création** et **Expiration** : dates de création et de fin de validité.
 
-Les montants **Payé** et **Facturé** sont verts lorsque le montant payé est égal
+Les montants **Payé** et **Montant total** sont verts lorsque le montant payé est égal
 au total de la commande ; sinon, ils sont rouges. La seule présence d'un montant
-dans **Facturé** ne prouve pas qu'un document de facture a été généré.
+dans **Montant total** ne prouve pas qu'un document de facture a été généré.
 
 ## Règles et limites
 

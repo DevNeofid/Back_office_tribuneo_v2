@@ -25,13 +25,13 @@ apparaître, sans que cela prouve qu'elle n'existe pas.
 | **Occasion** | Occasion de la commande, choisie dans **Pour l'occasion de**. Au survol, l'infobulle affiche les messages personnalisés des lignes. |
 | **Qté** | Nombre total de chèques (bons) de la commande. |
 | **Payé** | Cumul des paiements enregistrés sur la commande. |
-| **Facturé** | Montant total de la commande. Malgré son titre, cette colonne n'indique ni le montant d'une facture ni l'existence d'une facture. |
+| **Montant total** | Montant total de la commande. Cette colonne n'indique ni le montant d'une facture ni l'existence d'une facture. |
 | **Création** | Date de création de la commande. |
 | **Expiration** | Date de validité de la commande. |
 | **Gestion** | Menu des actions de gestion : **Paiements**, **Générer les QR Code**, **Générer le CSV**, **Générer le bon de livraison**, **Générer la Facture**, **Générer le récapitulatif**, **Gestion des bons**, **Bénéficiaires (commande importée)**. |
 | **Edition** | Menu **Modifier**, **Changer la date de validité** et **Supprimer**. |
 
-Les montants **Payé** et **Facturé** sont verts lorsque le cumul payé est égal
+Les montants **Payé** et **Montant total** sont verts lorsque le cumul payé est égal
 au total de la commande, rouges dans tous les autres cas. La lecture du solde
 est détaillée dans [Vérifier le solde d'une commande](verifier-solde-commande.md).
 
@@ -54,7 +54,7 @@ personnalisé** ; sans message, le nom de l'occasion est utilisé.
 
 - Chaque chèque de la commande correspond à un bon.
 - La colonne **Qté** est la somme des quantités des lignes.
-- Le total affiché dans **Facturé** est la somme, pour chaque ligne, du montant
+- Le total affiché dans **Montant total** est la somme, pour chaque ligne, du montant
   par chèque multiplié par le nombre de chèques.
 
 Les lignes se lisent dans **Edition → Modifier**. Pour une simple lecture,

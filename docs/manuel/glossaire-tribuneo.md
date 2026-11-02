@@ -49,7 +49,7 @@ pour agir, suivez le renvoi indiqué.
   rechercher. L'identifiant interne, technique, n'est pas affiché. L'**ID** d'un
   bon et le **Numéro de facture** sont d'autres références.
 - **Total de la commande** : somme des lignes. C'est ce qu'affiche la colonne
-  **Facturé** de la liste, malgré son titre.
+  **Montant total** de la liste.
 - **Occasion** : valeur de **Pour l'occasion de**, obligatoire à la création ;
   les messages du formulaire la désignent comme « occasion (URSSAF) ».
 - **Bon, chèque, coupon** : chaque chèque d'une commande correspond à un bon.

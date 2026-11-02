@@ -131,7 +131,7 @@ class _OrderFormState extends State<OrderForm> {
     }
     _formKey.currentState!.save();
 
-    if (!showImportView && _selectedUrssafEvent == null) {
+    if (_selectedUrssafEvent == null) {
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Veuillez sélectionner l\'occasion (URSSAF)'),
         backgroundColor: Colors.red,

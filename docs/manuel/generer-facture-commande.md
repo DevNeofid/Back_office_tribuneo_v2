@@ -68,7 +68,7 @@ renseignés dans sa fiche lors de la première génération.
   seule, à l'exception de la date de validité. Il indique : **Cette commande est
   facturée : seule la date de validité peut encore être modifiée (et, pour une
   commande importée, le contact des bénéficiaires non attribués).**
-- La colonne **Facturé** de la liste affiche le montant total de la commande.
+- La colonne **Montant total** de la liste affiche le montant total de la commande.
   Elle ne prouve pas qu'une facture a été générée ; vérifiez dans
   **Documents → Factures**.
 - Fermer la fenêtre de saisie ou cliquer sur **Annuler** ne crée aucune facture.

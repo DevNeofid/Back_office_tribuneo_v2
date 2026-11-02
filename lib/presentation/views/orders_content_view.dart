@@ -16,6 +16,7 @@ import 'package:back_office_tribuneo_v2/domain/usecases/bank_account_usecase.dar
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/payment_submission_validation.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/update_order_form.dart';
@@ -622,7 +623,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                         size: ColumnSize.S,
                         label: Expanded(
                             child: Center(
-                                child: Text('Facturé',
+                                child: Text('Montant total',
                                     textAlign: TextAlign.center))),
                       ),
                       DataColumn2(
@@ -1058,11 +1059,6 @@ class ShowPaymentState extends State<ShowPayment> {
     return "$day/$month/${date.year}";
   }
 
-  bool _validatePayment(double amount) {
-    num sumOfPayments = _payments.fold<num>(0, (sum, p) => sum + p.amount!);
-    return (sumOfPayments + amount) <= order.totalAmount!;
-  }
-
   void _submitPayment([String? value]) {
     if (_bankAccountSelectRequired && _selectedBankAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -1072,12 +1068,16 @@ class ShowPaymentState extends State<ShowPayment> {
     }
     if (value != null) {
       double paymentAmount = double.parse(value);
-      if (_validatePayment(paymentAmount) && _selectedPaymentMethod != null) {
-        _sendPayment(paymentAmount);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-                "Le montant saisi dépasse le montant total de la commande.")));
+      final PaymentSubmissionRefusal? refusal = submitPaymentIfAcceptable(
+        hasPaymentMethod: _selectedPaymentMethod != null,
+        sumOfPayments: _payments.fold<num>(0, (sum, p) => sum + p.amount!),
+        amount: paymentAmount,
+        orderTotal: order.totalAmount!,
+        send: _sendPayment,
+      );
+      if (refusal != null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(refusal.message)));
       }
     }
   }

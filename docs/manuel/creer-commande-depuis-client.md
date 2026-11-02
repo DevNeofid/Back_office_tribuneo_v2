@@ -39,7 +39,7 @@ Le client doit déjà exister dans **Clients**. Pour le créer, voir
 7. La liste des clients n'affiche pas les commandes. Pour contrôler la
    nouvelle commande, ouvrez **Commandes** : la liste commence par les
    commandes les plus récentes. Vérifiez **Offert par**, **Occasion**, **Qté**
-   et le total affiché dans **Facturé**.
+   et le total affiché dans **Montant total**.
 
 ## Quitter sans enregistrer
 

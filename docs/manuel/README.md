@@ -3,6 +3,18 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 08 — commandes, paiements et import, 2 novembre 2026
+
+Treize fiches actualisées pour la tranche 2 M15 : colonne **Montant total**
+(ancien titre **Facturé**, même montant total de commande), refus **Choisissez
+une méthode de paiement.** distinct du dépassement, et occasion exigée avant
+l'enregistrement en import comme en saisie manuelle. Montants, plafond de
+paiement, facturation, idempotence et contrat API restent inchangés. Les 79
+sujets et leurs alias sont conservés ; provenance dans le dépôt Néo,
+`docs/livrables/M12/lot-08/`. Recette visuelle lot 08 non exécutée. Code
+partenaire, SIRET et les écarts relevés par M15A/M15B restent à traiter.
+M16/ChatGateway restent reportés.
+
 ## Lot 07 — libellés, 2 novembre 2026
 
 Sept fiches client, partenaire, tableau de bord et déconnexion sont actualisées

@@ -23,10 +23,12 @@ envois n'est proposé dans ce formulaire.
    Ce libellé confirme seulement la sélection locale, pas la validité du contenu.
 4. Dans **Offert par**, choisissez le client existant. La liste propose
    **Rechercher une entité...** pour retrouver son nom.
-5. Sélectionnez **Pour l'occasion de**. Choisissez toujours une occasion pour
-   cet import : le formulaire actuel peut échouer avant l'envoi si elle manque.
-   Si la liste ne propose aucune occasion, interrompez la saisie et signalez le
-   problème à votre interlocuteur Tribuneo.
+5. Sélectionnez **Pour l'occasion de** : l'occasion est obligatoire dans ce
+   formulaire, en import comme en saisie manuelle. Si elle manque, le message
+   **Veuillez sélectionner l'occasion (URSSAF)** interrompt l'enregistrement
+   avant le traitement et l'envoi de la commande. Si la liste ne propose aucune
+   occasion, interrompez la saisie et signalez le problème à votre interlocuteur
+   Tribuneo.
 6. Si nécessaire, renseignez **Personnalisation offert par (optionnel)** :
    ce texte remplace « Offert par » sur le chèque, sans changer le client auquel
    la commande est rattachée. Les caractères `/` et `\` y sont remplacés par
@@ -84,7 +86,7 @@ le résultat avant de recommencer.
 | **Veuillez sélectionner une entité ("Offert par")** | Choisissez le client dans Offert par. |
 | **Veuillez importer un fichier** | Sélectionnez un CSV ou XLSX. Ce contrôle n'est atteint que si l'occasion a été choisie. |
 | **Veuillez importer un fichier valide** | Le fichier sélectionné n'a pas de contenu exploitable en mémoire. Sélectionnez le bon fichier. |
-| Occasion absente | Le contrôle explicite de l'occasion est sauté en mode import, mais sa valeur est lue juste après. Une erreur non gérée est possible avant l'appel API ; aucun message précis n'est garanti. Choisissez une occasion avant d'enregistrer. |
+| **Veuillez sélectionner l'occasion (URSSAF)** | Choisissez une valeur dans **Pour l'occasion de**. L'enregistrement est arrêté avant le traitement et l'envoi de la commande. Si aucune occasion n'est disponible, interrompez la saisie et signalez le problème. |
 | **Erreur lors de l’ajout de la commande** | Message générique de l'import : vérifiez d'abord le résultat, puis les en-têtes, montants, contacts et date. Les erreurs détaillées du serveur ne sont pas affichées par ce parcours. |
 
 Le parseur s'arrête à la première ligne invalide, avant la création de la

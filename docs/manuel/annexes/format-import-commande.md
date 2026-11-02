@@ -75,10 +75,11 @@ texte ou séparateur de milliers.
 - **Personnalisation offert par (optionnel)** remplace ce texte sur le chèque,
   sans changer le client. Les barres obliques sont remplacées par des tirets.
 - **Pour l'occasion de** fournit l'identifiant et le nom de l'occasion.
-  Dans le BO actuel, sélectionnez-la toujours : l'import saute le contrôle
-  explicite, puis tente de lire une valeur non nulle. Si elle est absente,
-  l'erreur survient avant l'appel API, hors du bloc de traitement des erreurs.
-  L'action API n'impose pas elle-même la présence de ces deux champs.
+  L'occasion est obligatoire dans ce formulaire, en import comme en saisie
+  manuelle. Si elle manque, **Veuillez sélectionner l'occasion (URSSAF)**
+  interrompt l'enregistrement avant la lecture de l'occasion, le traitement
+  et l'envoi de la commande. L'action API n'impose pas elle-même la présence
+  de ces deux champs.
 - **Date d'expiration** est préremplie à un an dans le BO et commune à tous
   les chèques. Le formulaire contrôle la forme JJ/MM/AAAA puis transmet une
   date ; le serveur la normalise à 23:59:59 et exige au minimum le lendemain.

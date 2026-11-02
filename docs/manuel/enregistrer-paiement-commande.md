@@ -48,7 +48,8 @@ puis vérifier son apparition dans le tableau des paiements.
 
 | Message ou situation | Action |
 |---|---|
-| « Le montant saisi dépasse le montant total de la commande. » | Vérifiez le montant restant et la Méthode : dans cette interface, l'absence de méthode sélectionnée peut aussi provoquer ce message. |
+| « Choisissez une méthode de paiement. » | Sélectionnez la Méthode, puis validez à nouveau. Ce refus a lieu avant la confirmation : aucune demande n'est envoyée. |
+| « Le montant saisi dépasse le montant total de la commande. » | Vérifiez le montant restant : le cumul des paiements et le montant saisi ne peuvent pas dépasser le total de la commande. |
 | « La date de paiement ne peut pas être antérieure à la date du dernier paiement. » | Vérifiez la date du règlement et les paiements affichés ; le sélecteur a refusé la date choisie. |
 | « Choisissez le compte sur lequel le paiement a été encaissé. » | Sélectionnez le Compte encaisseur demandé. |
 | « Le compte bancaire choisi n'existe plus. » | La liste est rechargée : vérifiez le nouveau choix avant toute nouvelle validation. |

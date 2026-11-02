@@ -1,0 +1,331 @@
+// Injected methods come verbatim from production source, never from a copy.
+// Lightweight UI/storage substitutes only; no socket or real API client exists.
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:intl/intl.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
+
+const kDebugMode = false;
+const occasionMessage = "Veuillez sélectionner l'occasion (URSSAF)";
+final event = UrssafModel(id: 222, name: 'Occasion synthétique choisie');
+final csv = utf8.encode('montant,email,prenom,nom\n25.50,test@example.invalid,Test,Fixture\n');
+final snackbarKey = KeyStub<Messenger>(Messenger());
+String globalNetworkName = 'SYNTHETIC';
+
+class Text {
+  final String data;
+  const Text(this.data);
+}
+class Colors {
+  static const red = 1;
+  static const green = 2;
+}
+class SnackBar {
+  final Text content;
+  const SnackBar({required this.content, required int backgroundColor});
+}
+class Messenger {
+  final messages = <String>[];
+  void showSnackBar(SnackBar bar) => messages.add(bar.content.data);
+}
+class KeyStub<T> {
+  final T? currentState;
+  KeyStub(this.currentState);
+}
+class FormStub {
+  bool valid = true;
+  bool validate() => valid;
+  void save() {}
+}
+class Controller {
+  String text;
+  Controller(this.text);
+}
+class RowStub {
+  final fundNumberController = Controller('2');
+  final fundValueController = Controller('25.50');
+  final persoMsgController = Controller('');
+}
+class PlatformFile {
+  final Uint8List? bytes;
+  PlatformFile(List<int>? data) : bytes = data == null ? null : Uint8List.fromList(data);
+}
+class WidgetStub {
+  final int idEntity;
+  final String entityName;
+  WidgetStub(this.idEntity, this.entityName);
+}
+class Navigator {
+  static Navigator of(Object context) => Navigator();
+  void pop(bool result) {}
+}
+class Reply {
+  final int statusCode;
+  final dynamic data;
+  Reply(this.statusCode, this.data);
+}
+class Post {
+  final String path;
+  final String body;
+  final String? tenant;
+  final Map<String, String>? headers;
+  Post(this.path, this.body, this.tenant, this.headers);
+  Map<String, dynamic> get json => jsonDecode(body) as Map<String, dynamic>;
+}
+class MemoryTransport {
+  final posts = <Post>[];
+  final gets = <String>[];
+  bool fail = false;
+  final events = Completer<Reply>();
+  Future<Reply> post(String path, String body,
+      {String? overrideTenant, Map<String, String>? headers}) async {
+    posts.add(Post(path, body, overrideTenant, headers));
+    if (fail) throw StateError('Synthetic transport failure');
+    return Reply(200, <String, dynamic>{});
+  }
+  Future<Reply> get(String path) {
+    gets.add(path);
+    return events.future;
+  }
+}
+class RepositoryHarness {
+  final MemoryTransport _remoteData;
+  final suffixe = 'order';
+  int tenantReads = 0;
+  RepositoryHarness(this._remoteData);
+  Future<String> getTenantForCurrentNetwork() async {
+    tenantReads++;
+    return 'tribuneo_synthetic';
+  }
+  /* REPO_SUBMIT */
+  /* REPO_LOAD */
+  /* ERROR_HELPERS */
+}
+class UseCaseHarness {
+  final RepositoryHarness orderRepository;
+  UseCaseHarness(this.orderRepository);
+  /* USECASE_SUBMIT */
+  /* USECASE_LOAD */
+}
+class FormHarness {
+  final UseCaseHarness _orderUseCase;
+  final _formKey = KeyStub<FormStub>(FormStub());
+  final _orderKey = PendingIdempotencyKey();
+  WidgetStub widget = WidgetStub(71, 'Client synthétique');
+  final giftFromController = Controller('');
+  final alternativeByController = Controller('');
+  final expiryDateController = Controller('03/11/2027');
+  final neorow = [RowStub()];
+  final context = Object();
+  bool mounted = true;
+  bool showImportView = true;
+  bool _isLoading = false;
+  UrssafModel? _selectedUrssafEvent;
+  List<UrssafModel> _urssafEvent = [];
+  PlatformFile? selectedFile;
+  String? fileName = 'synthetic.csv';
+  String fileBase64 = '';
+  String? dropdownValue = 'Client synthétique';
+  String? giftFrom;
+  int? entityId;
+  FormHarness(this._orderUseCase);
+  void setState(void Function() update) => update();
+  void loadAsInitState() {
+    /* INIT_LOAD */
+  }
+  /* FORM_SUBMIT */
+  /* FORM_LOAD */
+}
+class Fixture {
+  final transport = MemoryTransport();
+  late final repository = RepositoryHarness(transport);
+  late final form = FormHarness(UseCaseHarness(repository));
+  Fixture({bool manual = false, bool occasion = true}) {
+    snackbarKey.currentState!.messages.clear();
+    form.showImportView = !manual;
+    form._selectedUrssafEvent = occasion ? event : null;
+    if (!manual) form.selectedFile = PlatformFile(csv);
+  }
+  void refused(String message) {
+    equal(snackbarKey.currentState!.messages, [message]);
+    equal(transport.posts.length, 0);
+    equal(repository.tenantReads, 0);
+    equal(form.fileBase64, '');
+    equal(form._isLoading, false);
+  }
+}
+void equal(Object? actual, Object? expected) {
+  if (jsonEncode(actual) != jsonEncode(expected)) {
+    throw StateError('Expected ${jsonEncode(expected)}, got ${jsonEncode(actual)}');
+  }
+}
+Future<void> main() async {
+  int passed = 0;
+  final failures = <String>[];
+  Future<void> test(String name, Future<void> Function() body) async {
+    try {
+      await body();
+      passed++;
+      print('PASS $name');
+    } catch (error, stack) {
+      failures.add(name);
+      print('FAIL $name: $error\n$stack');
+    }
+  }
+
+  await test('import sans occasion : message, aucun traitement ni POST', () async {
+    final f = Fixture(occasion: false);
+    // If the guard is skipped, any later date handling must fail too.
+    f.form.expiryDateController.text = 'ne pas traiter';
+    await f.form.addOrder();
+    f.refused(occasionMessage);
+    equal(f.form.entityId, null);
+    equal(f.form.giftFromController.text, '');
+  });
+  await test('occasion prioritaire sur fichier absent en import', () async {
+    final f = Fixture(occasion: false);
+    f.form.selectedFile = null;
+    await f.form.addOrder();
+    f.refused(occasionMessage);
+  });
+  await test('import avec occasion mais fichier absent', () async {
+    final f = Fixture();
+    f.form.selectedFile = null;
+    await f.form.addOrder();
+    f.refused('Veuillez importer un fichier');
+  });
+  for (final bytes in <List<int>?>[null, []]) {
+    await test('import avec occasion mais octets ${bytes == null ? 'absents' : 'vides'}', () async {
+      final f = Fixture();
+      f.form.selectedFile = PlatformFile(bytes);
+      await f.form.addOrder();
+      f.refused('Veuillez importer un fichier valide');
+    });
+  }
+  await test('import recevable : chemin, paramètres, occasion et octets conservés', () async {
+    final f = Fixture();
+    await f.form.addOrder();
+    equal(f.transport.posts.length, 1);
+    final p = f.transport.posts.single;
+    equal(p.path, 'order/file');
+    equal(p.tenant, 'tribuneo_synthetic');
+    equal(p.headers, null);
+    equal(p.json, {
+      'file_name': 'synthetic.csv',
+      'file_bytes': base64Encode(csv),
+      'other_data': {
+        'id': null, 'gift_from': 'Client synthétique',
+        'id_urssaf_event': 222, 'gift_reason': event.name,
+        'fund_quantity': null, 'fund_expiry_date': '2027-11-03', 'id_entity': 71,
+      },
+    });
+    equal(f.form._selectedUrssafEvent == event, true);
+    equal(f.form._isLoading, false);
+  });
+  await test('manuel sans occasion : message avant lecture des lignes', () async {
+    final f = Fixture(manual: true, occasion: false);
+    f.form.neorow.single.fundNumberController.text = 'ne pas traiter';
+    await f.form.addOrder();
+    f.refused(occasionMessage);
+  });
+  await test('manuel avec occasion : JSON, message et clé idempotence conservés', () async {
+    final f = Fixture(manual: true);
+    await f.form.addOrder();
+    equal(f.transport.posts.length, 1);
+    final p = f.transport.posts.single;
+    equal(p.path, 'order');
+    equal(p.tenant, 'tribuneo_synthetic');
+    equal(RegExp(r'^[a-f0-9]{32}$').hasMatch(p.headers!['Idempotency-Key']!), true);
+    equal(p.json, {
+      'id': null, 'gift_from': 'Client synthétique',
+      'id_urssaf_event': 222, 'gift_reason': event.name,
+      'fund_quantity': 2.0, 'fund_expiry_date': '2027-11-03',
+      'order_items': [{'amount': 25.5, 'quantity': 2, 'perso_msg': event.name}],
+      'id_entity': 71,
+    });
+  });
+  await test('client fixé et personnalisation Offert par conservés', () async {
+    final f = Fixture();
+    f.form.alternativeByController.text = 'Texte/synthétique\\test';
+    await f.form.addOrder();
+    final data = f.transport.posts.single.json['other_data'];
+    equal(data['gift_from'], 'Texte-synthétique-test');
+    equal(data['id_entity'], 71);
+    equal(data['id_urssaf_event'], 222);
+  });
+  await test('client choisi depuis Commandes conservé', () async {
+    final f = Fixture();
+    f.form.widget = WidgetStub(-1, '');
+    f.form.dropdownValue = 'Client liste synthétique';
+    f.form.entityId = 89;
+    await f.form.addOrder();
+    final data = f.transport.posts.single.json['other_data'];
+    equal(data['gift_from'], 'Client liste synthétique');
+    equal(data['id_entity'], 89);
+  });
+  for (final manual in [false, true]) {
+    await test('Offert par absent, mode ${manual ? 'manuel' : 'import'}', () async {
+      final f = Fixture(manual: manual);
+      f.form.widget = WidgetStub(-1, '');
+      f.form.dropdownValue = null;
+      await f.form.addOrder();
+      f.refused('Veuillez sélectionner une entité ("Offert par")');
+    });
+  }
+  await test('reprise manuelle après panne : même clé, nouveau succès : clé neuve', () async {
+    final f = Fixture(manual: true);
+    f.form.neorow.single.persoMsgController.text = 'Message synthétique';
+    f.transport.fail = true;
+    await f.form.addOrder();
+    f.transport.fail = false;
+    await f.form.addOrder();
+    await f.form.addOrder();
+    equal(f.transport.posts.length, 3);
+    final keys = f.transport.posts.map((p) => p.headers!['Idempotency-Key']).toList();
+    equal(keys[0], keys[1]);
+    equal(keys[1] != keys[2], true);
+    equal(f.transport.posts[0].json['order_items'][0]['perso_msg'], 'Message synthétique');
+  });
+  await test('chargement différé : aucun choix implicite, refus avant et après réponse', () async {
+    final f = Fixture(occasion: false);
+    final loading = f.form.getUrssaf();
+    equal(f.transport.gets, ['order/events']);
+    equal(f.form._urssafEvent, []);
+    await f.form.addOrder();
+    f.refused(occasionMessage);
+    f.transport.events.complete(Reply(200, {'data': [event.toJson()]}));
+    await loading;
+    equal(f.form._urssafEvent.single.toJson(), event.toJson());
+    equal(f.form._selectedUrssafEvent, null);
+    snackbarKey.currentState!.messages.clear();
+    await f.form.addOrder();
+    f.refused(occasionMessage);
+    f.form._selectedUrssafEvent = f.form._urssafEvent.single;
+    await f.form.addOrder();
+    equal(f.transport.posts.single.json['other_data']['id_urssaf_event'], 222);
+  });
+  await test('VDPC : présélection existante après réponse seulement', () async {
+    final f = Fixture(occasion: false);
+    globalNetworkName = 'VDPC';
+    try {
+      f.form.loadAsInitState();
+      equal(f.form._selectedUrssafEvent, null);
+      await f.form.addOrder();
+      f.refused(occasionMessage);
+      final first = UrssafModel(id: 111, name: 'Première occasion synthétique');
+      f.transport.events.complete(Reply(200, {'data': [first.toJson(), event.toJson()]}));
+      await Future<void>.delayed(Duration.zero);
+      equal(f.form._selectedUrssafEvent!.toJson(), first.toJson());
+      await f.form.addOrder();
+      equal(f.transport.posts.single.json['other_data']['id_urssaf_event'], 111);
+    } finally {
+      globalNetworkName = 'SYNTHETIC';
+    }
+  });
+  print('RESULT $passed passed, ${failures.length} failed');
+  if (failures.isNotEmpty) throw StateError('Failed: ${failures.join(', ')}');
+}

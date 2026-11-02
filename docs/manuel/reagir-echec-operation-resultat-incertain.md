@@ -36,7 +36,7 @@ opération.
 | Importer une commande | Commande créée et e-mails envoyés ; aucune protection contre un second envoi | **Liste des commandes** avant tout nouvel import | [Import](creer-commande-import-fichier.md) |
 | Enregistrer un paiement | Paiement enregistré ; le montant reste dans le champ | Lignes de **Paiements**, fenêtre rouverte | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | Supprimer un paiement ou une commande | Suppression faite malgré un message ou une fenêtre restée ouverte | **Paiements** rouverte ; liste des commandes rechargée | [Paiement](supprimer-paiement-commande.md), [commande](supprimer-commande.md) |
-| Modifier une commande, changer une date | Changement enregistré ; la date part dès la validation du calendrier | Colonnes **Qté**, **Facturé**, **Expiration** ; **Gestion des bons** | [Modifier](modifier-commande.md), [validité](changer-validite-commande.md) |
+| Modifier une commande, changer une date | Changement enregistré ; la date part dès la validation du calendrier | Colonnes **Qté**, **Montant total**, **Expiration** ; **Gestion des bons** | [Modifier](modifier-commande.md), [validité](changer-validite-commande.md) |
 | Désactiver un bon | Bon désactivé | Colonne **Suppression** après réouverture | [Désactiver un bon](desactiver-bon.md) |
 | Renvoyer l'e-mail cadeau | E-mail déjà parti | Faites vérifier l'envoi avant de renvoyer | [Renvoyer](renvoyer-cadeau-beneficiaire.md) |
 | Générer le ZIP des QR codes | Génération poursuivie côté serveur | Téléchargements du navigateur ; faites vérifier avant un nouveau lancement | [QR codes](generer-qr-codes-commande.md) |

@@ -26,8 +26,9 @@ peut aussi suivre une opération déjà enregistrée : voir
 
 | Message ou signe | Cause vérifiée | Origine | Fiche |
 | --- | --- | --- | --- |
-| **Veuillez sélectionner une entité ("Offert par")**, **Veuillez sélectionner l'occasion (URSSAF)**, **Le montant des fonds non valide** | Client, occasion ou montant manquant | Formulaire | [Saisie manuelle](creer-commande-manuelle.md) |
-| **Le montant saisi dépasse le montant total de la commande.** | Paiement supérieur au reste à payer ; s'affiche aussi sans **Méthode** choisie | Formulaire et serveur pour le plafond | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
+| **Veuillez sélectionner une entité ("Offert par")**, **Veuillez sélectionner l'occasion (URSSAF)**, **Le montant des fonds non valide** | Client, occasion ou montant manquant | Formulaire | [Saisie manuelle](creer-commande-manuelle.md), [import](creer-commande-import-fichier.md) |
+| **Choisissez une méthode de paiement.** | Aucune **Méthode** choisie ; signalé avant le contrôle du montant | Formulaire | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
+| **Le montant saisi dépasse le montant total de la commande.** | Paiement supérieur au reste à payer | Formulaire et serveur pour le plafond | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **La date de paiement ne peut pas être antérieure à la date du dernier paiement.** | Date avant le dernier paiement | Formulaire ; contrôle non retrouvé dans l'enregistrement serveur lu | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **Choisissez le compte sur lequel le paiement a été encaissé.** | Compte encaisseur exigé par le réseau | Formulaire et serveur | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **Impossible de supprimer ce paiement : les écritures comptables ont déjà été générées.** | Paiement créé avant le dernier lot d'écritures, même vide | Serveur ; la corbeille reste visible | [Supprimer un paiement](supprimer-paiement-commande.md) |
