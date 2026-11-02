@@ -3,6 +3,22 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 09 — code partenaire et recherche SIRET, 2 novembre 2026
+
+Quatre fiches actualisées pour la tranche 3 M15. Dans **Modifier un
+partenaire**, **Code du partenaire** est affiché en lecture seule avec la
+mention « Le code du partenaire est attribué à la création et n'est pas
+modifiable depuis cet écran. » ; un code absent ne bloque plus
+l'enregistrement des autres champs. La fenêtre de recherche SIRET partagée par
+les parcours Clients et Partenaires s'intitule **Fiche existante** (anciennement
+**Partenaire existant**) et demande « Une fiche utilise déjà ce numéro de SIRET.
+Souhaitez-vous l'utiliser ? » ; ce résultat ne prouve ni un statut partenaire,
+ni une appartenance au réseau. Création, identifiant de connexion, recherche,
+callbacks et contrat API restent inchangés ; le vrai changement de code reste
+une décision API distincte. Les 79 sujets et leurs alias sont conservés ;
+provenance dans le dépôt Néo, `docs/livrables/M12/lot-09/`. Recette visuelle
+lot 09 non exécutée. M16/ChatGateway restent reportés.
+
 ## Lot 08 — commandes, paiements et import, 2 novembre 2026
 
 Treize fiches actualisées pour la tranche 2 M15 : colonne **Montant total**
@@ -73,7 +89,7 @@ Retour global, sans détail de scénario ni opération métier réelle rapporté
 | [Désactiver un client et comprendre les refus](desactiver-client.md) | Lot 02 (M04) ; suppression possible de l'entité commune, non testée ; message d'impayés trop général. |
 | [Ajouter un partenaire ou reprendre une entité existante](ajouter-partenaire.md) | Lot 03 (M05) intégré localement par M12 ; code et API lus ; déploiement et recette à faire ; ajout partiel possible avant une erreur. |
 | [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md) | Lot 03 (M05) ; recherche sur le nom seulement ; IBAN affiché en clair. |
-| [Modifier les informations générales d'un partenaire](modifier-partenaire.md) | Lot 03 (M05) ; code partenaire obligatoire mais non repris par l'API ; message d'erreur unique. |
+| [Modifier les informations générales d'un partenaire](modifier-partenaire.md) | Lot 03 (M05) ; code partenaire en lecture seule depuis le lot 09 (M15C), non repris par l'API ; message d'erreur unique. |
 | [Attribuer des secteurs d'activité à un partenaire](attribuer-secteurs-partenaire.md) | Lot 03 (M05) ; sélection remplaçant la précédente ; **Créer** immédiat dans le catalogue commun ; renvoi vers la gestion du catalogue des secteurs ajouté au lot 05. |
 | [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md) | Lot 03 (M05) ; rue, code postal et ville requis pour le remboursement ; renvoi vers les demandes écartées ajouté au lot 04. |
 | [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md) | Lot 03 (M05) ; IBAN français seulement ; contrôle de clé non bloquant ; renvoi vers les demandes écartées ajouté au lot 04. |

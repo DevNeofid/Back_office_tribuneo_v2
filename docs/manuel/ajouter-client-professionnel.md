@@ -22,8 +22,10 @@ Elle ne certifie donc pas l'existence administrative d'une entreprise.
      s'ouvre avec **Siret du client** prérempli. Renseignez **Nom du client**,
      **Email du client**, **Téléphone du client** et, si utile, **Code du client**.
      Cliquez sur **Enregistrer**, ou sur **Annuler** pour abandonner.
-   - Si la fenêtre **Partenaire existant** apparaît, vérifiez les informations
-     affichées : nom, e-mail, téléphone et SIRET. **Non** annule l'ajout avec
+   - Si la fenêtre **Fiche existante** apparaît, avec la question
+     **Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?**,
+     vérifiez les informations affichées : nom, e-mail, téléphone et SIRET.
+     **Non** annule l'ajout avec
      **Ajout annulé**. **Oui** déclenche directement l'ajout comme client ; il
      n'ouvre pas une étape de correction avant enregistrement.
 5. Après **Ajout du client réussi.** pour le formulaire, ou
@@ -44,9 +46,12 @@ Elle ne certifie donc pas l'existence administrative d'une entreprise.
   Les messages sont **🚩 Texte non valide**,
   **🚩 Veuillez entrer une adresse email valide** et
   **🚩 Numéro de mobile non valide**. **Code du client** est optionnel.
-- Malgré le titre **Partenaire existant**, la recherche API porte sur une
-  entité par SIRET et n'établit pas qu'elle est partenaire du réseau courant.
-  Vérifiez son identité ; le titre seul n'est pas une preuve de ce statut.
+- La fenêtre **Fiche existante** (anciennement **Partenaire existant**)
+  indique qu'une entité utilise déjà ce SIRET : la recherche API porte sur une
+  entité par SIRET, sans filtre de rôle ni de réseau. Ce résultat ne prouve ni
+  un statut partenaire, ni une appartenance au réseau courant, ni une
+  validation par un registre externe. Vérifiez son identité avant de choisir
+  **Oui** ou **Non**.
 - L'API refuse un SIRET déjà associé au type client dans le réseau demandé
   avec un conflit 409 : `An entity with the same siret and type already exists`.
   Si l'entité existe avec un autre type, l'API peut réutiliser cette entité et
@@ -69,4 +74,6 @@ vous. Pour une recette documentaire, ouvrez **Rechercher un SIRET** puis
 **Annuler**, sans cliquer sur **Suivant**.
 
 Vérification au 30 octobre 2026 : chaîne interface, repository et API lue.
-Recherche effective, résultat affiché et enregistrement réel non testés.
+Le 2 novembre 2026 (lot 09, M15D) : titre et question de la fenêtre relus
+dans le code. Recherche effective, résultat affiché et enregistrement réel non
+testés.

@@ -20,8 +20,8 @@ reprenez l'entité trouvée pour lui donner le rôle partenaire dans ce réseau.
    ferme pas cette boîte.
 3. Si aucune entité n'a ce SIRET, le formulaire **Ajouter un partenaire**
    s'ouvre avec le SIRET prérempli. Passez à « Nouvelle fiche ».
-4. Si une entité existe déjà, la boîte **Partenaire existant** affiche :
-   **Un partenaire existe déjà avec ce numéro de SIRET, voulez-vous vous en servir ?**
+4. Si une entité existe déjà, la boîte **Fiche existante** affiche :
+   **Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?**
    avec son nom, son e-mail, son téléphone et son SIRET. Passez à « Reprise ».
 
 ### Nouvelle fiche
@@ -44,8 +44,10 @@ reprenez l'entité trouvée pour lui donner le rôle partenaire dans ce réseau.
 - **Non** abandonne et affiche **Ajout annulé**. Aucune donnée n'est envoyée.
 
 L'entité trouvée peut être un client de ce réseau ou une entité d'un autre
-réseau : la recherche ne filtre ni par rôle ni par réseau, malgré le titre
-**Partenaire existant**. La reprise ne modifie pas son nom, son e-mail ni son
+réseau : la recherche ne filtre ni par rôle ni par réseau. La boîte
+**Fiche existante** (anciennement **Partenaire existant**) ne prouve ni un
+statut partenaire, ni une appartenance au réseau courant, ni une validation
+par un registre externe. La reprise ne modifie pas son nom, son e-mail ni son
 téléphone ; elle ne recopie pas de code saisi, puisqu'aucun code n'est demandé.
 
 ## Contrôles du formulaire
@@ -98,5 +100,7 @@ Néo explique l'ajout ; il ne crée ni ne reprend aucun partenaire et ne vérifi
 pas un SIRET auprès d'un registre.
 
 Vérification au 30 octobre 2026 : bouton, boîte de recherche SIRET, formulaire,
-validateurs, repository et actions API de recherche et de création lus. Ajout
-réel, reprise réelle, messages en session et import de commerçants non testés.
+validateurs, repository et actions API de recherche et de création lus. Le
+2 novembre 2026 (lot 09, M15D) : titre et question de la boîte relus dans le
+code. Ajout réel, reprise réelle, rendu visuel, messages en session et import
+de commerçants non testés.

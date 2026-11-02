@@ -17,7 +17,9 @@ ou partenaire d'un autre réseau, la modification s'applique aussi à ces rôles
 3. Le formulaire **Modifier un partenaire** s'ouvre prérempli : **Nom du partenaire**,
    **Email du partenaire**, **Siret du partenaire**, **Téléphone du partenaire**,
    **Code du partenaire** et la case **Accepte la dématérialisation**, cochée
-   selon la valeur actuelle.
+   selon la valeur actuelle. **Code du partenaire** est en lecture seule, sous
+   la mention « Le code du partenaire est attribué à la création et n'est pas
+   modifiable depuis cet écran. »
 4. Modifiez les champs utiles, puis cliquez sur **Enregistrer**.
 5. Après **Modification du partenaire réussie**, la liste se recharge.
    Contrôlez l'onglet **Informations générales**.
@@ -34,7 +36,7 @@ fermeture n'a pas été vérifié en session.
 | E-mail | **🚩 Veuillez entrer une adresse email valide** | refus si vide |
 | SIRET | **🚩 Numéro SIRET incorrect** si vide, **🚩 Numéro SIRET invalide** si autre que 14 chiffres | 14 chiffres ; obligatoire pour un partenaire ; refus s'il appartient déjà à une autre entité |
 | Téléphone | **🚩 Numéro de mobile non valide** hors 10 chiffres commençant par 01 à 09 | refus si vide |
-| Code | **🚩 Code non valide** si vide | non repris, voir ci-dessous |
+| Code | aucun : champ en lecture seule ; un code absent ne bloque pas l'enregistrement | non repris, voir ci-dessous |
 
 Tout refus de l'API s'affiche par le même message
 **Erreur lors de la modification du partenaire**, sans en donner la cause.
@@ -42,9 +44,11 @@ Vérifiez la fiche avant de recommencer.
 
 ## Limites
 
-- **Code du partenaire** : le champ est obligatoire dans ce formulaire, mais
-  l'action de mise à jour lue ne l'enregistre pas. Un changement de code n'est
-  donc pas garanti, même après le message de réussite.
+- **Code du partenaire** : affiché en lecture seule. Il est attribué à la
+  création (saisi ou généré) et ne peut pas être changé depuis cet écran ;
+  l'action de mise à jour lue ne le reprend pas. Une fiche sans code s'affiche
+  avec un champ vide : cela ne bloque plus l'enregistrement des autres champs,
+  et aucun code n'est créé.
 - Le **Nom d'utilisateur** de l'application n'est pas modifié par ce formulaire.
 - Changer l'e-mail change l'adresse utilisée pour l'envoi du lien de première
   connexion ; cela ne modifie pas, dans l'action lue, l'e-mail du compte
@@ -56,5 +60,7 @@ Vérifiez la fiche avant de recommencer.
 Néo explique la modification ; il ne change aucune fiche partenaire.
 
 Vérification au 30 octobre 2026 : menu, formulaire, validateurs, repository et
-action API de mise à jour lus. Enregistrement réel, fermeture sans sauvegarde et
+action API de mise à jour lus. Le 2 novembre 2026 (lot 09, M15C) : code en
+lecture seule et fiche sans code vérifiés par tests de widget simulés, sans
+appel réseau. Enregistrement réel, rendu visuel, fermeture sans sauvegarde et
 effet sur les autres rôles non testés.

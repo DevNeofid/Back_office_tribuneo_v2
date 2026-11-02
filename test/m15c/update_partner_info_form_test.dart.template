@@ -1,0 +1,165 @@
+// Tests M15C du vrai UpdatePartnerInfo, exécutés par
+// run_update_partner_form_tests.py dans un miroir où seul PartnerUseCase est
+// remplacé par un double enregistreur. Données entièrement fictives.
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/partners/update_partner_info_form.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+const String kName = 'Nom du partenaire';
+const String kMail = 'Email du partenaire';
+const String kSiret = 'Siret du partenaire';
+const String kPhone = 'Téléphone du partenaire';
+const String kCode = 'Code du partenaire';
+
+EntityModel fictivePartner({String? code}) => EntityModel.fromJson({
+      'id': 4242,
+      'name': 'Partenaire Fictif',
+      'email': 'contact@exemple.test',
+      'siret': '00000000000000',
+      'phone': '0600000000',
+      'code': code,
+      'accept_demat': true,
+    });
+
+Map<String, dynamic> expectedPayload({required String name, required String code}) => {
+      'id': 4242,
+      'name': name,
+      'email': 'contact@exemple.test',
+      'siret': '00000000000000',
+      'code': code,
+      'phone': '0600000000',
+      'type': null,
+      'fund_amount': null,
+      'accept_demat': 1,
+      'activity_sectors': [],
+    };
+
+/// Champ éditable d'un NeoInput, repéré par son libellé.
+Finder field(String hint) => find.descendant(
+      of: find.byWidgetPredicate((w) => w is NeoInput && w.hintText == hint),
+      matching: find.byType(EditableText),
+    );
+
+String textOf(WidgetTester tester, String hint) =>
+    tester.widget<EditableText>(field(hint)).controller.text;
+
+/// Ouvre le formulaire comme PartnersContentView._genUpdate et collecte la
+/// valeur de retour du dialogue.
+Future<List<bool?>> openForm(WidgetTester tester, EntityModel partner) async {
+  tester.view.physicalSize = const Size(1600, 1400);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+  final results = <bool?>[];
+  await tester.pumpWidget(MaterialApp(
+    home: Scaffold(
+      body: Builder(
+        builder: (context) => TextButton(
+          onPressed: () async {
+            results.add(await showDialog<bool>(
+              context: context,
+              builder: (_) => UpdatePartnerInfo(partner: partner),
+            ));
+          },
+          child: const Text('ouvrir'),
+        ),
+      ),
+    ),
+  ));
+  await tester.tap(find.text('ouvrir'));
+  await tester.pumpAndSettle();
+  return results;
+}
+
+Future<void> save(WidgetTester tester) async {
+  await tester.ensureVisible(find.text('Enregistrer'));
+  await tester.tap(find.text('Enregistrer'));
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  setUpAll(() {
+    // Polices non embarquées : jamais de téléchargement pendant les tests.
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
+  setUp(PartnerUseCase.reset);
+
+  testWidgets('le code existant reste affiché, sans saisie possible, et part inchangé',
+      (tester) async {
+    final results = await openForm(tester, fictivePartner(code: 'FICTIF-01'));
+
+    expect(textOf(tester, kCode), 'FICTIF-01');
+
+    // Témoin : un champ modifiable ouvre bien une connexion clavier.
+    await tester.showKeyboard(field(kName));
+    expect(tester.testTextInput.hasAnyClients, isTrue);
+    await tester.enterText(field(kName), 'Partenaire Fictif Corrigé');
+
+    // Le champ Code prend le focus mais n'ouvre aucune saisie.
+    await tester.showKeyboard(field(kCode));
+    expect(tester.testTextInput.hasAnyClients, isFalse);
+    expect(textOf(tester, kCode), 'FICTIF-01');
+
+    await save(tester);
+
+    expect(PartnerUseCase.updates, [
+      expectedPayload(name: 'Partenaire Fictif Corrigé', code: 'FICTIF-01'),
+    ]);
+    expect(results, [true]);
+  });
+
+  for (final absent in <String?>[null, '', '   ']) {
+    testWidgets('une fiche au code absent (${absent == null ? 'null' : '"$absent"'}) '
+        'enregistre la correction des autres champs', (tester) async {
+      final results = await openForm(tester, fictivePartner(code: absent));
+
+      await tester.enterText(field(kName), 'Partenaire Fictif Corrigé');
+      await save(tester);
+
+      // Aucun code fabriqué : la valeur chargée (ou '' pour null) est renvoyée
+      // comme avant, et l'API de modification ne la lit pas.
+      expect(PartnerUseCase.updates, [
+        expectedPayload(name: 'Partenaire Fictif Corrigé', code: absent ?? ''),
+      ]);
+      expect(results, [true]);
+      expect(find.text('Modification du partenaire réussie'), findsOneWidget);
+    });
+  }
+
+  const invalidInputs = <String, String>{
+    kName: '   ',
+    kMail: 'pas-une-adresse',
+    kSiret: '1234',
+    kPhone: '12',
+  };
+  for (final entry in invalidInputs.entries) {
+    testWidgets('« ${entry.key} » invalide bloque toujours l’envoi, même sans code',
+        (tester) async {
+      final results = await openForm(tester, fictivePartner(code: null));
+
+      await tester.enterText(field(entry.key), entry.value);
+      await save(tester);
+
+      expect(PartnerUseCase.updates, isEmpty);
+      expect(results, isEmpty);
+      expect(find.byType(UpdatePartnerInfo), findsOneWidget);
+    });
+  }
+
+  testWidgets('un échec simulé garde le formulaire ouvert et réactivable',
+      (tester) async {
+    PartnerUseCase.failure = Exception('échec simulé');
+    final results = await openForm(tester, fictivePartner(code: 'FICTIF-01'));
+
+    await save(tester);
+
+    expect(PartnerUseCase.updates, hasLength(1));
+    expect(results, isEmpty);
+    expect(find.text('Erreur lors de la modification du partenaire'), findsOneWidget);
+    expect(find.text('Enregistrer'), findsOneWidget);
+  });
+}

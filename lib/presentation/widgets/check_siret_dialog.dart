@@ -170,7 +170,7 @@ class _CheckSiretDialogState extends State<CheckSiretDialog> {
         children: [
           Center(
             child: SelectableText(
-              "Partenaire existant",
+              "Fiche existante",
               style: GoogleFonts.poppins(
                   fontSize: 28,
                   letterSpacing: 0.3,
@@ -180,7 +180,7 @@ class _CheckSiretDialogState extends State<CheckSiretDialog> {
           ),
           const SizedBox(height: 20),
           Text(
-            'Un partenaire existe déjà avec ce numéro de SIRET, voulez-vous vous en servir ?',
+            "Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?",
             style: GoogleFonts.poppins(fontSize: 16, color: kBlack),
           ),
           const SizedBox(height: 20),

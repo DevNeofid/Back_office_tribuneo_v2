@@ -181,13 +181,40 @@ class UpdatePartnerInfoState extends State<UpdatePartnerInfo> {
                     formatter: FilteringTextInputFormatter.digitsOnly,
                   ),
                   const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 4,
+                      right: 4,
+                      bottom: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.grey[600],
+                          size: SizeConfig.screenWidth > 600 ? 18 : 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            "Le code du partenaire est attribué à la création et n'est pas modifiable depuis cet écran.",
+                            style: GoogleFonts.poppins(
+                              fontSize: SizeConfig.screenWidth > 600 ? 13 : 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Le code n'est pas saisissable ici : aucun validateur, pour
+                  // qu'une fiche sans code n'empêche pas d'enregistrer le reste.
                   NeoInput(
                     controller: partnerCodeController,
                     hintText: 'Code du partenaire',
                     fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validateCode(value ?? '');
-                    },
+                    readOnly: true,
                   ),
                   const SizedBox(height: 16),
                   CheckboxListTile(

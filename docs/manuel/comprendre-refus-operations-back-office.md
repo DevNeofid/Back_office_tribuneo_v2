@@ -101,9 +101,10 @@ Ces points ne sont pas des refus garantis. Ne les présentez pas comme tels.
   peuvent être proposés alors que le serveur refusera.
 - **Libérer la demande** annonce une inclusion au prochain virement, même si
   un autre motif l'écarte encore.
-- **Message de succès sans effet garanti** : le code client ou partenaire
-  modifié n'est pas enregistré ; **Client dupliqué en partenaire avec succès !**
-  peut s'afficher avant la réponse du serveur.
+- **Message de succès sans effet garanti** : le code client modifié n'est pas
+  enregistré (le code partenaire, lui, n'est plus modifiable dans son
+  formulaire) ; **Client dupliqué en partenaire avec succès !** peut s'afficher
+  avant la réponse du serveur.
 - **Désactiver un client** peut supprimer l'entité commune ; **Désactiver un
   partenaire** n'offre aucune réactivation. La réversibilité n'est pas établie.
 

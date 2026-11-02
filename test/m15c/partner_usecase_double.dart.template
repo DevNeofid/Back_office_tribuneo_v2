@@ -1,0 +1,25 @@
+// Double M15C de lib/domain/usecases/partner_usecase.dart, installé uniquement
+// dans le miroir temporaire de run_update_partner_form_tests.py. Il enregistre
+// le JSON que PartnerRepository.updatePartner enverrait ; aucun repository,
+// transport, stockage ni Env n'est atteignable.
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+
+class PartnerUseCase {
+  static final List<Map<String, dynamic>> updates = [];
+  static Object? failure;
+
+  PartnerUseCase();
+
+  static void reset() {
+    updates.clear();
+    failure = null;
+  }
+
+  Future updatePartner(EntityModel partner) async {
+    updates.add(partner.toJson());
+    if (failure != null) {
+      throw failure!;
+    }
+    return partner.toJson();
+  }
+}
