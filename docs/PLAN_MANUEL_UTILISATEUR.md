@@ -45,7 +45,7 @@ commande déjà présente, distinct de la première facturation.
 - 1.1 [Ajouter un client particulier](manuel/ajouter-client-particulier.md) — M04 intégrée localement (lot 02) ; recette à faire.
 - 1.2 [Ajouter un client professionnel (recherche SIRET)](manuel/ajouter-client-professionnel.md) — M04 ; recherche SIRET interne à Tribuneo, sans registre externe établi.
 - 1.3 [Rechercher et filtrer les clients](manuel/rechercher-client.md) — M04 ; les icônes « Filtres » choisissent l'onglet affiché.
-- 1.4 [Modifier les informations générales](manuel/modifier-client.md) — M04 ; code client non repris par l'API.
+- 1.4 [Modifier les informations générales](manuel/modifier-client.md) — M04 ; code client en lecture seule depuis M15F (lot 10), toujours non repris par l'API de mise à jour.
 - 1.5 [Renseigner ou modifier l'adresse](manuel/renseigner-adresse-client.md) — **indispensable pour facturer** ; M04.
 - 1.6 [Renseigner les informations bancaires accessibles](manuel/renseigner-coordonnees-bancaires-client.md) — M04 ; côté client, numéro comptable et intracommunautaire seulement : IBAN, BIC et RIB réservés au type partenaire.
 - 1.7 [Dupliquer un client en partenaire](manuel/dupliquer-client-en-partenaire.md) — M04 ; ajout du rôle partenaire à la même entité.

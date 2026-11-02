@@ -27,7 +27,9 @@ peut aussi suivre une opération déjà enregistrée : voir
 | Message ou signe | Cause vérifiée | Origine | Fiche |
 | --- | --- | --- | --- |
 | **Veuillez sélectionner une entité ("Offert par")**, **Veuillez sélectionner l'occasion (URSSAF)**, **Le montant des fonds non valide** | Client, occasion ou montant manquant | Formulaire | [Saisie manuelle](creer-commande-manuelle.md), [import](creer-commande-import-fichier.md) |
-| **Choisissez une méthode de paiement.** | Aucune **Méthode** choisie ; signalé avant le contrôle du montant | Formulaire | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
+| **Saisissez un montant valide, par exemple 12,50 ou 12.50.** | Montant vide, illisible, non fini ou mêlant virgule et point | Formulaire | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
+| **Le montant doit être supérieur à zéro.** | Montant nul ou négatif | Formulaire ; le serveur refuse aussi un montant nul ou négatif | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
+| **Choisissez une méthode de paiement.** | Aucune **Méthode** choisie, pour un montant lisible et positif ; signalé avant le contrôle du plafond | Formulaire | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **Le montant saisi dépasse le montant total de la commande.** | Paiement supérieur au reste à payer | Formulaire et serveur pour le plafond | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **La date de paiement ne peut pas être antérieure à la date du dernier paiement.** | Date avant le dernier paiement | Formulaire ; contrôle non retrouvé dans l'enregistrement serveur lu | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | **Choisissez le compte sur lequel le paiement a été encaissé.** | Compte encaisseur exigé par le réseau | Formulaire et serveur | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
@@ -101,10 +103,12 @@ Ces points ne sont pas des refus garantis. Ne les présentez pas comme tels.
   peuvent être proposés alors que le serveur refusera.
 - **Libérer la demande** annonce une inclusion au prochain virement, même si
   un autre motif l'écarte encore.
-- **Message de succès sans effet garanti** : le code client modifié n'est pas
-  enregistré (le code partenaire, lui, n'est plus modifiable dans son
-  formulaire) ; **Client dupliqué en partenaire avec succès !** peut s'afficher
-  avant la réponse du serveur.
+- **Codes client et partenaire** : affichés en lecture seule dans leurs
+  formulaires de modification. Ils sont attribués à la création ; l'action API
+  de mise à jour ne les reprend pas. Un code absent ne crée pas de blocage local
+  supplémentaire pour corriger les autres champs.
+- **Message de succès sans effet garanti** : **Client dupliqué en partenaire
+  avec succès !** peut s'afficher avant la réponse du serveur.
 - **Désactiver un client** peut supprimer l'entité commune ; **Désactiver un
   partenaire** n'offre aucune réactivation. La réversibilité n'est pas établie.
 
@@ -132,3 +136,7 @@ vérifiées des lots 01 à 05 ; origine relue dans le BO (traduction des codes d
 refus, contrôles du formulaire de paiement) et dans l'API (suppression de
 commande et de paiement, enregistrement d'un paiement, modification d'une
 commande facturée, génération de facture). Aucune opération métier.
+
+Le 2 novembre 2026 (lot 10, M15E/M15F) : saisie du montant et code client
+relus ; tests de helper et de widget avec doubles hors réseau. Confirmation
+relue dans le code ; rendu navigateur, HTTP et persistance non testés.

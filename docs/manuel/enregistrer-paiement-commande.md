@@ -21,12 +21,16 @@ puis vérifier son apparition dans le tableau des paiements.
 5. Si le sélecteur **Compte encaisseur** est présent, vérifiez le compte
    présélectionné ou choisissez celui sur lequel le règlement a été encaissé.
 6. Dans le champ **Ajouter un paiement**, saisissez le montant du règlement,
-   strictement positif, sans dépasser le reste à payer. Utilisez un montant
-   numérique avec un point pour les centimes, sans symbole monétaire.
+   strictement positif, sans dépasser le reste à payer. Utilisez un nombre
+   simple, avec une virgule ou un point pour les centimes (`12,50` ou `12.50`),
+   sans symbole monétaire ni séparateur de milliers. Les espaces avant et après
+   le montant sont ignorés.
 7. Cliquez sur **Valider**. La fenêtre **Confirmation** récapitule le montant,
-   la date et, lorsque le choix est proposé, le compte encaisseur. Relisez ces
-   informations, puis cliquez sur **Valider** dans cette confirmation pour
-   enregistrer. **Annuler** permet de revenir sans envoyer cet enregistrement.
+   la date et, lorsque le choix est proposé, le compte encaisseur. Le montant y
+   est écrit tel qu'il sera envoyé, avec un point : `12,50` s'affiche `12.5`
+   et `30` s'affiche `30.0`. Relisez ces informations, puis cliquez sur
+   **Valider** dans cette confirmation pour enregistrer. **Annuler** permet de
+   revenir sans envoyer cet enregistrement.
 8. Attendez la mise à jour du tableau, puis contrôlez la nouvelle ligne et
    **Montant payé:**. Cliquez sur **Fermer** pour revenir aux commandes.
 
@@ -48,6 +52,8 @@ puis vérifier son apparition dans le tableau des paiements.
 
 | Message ou situation | Action |
 |---|---|
+| « Saisissez un montant valide, par exemple 12,50 ou 12.50. » | Corrigez le montant : champ vide, texte non numérique ou non fini, espace à l'intérieur du nombre, ou virgule et point mêlés (par exemple `1.234,50`). Ce refus a lieu avant la confirmation : aucune demande n'est envoyée. |
+| « Le montant doit être supérieur à zéro. » | Saisissez un montant strictement positif ; zéro et les montants négatifs sont refusés. Ce refus a lieu avant la confirmation : aucune demande n'est envoyée. |
 | « Choisissez une méthode de paiement. » | Sélectionnez la Méthode, puis validez à nouveau. Ce refus a lieu avant la confirmation : aucune demande n'est envoyée. |
 | « Le montant saisi dépasse le montant total de la commande. » | Vérifiez le montant restant : le cumul des paiements et le montant saisi ne peuvent pas dépasser le total de la commande. |
 | « La date de paiement ne peut pas être antérieure à la date du dernier paiement. » | Vérifiez la date du règlement et les paiements affichés ; le sélecteur a refusé la date choisie. |
@@ -77,3 +83,7 @@ réalise aucune opération bancaire.
 Pour lire les paiements réels d'une commande dans le chat, identifiez la commande
 et demandez leur consultation. La suppression d'un paiement et la facturation
 sont des procédures distinctes, non décrites dans cette fiche.
+
+Le 2 novembre 2026 (lot 10) : saisie du montant relue ; tests du helper
+hors réseau avec callback simulé. Confirmation relue dans le code ; rendu
+navigateur, HTTP et persistance non testés.

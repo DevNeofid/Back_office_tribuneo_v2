@@ -15,6 +15,16 @@ opération.
 - **Vérifiez avant de répéter.** Une seconde tentative peut créer un doublon,
   envoyer un second e-mail ou consommer une étape qui ne s'annule pas.
 
+## Refus du montant avant envoi d'un paiement
+
+Les messages **Saisissez un montant valide, par exemple 12,50 ou 12.50.** et
+**Le montant doit être supérieur à zéro.** refusent la saisie avant toute
+confirmation et toute demande d'enregistrement. Corrigez le champ selon la
+fiche [Enregistrer un paiement](enregistrer-paiement-commande.md).
+**Annuler** dans la confirmation n'envoie pas non plus cet enregistrement.
+Ces cas se distinguent d'une erreur après validation de la confirmation :
+si une demande a pu partir, vérifiez les paiements avant de recommencer.
+
 ## Vérifier avant de répéter
 
 1. Notez le message exact, l'heure et la référence concernée.

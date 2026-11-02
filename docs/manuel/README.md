@@ -3,6 +3,20 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 10 — saisie des paiements et code client, 2 novembre 2026
+
+M15E accepte la virgule ou le point décimal, refuse explicitement un montant
+vide, illisible, non fini, nul ou négatif avant confirmation et envoi. La
+confirmation reprend la valeur validée. Le plafond, la date, le compte et la
+méthode restent contrôlés comme auparavant ; aucune règle de centimes ajoutée.
+M15F affiche **Code du client** en lecture seule avec une explication ; code
+absent sans nouveau blocage local, autres champs et payload inchangés.
+Quatre fiches actualisées : paiement, refus, résultat incertain et modifier
+client. Création client, code partenaire en lecture seule et fenêtre SIRET
+**Fiche existante** du lot 09 préservés. 79 sujets et alias conservés.
+Résultat et recette sous Néo `docs/livrables/M12/lot-10/` ; recette non exécutée,
+aucun paiement ni changement réel. Vrai changement de code API et plafond hors lot.
+
 ## Lot 09 — code partenaire et recherche SIRET, 2 novembre 2026
 
 Quatre fiches actualisées pour la tranche 3 M15. Dans **Modifier un

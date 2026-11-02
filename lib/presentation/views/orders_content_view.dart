@@ -1067,11 +1067,10 @@ class ShowPaymentState extends State<ShowPayment> {
       return;
     }
     if (value != null) {
-      double paymentAmount = double.parse(value);
       final PaymentSubmissionRefusal? refusal = submitPaymentIfAcceptable(
         hasPaymentMethod: _selectedPaymentMethod != null,
         sumOfPayments: _payments.fold<num>(0, (sum, p) => sum + p.amount!),
-        amount: paymentAmount,
+        amountText: value,
         orderTotal: order.totalAmount!,
         send: _sendPayment,
       );
@@ -1089,7 +1088,7 @@ class ShowPaymentState extends State<ShowPayment> {
           return AlertDialog(
             title: const Text('Confirmation'),
             content: Text(
-                'Vous allez envoyer un paiement de ${_paymentAmountController.text} € à la date du ${_getDisplayableDate(selectedDate)}'
+                'Vous allez envoyer un paiement de $amount € à la date du ${_getDisplayableDate(selectedDate)}'
                 '${_bankAccountSelectRequired ? ' sur le compte « ${_selectedBankAccount!.label} »' : ''} ?'),
             actions: <Widget>[
               TextButton(

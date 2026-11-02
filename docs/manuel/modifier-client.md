@@ -14,10 +14,11 @@ identité. Vous devez disposer des droits de modification des clients.
    Ce menu est distinct de celui proposant duplication et désactivation.
 3. Dans **Modifier le client**, vérifiez les valeurs préremplies de
    **Nom du client**, **Email du client**, **Siret du client**,
-   **Téléphone du client** et **Code du client**.
+   **Téléphone du client** et **Code du client**. Le code est en lecture
+   seule, avec la mention « Le code du client est attribué à la création et
+   n'est pas modifiable depuis cet écran. »
 4. Corrigez le nom, l'e-mail, le SIRET ou le téléphone selon le besoin.
-   La modification du code n'est pas garantie par ce parcours : voir la limite
-   ci-dessous.
+   Le code ne peut pas être modifié depuis cet écran.
 5. Cliquez sur **Enregistrer** pour envoyer la modification. Pour abandonner,
    fermez la fenêtre sans enregistrer, notamment par clic à l'extérieur de la
    boîte de dialogue ; aucun bouton **Annuler** n'est prévu dans ce formulaire.
@@ -41,9 +42,12 @@ identité. Vous devez disposer des droits de modification des clients.
   `Siret is required for a partner.` Un autre client ou partenaire ayant déjà
   le SIRET peut également provoquer un refus :
   `Update entity failed: Another entity with same siret already exists.`
-- **Code du client** est affiché et envoyé par le formulaire, mais l'action API
-  lue ne le reprend pas dans la mise à jour. Ne comptez pas sur cette fenêtre
-  pour changer le code ; signalez le besoin au support.
+- **Code du client** est affiché en lecture seule. Il est attribué à la
+  création (saisi ou généré) et n'est pas modifiable depuis cet écran. Sa
+  valeur existante reste envoyée, mais l'action API lue ne la reprend pas
+  dans la mise à jour. Un code absent ne crée aucun blocage local supplémentaire pour corriger
+  les autres champs : aucun code de remplacement n'est fabriqué. Une véritable modification
+  du code reste une décision API distincte ; signalez le besoin au support.
 - Les informations générales concernent l'entité commune. Pour une entité
   également partenaire ou liée à plusieurs réseaux, elles ne constituent pas
   une copie indépendante réservée à cette seule fiche client.
@@ -65,4 +69,6 @@ se modifient avec leurs entrées d'édition dédiées.
 Néo explique les champs et les refus ; il ne modifie pas le client.
 
 Vérification au 30 octobre 2026 : interface, modèle et action API lus.
-Affichage, fermeture en session et persistance réelle non testés.
+Le 2 novembre 2026 (lot 10, M15F) : code en lecture seule, correction sans code
+et valeurs transmises au use case vérifiés par tests de widget simulés hors
+réseau. Rendu navigateur, HTTP et persistance réelle non testés.

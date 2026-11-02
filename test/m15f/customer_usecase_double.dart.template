@@ -1,0 +1,25 @@
+// Double M15F de lib/domain/usecases/customer_usecase.dart, installé uniquement
+// dans le miroir temporaire de run_update_customer_form_tests.py. Il enregistre
+// le JSON que CustomerRepository.updateCustomer enverrait ; aucun repository,
+// transport, stockage ni Env n'est atteignable.
+import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
+
+class CustomerUseCase {
+  static final List<Map<String, dynamic>> updates = [];
+  static Object? failure;
+
+  CustomerUseCase();
+
+  static void reset() {
+    updates.clear();
+    failure = null;
+  }
+
+  Future updateCustomer(EntityModel customer) async {
+    updates.add(customer.toJson());
+    if (failure != null) {
+      throw failure!;
+    }
+    return customer.toJson();
+  }
+}
