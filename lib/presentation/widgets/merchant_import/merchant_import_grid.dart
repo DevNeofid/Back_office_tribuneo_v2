@@ -13,6 +13,10 @@ import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/merchant_import/row_save_queue.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/merchant_enrichment/enrichment_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/merchant_enrichment/tribuneo_enrichment_transport.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/merchant_enrichment/enrichment_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/merchant_enrichment/enrichment_panel.dart';
 
 /// Grille de relecture d'un lot d'import de commerçants.
 ///
@@ -31,6 +35,8 @@ class MerchantImportGrid extends StatefulWidget {
 
   /// Remplaçable dans les tests.
   final MerchantImportUseCase? useCase;
+  final EnrichmentTransport? enrichmentTransport;
+  final bool enrichmentEnabled;
 
   const MerchantImportGrid({
     super.key,
@@ -38,6 +44,8 @@ class MerchantImportGrid extends StatefulWidget {
     required this.onBack,
     required this.onImported,
     this.useCase,
+    this.enrichmentTransport,
+    this.enrichmentEnabled = merchantEnrichmentEnabled,
   });
 
   @override
@@ -98,6 +106,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   late final MerchantImportUseCase _useCase =
       widget.useCase ?? MerchantImportUseCase();
   late final RowSaveQueue _queue;
+  late final EnrichmentUseCase _enrichment;
   final PendingIdempotencyKey _importKey = PendingIdempotencyKey();
 
   late MerchantImportBatch _batch;
@@ -193,6 +202,20 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   void initState() {
     super.initState();
     _batch = widget.batch;
+    _enrichment = EnrichmentUseCase(
+      repository: EnrichmentRepository(
+          widget.enrichmentTransport ?? TribuneoEnrichmentTransport()),
+      batchId: _batch.id,
+      enabled: widget.enrichmentEnabled,
+      currentRow: _rowById,
+      batchEditable: () =>
+          _editable && _queue.isIdle && _queue.failedCount == 0,
+      replaceRows: (rows) {
+        if (mounted) setState(() => _replaceRows(rows));
+      },
+      // The enrichment session checks its pinned tenant again before publishing.
+      reloadRows: () => _useCase.getRows(_batch.id),
+    );
     _queue = RowSaveQueue(
       send: (rowId, body) => _useCase.patchRow(_batch.id, rowId, body),
       currentRow: _rowById,
@@ -221,6 +244,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
   @override
   void dispose() {
+    _enrichment.dispose();
     _queue.dispose();
     _searchDebounce?.cancel();
     _editDebounce?.cancel();
@@ -872,6 +896,25 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(counts),
+          EnrichmentButton(
+            session: _enrichment,
+            rows: () => _rows,
+            prepare: () async {
+              _finishEdit(commit: true);
+              if (!_queue.isIdle) {
+                await LoadingDialog.run(
+                    context, 'Enregistrement en cours…', _queue.waitUntilIdle);
+              }
+              if (!mounted) return false;
+              if (_queue.failedCount > 0) {
+                _snack(
+                    'Enregistrez les corrections avant de compléter les informations.',
+                    kOrange);
+                return false;
+              }
+              return true;
+            },
+          ),
           const SizedBox(height: 12),
           _buildFilters(counts),
           ..._buildBanners(),
