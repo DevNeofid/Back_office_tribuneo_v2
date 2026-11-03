@@ -153,6 +153,15 @@ class AssistantBlockView extends StatelessWidget {
     final AssistantController controller = context.watch<AssistantController>();
     final AssistantBlock block = this.block;
     switch (block) {
+      case AssistantEnrichmentCandidatesBlock():
+        if (controller.onReviewCandidate == null || controller.contextInvalid) return const SizedBox.shrink();
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Candidats sourcés à comparer (sans classement)'),
+          for (final candidate in block.candidates)
+            OutlinedButton(
+              onPressed: controller.pending ? null : () => controller.onReviewCandidate?.call(block, candidate.id),
+              child: Text('Revoir ce candidat : ${candidate.label}')),
+        ]);
       case AssistantLinkBlock():
         return OutlinedButton.icon(
           style: OutlinedButton.styleFrom(

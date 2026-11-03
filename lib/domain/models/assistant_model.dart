@@ -1,3 +1,5 @@
+import 'merchant_enrichment/chat_context_reference.dart';
+
 /// Modèles de l'assistant (chatbot) du back-office.
 ///
 /// Contrat provisoire de la passerelle `/chat` : voir
@@ -11,18 +13,43 @@ sealed class AssistantBlock {
   const AssistantBlock();
 
   static AssistantBlock? fromJson(dynamic json) {
-    if (json is! Map) return null;
+    if (json is! Map || json.keys.any((key) => key is! String)) return null;
     final Map<String, dynamic> map = Map<String, dynamic>.from(json);
     switch (map['type']) {
       case 'link':
         return AssistantLinkBlock.fromJson(map);
       case 'choices':
         return AssistantChoicesBlock.fromJson(map);
+      case 'enrichment_candidates':
+        return AssistantEnrichmentCandidatesBlock.fromJson(map);
       case 'document':
         return AssistantDocumentBlock.fromJson(map);
       default:
         return null;
     }
+  }
+}
+
+/// Server-sourced comparison list, not a model ranking or an apply instruction.
+class AssistantEnrichmentCandidatesBlock extends AssistantBlock {
+  final ChatContextReference reference;
+  final List<({String id, String label})> candidates;
+  const AssistantEnrichmentCandidatesBlock(this.reference, this.candidates);
+  static AssistantEnrichmentCandidatesBlock? fromJson(Map<String, dynamic> json) {
+    if (json.keys.any((k) => !{'type', 'batch_id', 'row_id', 'proposal_id',
+      'expected_version', 'candidates'}.contains(k))) return null;
+    final reference = ChatContextReference.parse(json);
+    final raw = json['candidates'];
+    if (reference == null || raw is! List || raw.isEmpty || raw.length > 5) return null;
+    final candidates = <({String id, String label})>[];
+    final ids = <String>{};
+    for (final c in raw) {
+      if (c is! Map || c.length != 2 || c['id'] is! String || c['label'] is! String ||
+          !ChatContextReference.uuid.hasMatch(c['id']) || !ids.add(c['id']) ||
+          (c['label'] as String).trim().isEmpty || (c['label'] as String).length > 512) return null;
+      candidates.add((id: c['id'] as String, label: c['label'] as String));
+    }
+    return AssistantEnrichmentCandidatesBlock(reference, List.unmodifiable(candidates));
   }
 }
 
@@ -181,7 +208,7 @@ class AssistantReply {
 enum AssistantMessageRole { user, assistant, error }
 
 /// Erreurs affichées dans le fil (§ 5.4).
-enum AssistantErrorKind { quota, unavailable, sessionExpired, other }
+enum AssistantErrorKind { quota, unavailable, sessionExpired, contextStale, other }
 
 /// Message du fil de conversation.
 class AssistantMessage {
@@ -220,6 +247,8 @@ class AssistantMessage {
       case AssistantErrorKind.unavailable:
         return "L'assistant ne répond pas pour le moment. "
             'Réessayez dans quelques instants.';
+      case AssistantErrorKind.contextStale:
+        return 'Cette comparaison est devenue obsolète ou indisponible. Fermez-la puis actualisez la recherche. Le choix manuel reste disponible.';
       case AssistantErrorKind.sessionExpired:
       case AssistantErrorKind.other:
         return 'Une erreur est survenue.';

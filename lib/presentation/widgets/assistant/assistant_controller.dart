@@ -52,6 +52,16 @@ class AssistantController extends ChangeNotifier {
   void Function(AssistantDocumentBlock document)? onDownloadDocument;
   void Function(String url)? onOpenUrl;
 
+  void Function(AssistantEnrichmentCandidatesBlock block, String candidateId)? onReviewCandidate;
+  bool contextInvalid = false;
+  void invalidateContext() {
+    if (_disposed || contextInvalid) return;
+    contextInvalid = true;
+    resetConversation(closePanel: false);
+    _messages.add(AssistantMessage.error(AssistantErrorKind.contextStale));
+    notifyListeners();
+  }
+
   bool _ready = false;
   AssistantLauncherState _state = AssistantLauncherState.visible;
   bool _openedOnce = false;
@@ -152,7 +162,7 @@ class AssistantController extends ChangeNotifier {
   /// place de [text] (libellé d'un choix).
   Future<void> send(String text, {String? display}) async {
     final String message = text.trim();
-    if (message.isEmpty || _pending) return;
+    if (_disposed || contextInvalid || message.isEmpty || _pending) return;
     _messages.add(AssistantMessage.user(display ?? message));
     _lastSent = message;
     await _request(message);
@@ -161,7 +171,7 @@ class AssistantController extends ChangeNotifier {
   /// Renvoie le dernier message après une erreur.
   Future<void> retry() async {
     final String? message = _lastSent;
-    if (message == null || _pending) return;
+    if (_disposed || contextInvalid || message == null || _pending) return;
     if (_messages.isNotEmpty &&
         _messages.last.role == AssistantMessageRole.error) {
       _messages.removeLast();
@@ -207,6 +217,10 @@ class AssistantController extends ChangeNotifier {
       reply = AssistantMessage.error(AssistantErrorKind.other);
     }
     if (_isStale(conversation)) return;
+    if (reply.errorKind == AssistantErrorKind.contextStale) {
+      invalidateContext();
+      return;
+    }
 
     _pending = false;
     _messages.add(reply);

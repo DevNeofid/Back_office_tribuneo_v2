@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/utils/idempotency_key.dart';
 import '../../models/merchant_import_row_model.dart';
 import '../../models/merchant_enrichment/enrichment_models.dart';
+import '../../models/merchant_enrichment/vat_status.dart';
 import '../../repositories/merchant_enrichment/enrichment_repository.dart';
 
 const merchantEnrichmentEnabled =
@@ -265,6 +266,12 @@ class EnrichmentUseCase extends ChangeNotifier {
         lng.abs() > 180) {
       result.removeAll({'lat', 'lng'});
     }
+    if (VatRules.applicable(
+        capability: capability?.vat == true,
+        candidate: candidate,
+        rowSiret: currentSiret,
+        rowVatEmpty: empty(row.valueOf(VatRules.field)),
+        others: result)) result.add(VatRules.field);
     return result;
   }
 
@@ -277,8 +284,11 @@ class EnrichmentUseCase extends ChangeNotifier {
         selected.isEmpty ||
         !applicable(proposal, candidate).containsAll(selected) ||
         (selected.contains('lat') != selected.contains('lng')) ||
-        (selected.contains('lat') && candidate.approximate && !acknowledge))
-      return false;
+        (selected.contains('lat') && candidate.approximate && !acknowledge) ||
+        !VatRules.selectionValid(selected,
+            rowSiretEmpty: MerchantImportRow.normalized(
+                    'siret', currentRow(proposal.rowId)?.valueOf('siret'))
+                .isEmpty)) return false;
     bool success = false;
     await _run(() async {
       final row = currentRow(proposal.rowId)!;

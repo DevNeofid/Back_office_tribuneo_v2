@@ -1,24 +1,39 @@
+import '../../../domain/models/merchant_enrichment/chat_context_reference.dart';
+import '../../../domain/repositories/assistant_repository.dart';
+import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
+import 'chat_comparison.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/models/merchant_import_row_model.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/usecases/merchant_enrichment/enrichment_usecase.dart';
+import '../../../domain/models/merchant_enrichment/vat_status.dart';
+import 'vat_presentation.dart';
 
 /// Shared by the real grid and the local, transport-free widget harness.
 class EnrichmentButton extends StatefulWidget {
   final EnrichmentUseCase session;
   final List<MerchantImportRow> Function() rows;
   final Future<bool> Function() prepare;
+  final AssistantRepository Function(ChatContextReference, String)? comparisonRepository;
   const EnrichmentButton(
       {super.key,
       required this.session,
       required this.rows,
-      required this.prepare});
+      required this.prepare,
+      this.comparisonRepository});
   @override
   State<EnrichmentButton> createState() => _EnrichmentButtonState();
 }
 
 class _EnrichmentButtonState extends State<EnrichmentButton> {
+  final _comparisonLifetime = ChatComparisonLifetime();
   bool _opening = false;
+  @override
+  void dispose() {
+    _comparisonLifetime.invalidate();
+    _comparisonLifetime.dispose();
+    super.dispose();
+  }
   @override
   void initState() {
     super.initState();
@@ -35,7 +50,8 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
       await showDialog<void>(
           context: context,
           builder: (_) =>
-              EnrichmentPanel(session: widget.session, rows: widget.rows));
+              EnrichmentPanel(session: widget.session, rows: widget.rows,
+                scopeActive: () => mounted, lifetime: _comparisonLifetime, comparisonRepository: widget.comparisonRepository));
     } finally {
       widget.session.pause();
       if (mounted) setState(() => _opening = false);
@@ -72,7 +88,11 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
 class EnrichmentPanel extends StatefulWidget {
   final EnrichmentUseCase session;
   final List<MerchantImportRow> Function() rows;
-  const EnrichmentPanel({super.key, required this.session, required this.rows});
+  final bool Function()? scopeActive;
+  final ChatComparisonLifetime? lifetime;
+  final AssistantRepository Function(ChatContextReference, String)? comparisonRepository;
+  const EnrichmentPanel({super.key, required this.session, required this.rows,
+    this.scopeActive, this.lifetime, this.comparisonRepository});
   @override
   State<EnrichmentPanel> createState() => _EnrichmentPanelState();
 }
@@ -91,6 +111,40 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
   void dispose() {
     widget.session.pause(notify: false);
     super.dispose();
+  }
+
+  bool _comparing = false;
+  bool _canCompare(EnrichmentProposal p) {
+    final s = widget.session, row = s.currentRow(p.rowId);
+    return (AssistantRepository.gatewayReady || widget.comparisonRepository != null) &&
+      s.available && s.capability?.chatResolution == true && !s.busy && s.batchEditable() &&
+      p.state == 'ambiguous' && p.batchId == s.batchId && p.candidates.isNotEmpty &&
+      p.candidates.length <= 5 && row != null && EnrichmentUseCase.eligible(row) && row.version == p.baseVersion;
+  }
+  Future<void> _compare(EnrichmentProposal p) async {
+    if (_comparing || !_canCompare(p)) return;
+    setState(() => _comparing = true);
+    final s = widget.session;
+    try {
+      final tenant = await s.repository.transport.currentTenant();
+      if (!mounted || !_canCompare(p)) return;
+      final reference = ChatContextReference(batchId: p.batchId, rowId: p.rowId,
+        proposalId: p.id, expectedVersion: p.baseVersion);
+      final comparison = ChatComparisonUseCase(enrichment: s, reference: reference, proposal: p,
+        tenant: tenant, lifetime: widget.lifetime, active: () => mounted && (widget.scopeActive?.call() ?? true),
+        assistant: widget.comparisonRepository?.call(reference, tenant) ??
+          ApiAssistantRepository(enrichmentContext: reference, expectedTenant: tenant));
+      final selected = await showDialog<({EnrichmentProposal proposal, EnrichmentCandidate candidate})>(
+        context: context, builder: (_) => ChatComparison(session: comparison));
+      if (!mounted || selected == null || !_canCompare(selected.proposal)) return;
+      await showDialog<void>(context: context, builder: (_) => _CandidateReview(
+        session: s, proposal: selected.proposal, candidate: selected.candidate));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Comparaison indisponible. Le choix manuel reste disponible.')));
+    } finally {
+      if (mounted) setState(() => _comparing = false);
+    }
   }
 
   Future<void> _start() async {
@@ -138,8 +192,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(
-                          'Propositions sourcées · Champs humains prioritaires · TVA non vérifiée'),
+                      Text(s.capability?.vat == true
+                          ? 'Propositions sourcées · Champs humains prioritaires · TVA : source DGFiP datée, sans vérification VIES'
+                          : 'Propositions sourcées · Champs humains prioritaires · TVA non vérifiée'),
                       const Text(
                           'Fermer met la lecture en pause ; la recherche serveur continue. Vous pouvez éditer le lot puis rouvrir ce dialogue.'),
                       if (s.busy) const LinearProgressIndicator(),
@@ -297,6 +352,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                                           'Ligne ${widget.rows().where((r) => r.id == p.rowId).firstOrNull?.position ?? p.rowId} · ${_stateLabel(p.state)}'),
                                                       subtitle: Text(p.reasons
                                                           .join(' · ')),
+                                                      trailing: _canCompare(p) ? OutlinedButton(
+                                                        onPressed: _comparing ? null : () => _compare(p),
+                                                        child: const Text('Comparer avec Néo')) : null,
                                                       children: p.candidates
                                                           .map((c) => ListTile(
                                                                 title: Text(
@@ -304,7 +362,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                                                 subtitle: Text(
                                                                     '${c.kind == 'address' ? 'Adresse seule' : 'Établissement local'} · '
                                                                     'SIRET ${c.siret ?? 'non attribué'} · ${c.establishmentStatus ?? ''}\n'
-                                                                    '${c.matchLevel} · ${c.reasons.join(' · ')} · Précision : ${c.geoPrecision ?? 'unknown'}'),
+                                                                    '${c.matchLevel} · ${c.reasons.join(' · ')} · Précision : ${c.geoPrecision ?? 'unknown'}'
+                                                                    '${s.capability?.vat == true && c.kind == 'establishment' ? ' · TVA : ${vatStatusLabel(c.vatStatus, capability: true)}' : ''}'),
                                                                 trailing: OutlinedButton(
                                                                     onPressed: s
                                                                             .busy
@@ -385,6 +444,10 @@ class _CandidateReviewState extends State<_CandidateReview> {
           final allowed = s.applicable(p, c);
           _fields.removeWhere((f) => !allowed.contains(f));
           final geo = _fields.contains('lat');
+          final vat = s.capability?.vat == true;
+          final rowSiretEmpty =
+              MerchantImportRow.normalized('siret', row?.valueOf('siret'))
+                  .isEmpty;
           return AlertDialog(
               title: Text('Choisir : ${c.label}'),
               content: SizedBox(
@@ -398,7 +461,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                             'Établissement : ${c.siret ?? 'non attribué'} · Unité légale : ${c.siren ?? 'non attribuée'}\n'
                             'Raison sociale : ${c.legalName ?? 'non renseignée'} · État : ${c.establishmentStatus ?? 'inconnu'}\n'
                             '${c.matchLevel} · ${c.reasons.join(' · ')}\n'
-                            'Précision géographique : ${c.geoPrecision ?? 'unknown'} · TVA : non vérifiée'),
+                            'Précision géographique : ${c.geoPrecision ?? 'unknown'} · TVA : ${vatStatusLabel(c.vatStatus, capability: vat)}'),
                         const Text(
                             'Choisissez explicitement les champs vides à appliquer. Les valeurs actuelles sont conservées.'),
                         if (allowed.isEmpty)
@@ -437,6 +500,13 @@ class _CandidateReviewState extends State<_CandidateReview> {
                                                         } else {
                                                           _fields
                                                               .removeAll(pair);
+                                                          // Sans SIRET sur la ligne, retirer le SIRET retire la TVA liée.
+                                                          VatRules.select(
+                                                              _fields,
+                                                              e.key,
+                                                              false,
+                                                              rowSiretEmpty:
+                                                                  rowSiretEmpty);
                                                         }
                                                       }))),
                                           DataCell(Text(_fieldLabel(e.key))),
@@ -457,6 +527,19 @@ class _CandidateReviewState extends State<_CandidateReview> {
                                                   : 'Vide')),
                                         ]))
                                     .toList())),
+                        if (c.kind == 'establishment')
+                          VatCandidateSection(
+                              candidate: c,
+                              capability: vat,
+                              selected: _fields.contains(VatRules.field),
+                              applicable: allowed.contains(VatRules.field),
+                              busy: s.busy,
+                              rowSiretEmpty: rowSiretEmpty,
+                              rowValue: row?.textOf(VatRules.field) ?? '',
+                              onChanged: (value) => setState(() =>
+                                  VatRules.select(
+                                      _fields, VatRules.field, value,
+                                      rowSiretEmpty: rowSiretEmpty))),
                         const SizedBox(height: 12),
                         ...c.sources.entries
                             .where(
@@ -483,7 +566,9 @@ class _CandidateReviewState extends State<_CandidateReview> {
                 FilledButton(
                     onPressed: s.busy ||
                             _fields.isEmpty ||
-                            (geo && c.approximate && !_acknowledge)
+                            (geo && c.approximate && !_acknowledge) ||
+                            !VatRules.selectionValid(_fields,
+                                rowSiretEmpty: rowSiretEmpty)
                         ? null
                         : () async {
                             final applied = await s.apply(p, c, {..._fields},
@@ -529,6 +614,7 @@ String _fieldLabel(String value) =>
       'city': 'Ville',
       'country': 'Pays',
       'naf': 'NAF',
+      'intracommunity_vat_number': 'TVA intracommunautaire',
       'lat': 'Latitude',
       'lng': 'Longitude'
     }[value] ??

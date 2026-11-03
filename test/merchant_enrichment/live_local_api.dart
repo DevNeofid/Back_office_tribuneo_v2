@@ -14,6 +14,12 @@ import 'package:back_office_tribuneo_v2/domain/models/merchant_import_row_model.
 import 'package:back_office_tribuneo_v2/domain/repositories/merchant_enrichment/enrichment_repository.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/merchant_enrichment/enrichment_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dio/dio.dart';
+import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/merchant_enrichment/chat_context_reference.dart';
+import 'package:back_office_tribuneo_v2/domain/repositories/assistant_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
+part 'm12_live_scenarios.dart';
 
 const _host = String.fromEnvironment('ENRICHMENT_E2E');
 const _tenant = 'tribuneo_cci04';
@@ -210,6 +216,7 @@ void main() {
         skip: 'Lancement explicite seulement');
     return;
   }
+  _registerLot02Tests();
 
   test(
       'flag serveur absent : capabilities false, routes 503, import existant intact',

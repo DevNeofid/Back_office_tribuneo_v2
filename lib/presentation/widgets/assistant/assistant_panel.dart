@@ -107,6 +107,10 @@ class _AssistantPanelState extends State<AssistantPanel> {
   Future<void> _newConversation() async {
     final AssistantController controller = context.read<AssistantController>();
     if (await _confirmClear()) {
+      if (controller.onReviewCandidate != null) {
+        controller.minimize();
+        return;
+      }
       controller.resetConversation(closePanel: false);
       _inputFocus.requestFocus();
     }
@@ -187,7 +191,7 @@ class _AssistantPanelState extends State<AssistantPanel> {
                       ? _buildWelcome()
                       : _buildThread(messages, pending),
                 ),
-                _buildInput(pending),
+                _buildInput(pending || controller.contextInvalid),
               ],
             ),
           ),

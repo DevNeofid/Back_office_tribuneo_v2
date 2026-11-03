@@ -1,4 +1,10 @@
-# Enrichissement commerçants — E02, lot 01
+# Enrichissement commerçants — lots 01 et 02
+
+Contrat actif M12 : [v1.1 + chat](CONTRAT_V1_1.openapi.json),
+[règles consolidées](REGLES_CONTRAT_V1_1.md) et [chat](CONTRAT_CHAT.openapi.json).
+Les sections ci-dessous décrivent le socle lot 01. La TVA sourcée et la comparaison
+Néo sont pilotées par les deux capacités serveur indépendantes ; les flags de build
+existants restent `MERCHANT_ENRICHMENT_ENABLED` et `NEO_CHAT_ENABLED`.
 
 Le bouton « Compléter les informations » est intégré à la grille d’import. Le build normal garde `MERCHANT_ENRICHMENT_ENABLED=false`. Le client consulte les capabilities uniquement si ce flag est activé ; une API ancienne, une capability désactivée ou une erreur réseau ne lance aucune recherche et laisse l’import existant disponible.
 

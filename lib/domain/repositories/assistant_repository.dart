@@ -1,3 +1,5 @@
+import 'dart:convert';
+import '../models/merchant_enrichment/chat_context_reference.dart';
 import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -48,11 +50,15 @@ class DisabledAssistantRepository implements AssistantRepository {
 class ApiAssistantRepository extends BaseRepository
     implements AssistantRepository {
   ApiAssistantRepository({
+    this.enrichmentContext,
+    this.expectedTenant,
     Future<String> Function()? tenantResolver,
     Future<Response> Function(String, dynamic, String, Duration?)? post,
   })  : _tenantResolver = tenantResolver,
         _postOverride = post;
 
+  final ChatContextReference? enrichmentContext;
+  final String? expectedTenant;
   final Future<String> Function()? _tenantResolver;
   final Future<Response> Function(String, dynamic, String, Duration?)?
       _postOverride;
@@ -88,7 +94,7 @@ class ApiAssistantRepository extends BaseRepository
         message.runes.length > 1000) {
       throw const AssistantException(AssistantErrorKind.other);
     }
-    final String key = '$sessionId\u0000$message';
+    final String key = '$sessionId\u0000$message\u0000${jsonEncode(enrichmentContext?.toJson())}';
     if (_requestKey != key) {
       final Random random = Random.secure();
       _requestId = List.generate(
@@ -98,7 +104,8 @@ class ApiAssistantRepository extends BaseRepository
     }
     final Response response = await _post(
       'chat/sessions/$sessionId/messages',
-      {'message': message, 'request_id': _requestId},
+      {'message': message, 'request_id': _requestId,
+        if (enrichmentContext != null) 'enrichment_context': enrichmentContext!.toJson()},
       receiveTimeout: _messageTimeout,
     );
     final dynamic data = response.data is Map ? response.data['data'] : null;
@@ -119,7 +126,8 @@ class ApiAssistantRepository extends BaseRepository
     try {
       final String tenant =
           await (_tenantResolver?.call() ?? getTenantForCurrentNetwork());
-      if (tenant != 'tribuneo_cci04') {
+      if (tenant != 'tribuneo_cci04' ||
+          (expectedTenant != null && tenant != expectedTenant)) {
         throw const AssistantException(AssistantErrorKind.unavailable);
       }
       response = _postOverride != null
@@ -133,6 +141,10 @@ class ApiAssistantRepository extends BaseRepository
     } catch (e) {
       throw const AssistantException(AssistantErrorKind.other);
     }
+    if (expectedTenant != null &&
+        await (_tenantResolver?.call() ?? getTenantForCurrentNetwork()) != expectedTenant) {
+      throw const AssistantException(AssistantErrorKind.contextStale);
+    }
     final int status = response.statusCode ?? 0;
     if (status == 200 || status == 201) return response;
     throw AssistantException(_kindForResponse(response));
@@ -143,6 +155,11 @@ class ApiAssistantRepository extends BaseRepository
     // Le 401 a déjà été traité par l'ApiClient (refresh, ou retour à la
     // connexion si la session est morte).
     if (status == 401) return AssistantErrorKind.sessionExpired;
+    final decoded = decodeApiError(response.data);
+    final details = decoded?['details'];
+    if (details is Map && (details['code']?.toString().startsWith('CHAT_CONTEXT_') ?? false)) {
+      return AssistantErrorKind.contextStale;
+    }
     if (_quotaCodes.contains(apiErrorCode(decodeApiError(response.data)))) {
       return AssistantErrorKind.quota;
     }

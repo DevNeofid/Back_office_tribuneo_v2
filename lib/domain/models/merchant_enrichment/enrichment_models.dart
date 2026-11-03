@@ -1,15 +1,20 @@
 import '../merchant_import_row_model.dart';
+import 'vat_status.dart';
 
 typedef Json = Map<String, dynamic>;
 Json object(dynamic value) => Map<String, dynamic>.from(value as Map);
 
 class EnrichmentCapability {
-  final bool enabled, registry, geocoding;
+  final bool enabled, registry, geocoding, chatResolution;
+  // TVA sourcée (contrat v1.1) : absente ou false = TVA ni affichée comme trouvée ni applicable.
+  final bool vat;
   final int maxRows;
   EnrichmentCapability.fromJson(Json json)
       : enabled = json['enabled'] == true,
         registry = json['registry'] == true,
         geocoding = json['geocoding'] == true,
+        vat = json['enabled'] == true && json['vat'] == true,
+        chatResolution = json['enabled'] == true && json['chat_resolution'] == true,
         maxRows = json['max_rows'] as int;
   bool get available => enabled && (registry || geocoding);
 }
@@ -50,8 +55,11 @@ class EnrichmentCandidate {
   final Json fields;
   final Map<String, EnrichmentSource> sources;
   final List<String> reasons;
+  // Contrat v1.1 ; une valeur absente ou inconnue (ancienne proposition, ancien serveur) = not_checked.
+  final String vatStatus;
   EnrichmentCandidate.fromJson(Json json)
       : id = json['id'] as String,
+        vatStatus = VatStatus.parse(json['vat_status']),
         kind = json['kind'] as String,
         label = json['label'] as String,
         legalName = json['legal_name'] as String?,

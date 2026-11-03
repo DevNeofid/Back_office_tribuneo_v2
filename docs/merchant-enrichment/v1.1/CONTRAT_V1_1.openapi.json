@@ -1,0 +1,1138 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tribuneo Merchant Enrichment",
+    "version": "1.1.0",
+    "description": "Extension v1.1 (lot 02, E03) du contrat gelé v1.0.0 : TVA intracommunautaire sourcée. Seuls changent Candidate.vat_status (enum), FieldSource.provider (dgfip_tva) et le motif de ProposedFields.intracommunity_vat_number. Aucune route, aucun champ requis ni enveloppe ne change : une réponse v1.0.0 (vat_status not_checked, TVA null) est une réponse v1.1 valide. found = présent dans la source datée, jamais une validation VIES en temps réel ni une garantie d'assujettissement. Règles : REGLES_CONTRAT_V1_1.md."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "API Tribuneo du BO, jamais un appel fournisseur depuis Flutter"
+    }
+  ],
+  "security": [
+    {
+      "SessionAuth": []
+    }
+  ],
+  "paths": {
+    "/merchant-import/enrichment-capabilities": {
+      "get": {
+        "operationId": "enrichmentCapabilities",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Capability"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchant-import/{id_batch}/enrichment-jobs": {
+      "post": {
+        "operationId": "startEnrichment",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Start"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listEnrichmentJobs",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/JobPage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchant-import/{id_batch}/enrichment-jobs/{id_job}": {
+      "get": {
+        "operationId": "readEnrichmentJob",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "id_job",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchant-import/{id_batch}/enrichment-jobs/{id_job}/proposals": {
+      "get": {
+        "operationId": "listEnrichmentProposals",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "id_job",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProposalPage"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchant-import/{id_batch}/enrichment-jobs/{id_job}/cancel": {
+      "post": {
+        "operationId": "cancelEnrichment",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "id_job",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/merchant-import/{id_batch}/enrichment-proposals/{id_proposal}/apply": {
+      "post": {
+        "operationId": "applyEnrichmentProposal",
+        "parameters": [
+          {
+            "name": "X-Tenant",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "id_batch",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "id_proposal",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ApplyResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Refus explicite, error.details.code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Apply"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "SessionAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Authentification humaine existante + NETWORK_ADMIN et X-Tenant ; ne pas créer une nouvelle auth"
+      }
+    },
+    "schemas": {
+      "Capability": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "registry": {
+            "type": "boolean"
+          },
+          "geocoding": {
+            "type": "boolean"
+          },
+          "vat": {
+            "type": "boolean"
+          },
+          "chat_resolution": {
+            "type": "boolean"
+          },
+          "max_rows": {
+            "type": "integer",
+            "const": 2000
+          }
+        },
+        "required": [
+          "enabled",
+          "registry",
+          "geocoding",
+          "vat",
+          "chat_resolution",
+          "max_rows"
+        ],
+        "additionalProperties": false
+      },
+      "Start": {
+        "type": "object",
+        "properties": {
+          "row_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2000,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "mode": {
+            "type": "string",
+            "const": "missing_only"
+          }
+        },
+        "required": [
+          "row_ids",
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "batch_id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "completed_with_errors",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "progress_done": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "progress_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ambiguous": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unresolved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stale": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "batch_id",
+          "status",
+          "progress_done",
+          "progress_total",
+          "matched",
+          "ambiguous",
+          "unresolved",
+          "stale",
+          "error_code",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "ProposedFields": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siret": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{14}$"
+          },
+          "street": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zip": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "naf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "intracommunity_vat_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^FR[0-9A-Z]{2}[0-9]{9}$"
+          },
+          "lat": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lng": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "FieldSource": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "enum": [
+              "recherche_entreprises",
+              "ign_geocodage",
+              "dgfip_tva"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "record_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "precision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "provider",
+          "url",
+          "retrieved_at",
+          "record_id",
+          "precision"
+        ],
+        "additionalProperties": false
+      },
+      "Candidate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "establishment",
+              "address"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "legal_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "siren": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{9}$"
+          },
+          "siret": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9]{14}$"
+          },
+          "establishment_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fields": {
+            "$ref": "#/components/schemas/ProposedFields"
+          },
+          "sources": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FieldSource"
+            }
+          },
+          "match_level": {
+            "enum": [
+              "exact_identifier",
+              "name_address",
+              "ambiguous",
+              "address_only"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "geo_precision": {
+            "enum": [
+              "housenumber",
+              "street",
+              "locality",
+              "unknown",
+              null
+            ]
+          },
+          "vat_status": {
+            "type": "string",
+            "enum": [
+              "not_checked",
+              "found",
+              "not_found",
+              "unavailable",
+              "ambiguous"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "legal_name",
+          "siren",
+          "siret",
+          "establishment_status",
+          "fields",
+          "sources",
+          "match_level",
+          "reason_codes",
+          "geo_precision",
+          "vat_status"
+        ],
+        "additionalProperties": false
+      },
+      "Proposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "job_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "batch_id": {
+            "type": "integer"
+          },
+          "row_id": {
+            "type": "integer"
+          },
+          "base_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "state": {
+            "enum": [
+              "matched",
+              "ambiguous",
+              "address_only",
+              "not_found",
+              "insufficient_input",
+              "provider_unavailable",
+              "stale",
+              "skipped",
+              "applied"
+            ]
+          },
+          "reason_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidates": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "job_id",
+          "batch_id",
+          "row_id",
+          "base_version",
+          "state",
+          "reason_codes",
+          "candidates",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "ProposalPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Proposal"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "additionalProperties": false
+      },
+      "Apply": {
+        "type": "object",
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "name",
+                "siret",
+                "street",
+                "zip",
+                "city",
+                "country",
+                "naf",
+                "intracommunity_vat_number",
+                "lat",
+                "lng"
+              ]
+            }
+          },
+          "acknowledge_approximate_coordinates": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "candidate_id",
+          "expected_version",
+          "fields"
+        ],
+        "additionalProperties": false
+      },
+      "ApplyResult": {
+        "type": "object",
+        "properties": {
+          "proposal": {
+            "$ref": "#/components/schemas/Proposal"
+          },
+          "row": {
+            "type": "object",
+            "description": "MerchantImportRow existante, inchangée dans son contrat"
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "MerchantImportRow existante"
+            }
+          }
+        },
+        "required": [
+          "proposal",
+          "row",
+          "related"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code"
+                ],
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "type",
+              "description",
+              "details"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "JobPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}
