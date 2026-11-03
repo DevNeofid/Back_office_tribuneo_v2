@@ -69,7 +69,7 @@ void main() {
     expect(find.textContaining('trouvée dans la source DGFiP datée'),
         findsWidgets);
     expect(find.text('Appliquer la TVA $vatNumber'), findsOneWidget);
-    expect(find.textContaining('lue le 2026-11-03T08:00:00Z'), findsOneWidget);
+    expect(find.textContaining('Date de lecture : 3 novembre 2026 à '), findsOneWidget);
     expect(find.textContaining('vat_no%3D%22G3990000001%22'), findsOneWidget);
     expect(find.byKey(const ValueKey('vat-disclaimer')), findsOneWidget);
     expect(find.textContaining('ni une vérification VIES en temps réel'),
@@ -99,7 +99,7 @@ void main() {
     for (final (status, label) in [
       ('not_found', 'n’exclut pas un numéro hors de cette source'),
       ('unavailable', 'ce n’est pas une absence'),
-      ('ambiguous', 'plusieurs numéros dans la source : aucun proposé'),
+      ('ambiguous', 'Plusieurs numéros dans la source : aucun proposé'),
     ]) {
       transport.calls.clear();
       await openCandidate(
@@ -126,7 +126,7 @@ void main() {
     transport.vat = false;
     await openCandidate(tester, vatCandidateJson());
 
-    expect(find.textContaining('TVA : non vérifiée'), findsOneWidget);
+    expect(find.textContaining('TVA : Non vérifiée'), findsOneWidget);
     expect(find.byKey(const ValueKey('vat-choice')), findsNothing);
     expect(find.textContaining(vatNumber), findsNothing,
         reason: 'aucune valeur TVA affichée sans capability');

@@ -1,3 +1,4 @@
+import '../../errors/merchant_enrichment_messages.dart';
 import '../merchant_import_row_model.dart';
 import 'vat_status.dart';
 
@@ -124,39 +125,8 @@ class EnrichmentException implements Exception {
   const EnrichmentException({this.code, this.status = 0, this.row});
   bool get conflict =>
       status == 409 && !(code?.startsWith('IDEMPOTENCY_') ?? false);
+  /// Texte utilisateur uniquement ; code, status et row restent intacts pour les décisions.
   @override
-  String toString() {
-    switch (code) {
-      case 'ENRICHMENT_RESEARCH_RATE_LIMITED':
-        return 'Trop de relances. Patientez avant de réessayer.';
-      case 'ENRICHMENT_RESEARCH_DISABLED':
-        return 'La recherche ciblée est désactivée pour ce réseau.';
-      case 'ENRICHMENT_RESEARCH_UNSUPPORTED_COUNTRY':
-        return 'Seule la France est prise en charge.';
-      case 'ENRICHMENT_SEARCH_INSUFFICIENT_INPUT':
-        return 'Précisez un SIRET, ou un nom/une rue avec code postal ou ville.';
-      case 'IDEMPOTENCY_REQUEST_IN_PROGRESS':
-        return 'L’application précédente est encore en cours. Patientez puis réessayez.';
-      case 'IDEMPOTENCY_KEY_RETRY':
-        return 'L’application précédente a échoué. Vous pouvez réessayer.';
-      case 'IDEMPOTENCY_KEY_REUSED':
-      case 'IDEMPOTENCY_KEY_INVALID':
-        return 'La requête a été refusée. Relisez la proposition puis réessayez.';
-      case 'ENRICHMENT_ALREADY_RUNNING':
-        return 'Une recherche est déjà en cours. Reprenez sa lecture.';
-      case 'ENRICHMENT_PRECISION_CONFIRMATION_REQUIRED':
-        return 'Confirmez la précision approximative des coordonnées.';
-      case 'ENRICHMENT_DISABLED':
-        return 'La recherche est désactivée pour ce réseau.';
-      case 'ENRICHMENT_IDENTITY_CONFLICT':
-        return 'Le SIRET du candidat diffère du SIRET saisi.';
-      case 'ENRICHMENT_ADDRESS_CONTEXT_CONFLICT':
-        return 'Les coordonnées ne correspondent pas à l’adresse retenue.';
-      default:
-        if (conflict)
-          return 'La ligne ou le lot a changé. Relisez les données actualisées avant toute nouvelle action.';
-        if (status == 404) return 'Recherche indisponible sur cette API.';
-        return 'Recherche indisponible. Réessayez ou reprenez la lecture plus tard.';
-    }
-  }
+  String toString() =>
+      MerchantEnrichmentMessages.error(code: code, status: status);
 }

@@ -1,21 +1,13 @@
+import '../../utils/common.dart';
 import 'package:flutter/material.dart';
+import '../../../domain/errors/merchant_enrichment_messages.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/models/merchant_enrichment/vat_status.dart';
 
-/// Libellé du statut TVA. Sans capability `vat`, toujours « non vérifiée » (lot 01).
-String vatStatusLabel(String status, {required bool capability}) {
-  if (!capability) return 'non vérifiée';
-  return const {
-        VatStatus.found: 'trouvée dans la source DGFiP datée',
-        VatStatus.notFound:
-            'absente de la source DGFiP (n’exclut pas un numéro hors de cette source)',
-        VatStatus.ambiguous:
-            'plusieurs numéros dans la source : aucun proposé, choix manuel hors outil',
-        VatStatus.unavailable:
-            'source indisponible : non vérifiée, ce n’est pas une absence',
-      }[status] ??
-      'non vérifiée';
-}
+/// Libellé du statut TVA. Sans capability `vat`, toujours « Non vérifiée » (lot 01).
+/// Délègue au catalogue partagé : aucune seconde copie des textes.
+String vatStatusLabel(String status, {required bool capability}) =>
+    MerchantEnrichmentMessages.vatStatus(status, capability: capability);
 
 const vatDisclaimer =
     'Présence dans le jeu public DGFiP à la date de lecture indiquée. Ce n’est ni une '
@@ -43,13 +35,21 @@ class VatCandidateSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final number = capability ? VatRules.proposedNumber(candidate) : null;
     final source = candidate.sources[VatRules.field];
-    return Padding(
+    return Container(
         key: const ValueKey('vat-section'),
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: kLGrey,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kLBlue)),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('TVA intracommunautaire',
-              style: Theme.of(context).textTheme.titleSmall),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(color: kBlueEnd, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12),
           SelectableText(
               'Statut : ${vatStatusLabel(candidate.vatStatus, capability: capability)}'
               '${rowValue.isEmpty ? '' : '\nValeur actuelle conservée : $rowValue'}',
@@ -69,7 +69,8 @@ class VatCandidateSection extends StatelessWidget {
                     : 'Rattachée au SIREN ${candidate.siren} du SIRET de la ligne.')),
             if (source != null)
               SelectableText(
-                  'Source : DGFiP, numéros de TVA intracommunautaire (data.economie.gouv.fr) · lue le ${source.retrievedAt}\n'
+                  'Source : DGFiP, numéros de TVA intracommunautaire (data.economie.gouv.fr) · '
+                  'Date de lecture : ${MerchantEnrichmentMessages.sourceDate(source.retrievedAt)}\n'
                   '${source.url} · Référence : ${source.recordId ?? '—'}',
                   key: const ValueKey('vat-source')),
           ],

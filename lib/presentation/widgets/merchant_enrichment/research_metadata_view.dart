@@ -1,3 +1,5 @@
+import '../../../domain/errors/merchant_enrichment_messages.dart';
+import 'ui/enrichment_dialog.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/models/merchant_enrichment/research_models.dart';
@@ -65,9 +67,11 @@ class _ResearchMetadataViewState extends State<ResearchMetadataView> {
               'Critères historiques indisponibles. Reprenez la lecture pour réessayer.');
         final metadata = snapshot.data;
         if (metadata == null) return const SizedBox.shrink();
-        return SelectableText(
-            'Critères utilisés · Ligne ${metadata.rowId} · Version ${metadata.baseVersion} : '
-            '${metadata.criteria.values.entries.map((e) => '${e.key} : ${e.value}').join(' · ')}',
-            key: const ValueKey('research-metadata'));
+        final position = widget.session.currentRow(metadata.rowId)?.position ?? metadata.rowId;
+        return EnrichmentNotice(
+            child: SelectableText(
+                'Critères utilisés · Ligne $position : '
+                '${metadata.criteria.values.entries.map((e) => '${MerchantEnrichmentMessages.field(e.key)} : ${e.value.isEmpty ? '—' : e.value}').join(' · ')}',
+                key: const ValueKey('research-metadata')));
       });
 }

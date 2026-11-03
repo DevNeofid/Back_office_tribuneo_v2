@@ -171,6 +171,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Comparer / choisir'), findsNWidgets(2));
     expect(transport.calls.any((c) => c.path.endsWith('/apply')), false);
+    await tester.ensureVisible(find.text('Comparer / choisir').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Comparer / choisir').last);
     await tester.pumpAndSettle();
     expect(find.text('Choisir : Autre adresse synthétique'), findsOneWidget);

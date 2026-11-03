@@ -1,3 +1,5 @@
+import '../../../domain/errors/merchant_enrichment_messages.dart';
+import 'ui/enrichment_dialog.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/models/merchant_enrichment/research_models.dart';
 import '../../../domain/usecases/merchant_enrichment/research_usecase.dart';
@@ -66,46 +68,61 @@ class _ResearchFormState extends State<ResearchForm> {
     super.dispose();
   }
 
+  /// Contexte humain : position et nom de la ligne, sans identifiant ni version technique.
+  String _rowLabel() {
+    final p = widget.session.proposal;
+    final row = widget.session.enrichment.currentRow(p.rowId);
+    final name = row?.textOf('name') ?? '';
+    return 'Ligne ${row?.position ?? p.rowId}${name.isEmpty ? '' : ' · $name'}';
+  }
+
   @override
   Widget build(BuildContext context) => PopScope(
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) widget.session.closed = true;
       },
-      child: AlertDialog(
+      child: EnrichmentDialog(
+          maxWidth: 640,
+          onClose: () => Navigator.pop(context),
           title: const Text('Préciser la recherche'),
-          content: SizedBox(
-              width: 560,
-              child: SingleChildScrollView(
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                    Text(
-                        'Ligne ${widget.session.proposal.rowId} · Version ${widget.session.proposal.baseVersion}'),
-                    if (widget.session.proposal.state == 'provider_unavailable')
-                      const Text(
-                          'Le fournisseur était indisponible. Cela ne signifie pas que le commerce est introuvable.'),
-                    const Text(
-                        'Confirmez les six critères publics ci-dessous. Les cellules restent inchangées. '
-                        'Toute application au brouillon demandera une confirmation indépendante.'),
-                    if (loading || sending) const LinearProgressIndicator(),
+          content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(_rowLabel()),
+                if (widget.session.proposal.state == 'provider_unavailable')
+                  const Text(
+                      'La source était indisponible lors de la recherche : cela ne signifie pas que le commerce est introuvable.'),
+                const Text(
+                    'Confirmez les six critères publics ci-dessous. Les cellules restent inchangées. '
+                    'Toute application au brouillon demandera une confirmation indépendante.'),
+                const SizedBox(height: 16),
+                if (loading || sending) const LinearProgressIndicator(),
+                LayoutBuilder(builder: (context, constraints) {
+                  final width = constraints.maxWidth >= 520
+                      ? (constraints.maxWidth - 16) / 2
+                      : constraints.maxWidth;
+                  return Wrap(spacing: 16, runSpacing: 16, children: [
                     for (final entry in inputs.entries)
-                      TextField(
+                      SizedBox(
+                        width: width,
+                        child: TextField(
                           key: ValueKey('research-${entry.key}'),
                           controller: entry.value,
                           enabled: !sending,
+                          textInputAction: TextInputAction.next,
                           decoration: InputDecoration(
-                              labelText: const {
-                            'name': 'Nom',
-                            'siret': 'SIRET',
-                            'street': 'Rue',
-                            'zip': 'Code postal',
-                            'city': 'Ville',
-                            'country': 'Pays'
-                          }[entry.key])),
-                    if (error != null)
-                      Text(error!, key: const ValueKey('research-error')),
-                  ]))),
+                              labelText: MerchantEnrichmentMessages.field(entry.key)),
+                        ),
+                      ),
+                  ]);
+                }),
+                if (error != null)
+                  EnrichmentNotice(
+                      error: true,
+                      child:
+                          Text(error!, key: const ValueKey('research-error'))),
+              ]),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -113,6 +130,15 @@ class _ResearchFormState extends State<ResearchForm> {
             FilledButton(
                 onPressed:
                     loading || sending || inputs.length != 6 ? null : confirm,
-                child: const Text('Relancer la recherche'))
+                child: sending
+                    ? const Row(mainAxisSize: MainAxisSize.min, children: [
+                        SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                        SizedBox(width: 8),
+                        Flexible(child: Text('Relancer la recherche'))
+                      ])
+                    : const Text('Relancer la recherche'))
           ]));
 }

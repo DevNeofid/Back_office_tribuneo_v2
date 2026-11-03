@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../errors/merchant_enrichment_messages.dart';
 import 'chat_context_reference.dart';
 import 'enrichment_models.dart';
 
@@ -32,36 +33,37 @@ class ResearchCriteria {
   Json toJson() => {...values, 'country': 'FR'};
   String? get error {
     if (invalidRaw)
-      return 'Critère invalide (taille ou caractère de contrôle).';
+      return 'Un critère est trop long ou contient un caractère non autorisé. Corrigez-le, puis relancez.';
     for (final entry in values.entries) {
       if (entry.value.runes.length > limits[entry.key]! ||
           RegExp(r'[\x00-\x1f\x7f-\x9f]|(?:[a-z][a-z0-9+.-]*://|www\.|javascript:|data:|mailto:|file:|ftp:)',
                   caseSensitive: false)
               .hasMatch(entry.value))
-        return 'Critère invalide : ${entry.key} (taille, URL ou contrôle).';
+        return 'Le champ « ${MerchantEnrichmentMessages.field(entry.key)} » est trop long ou contient un lien ou un caractère non autorisé. Corrigez-le, puis relancez.';
     }
     final siret = values['siret']!;
     if (siret.isNotEmpty) {
       if (!RegExp(r'^\d{14}$').hasMatch(siret))
-        return 'Le SIRET doit contenir 14 chiffres.';
+        return 'Le SIRET doit contenir exactement 14 chiffres, sans espace ni lettre.';
       var sum = 0;
       for (var i = 0; i < 14; i++) {
         var n = int.parse(siret[i]) * (i.isEven ? 2 : 1);
         sum += n > 9 ? n - 9 : n;
       }
-      if (sum % 10 != 0) return 'Le SIRET ne respecte pas la clé Luhn.';
+      if (sum % 10 != 0)
+        return 'Ce SIRET n’est pas valide : vérifiez les 14 chiffres saisis.';
     }
     final zip = values['zip']!;
     if (zip.isNotEmpty && !RegExp(r'^\d{5}$').hasMatch(zip))
-      return 'Le code postal doit contenir cinq chiffres.';
+      return 'Le code postal doit contenir 5 chiffres.';
     if (!{'', 'fr', 'france'}.contains(values['country']!.toLowerCase()))
-      return 'Seule la France est prise en charge.';
+      return 'La recherche ne couvre que la France : indiquez « France » ou laissez le pays vide.';
     if (utf8.encode(jsonEncode(toJson())).length > 4096)
-      return 'Les critères dépassent 4096 octets.';
+      return 'Les critères sont trop longs. Raccourcissez le nom ou l’adresse, puis relancez.';
     if (siret.isEmpty &&
         ((values['name']!.isEmpty && values['street']!.isEmpty) ||
             (zip.isEmpty && values['city']!.isEmpty)))
-      return 'Précisez un SIRET, ou un nom/une rue avec code postal ou ville.';
+      return 'Indiquez un SIRET, ou un nom ou une adresse avec le code postal ou la ville.';
     return null;
   }
 }

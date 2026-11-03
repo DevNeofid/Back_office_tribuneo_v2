@@ -1,3 +1,4 @@
+import '../merchant_enrichment/ui/enrichment_dialog.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/merchant_import_exceptions.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/merchant_enrichment_messages.dart';
 import 'package:back_office_tribuneo_v2/domain/models/merchant_import_batch_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/merchant_import_row_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/merchant_import_usecase.dart';
@@ -637,7 +639,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     if (failed == 0) return true;
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => EnrichmentDialog(
+        maxWidth: 600,
         title: const Text('Modifications non enregistrées'),
         content: Text('$failed modification(s) n\'ont pas pu être '
             'enregistrées. $actionLabel quand même ?'),
@@ -648,7 +651,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: Text('$actionLabel quand même',
-                  style: const TextStyle(color: kRed))),
+                  style: const TextStyle(color: kBlueEnd))),
         ],
       ),
     );
@@ -671,10 +674,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => EnrichmentDialog(
+        maxWidth: 600,
         title: const Text('Importer les lignes validées'),
         content: SizedBox(
-          width: 480,
+          width: double.infinity,
           child: Text(
               '$count commerçant(s) seront ajoutés au réseau. Les lignes '
               'non validées restent dans le lot, vous pourrez les importer plus '
@@ -686,7 +690,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
               child: const Text('Annuler')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: kOrange, foregroundColor: kPWhite),
+                backgroundColor: kOrange, foregroundColor: kBlueEnd),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Importer'),
           ),
@@ -731,10 +735,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
     return showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => EnrichmentDialog(
+        maxWidth: 600,
         title: const Text("Résultat de l'import"),
         content: SizedBox(
-          width: 520,
+          width: double.infinity,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,9 +754,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                     style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: kRed)),
+                        color: kBlueEnd)),
                 const SizedBox(height: 8),
-                Flexible(
+                SizedBox(
+                  height: 240,
                   child: SingleChildScrollView(
                     child: Container(
                       width: double.infinity,
@@ -780,7 +786,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                                       Expanded(
                                         child: SelectableText(
                                           '${nameOf(failure.id)} : '
-                                          '${failure.error}',
+                                          '${MerchantEnrichmentMessages.importFailure(failure.error)}',
                                           style: GoogleFonts.poppins(
                                               fontSize: 13, color: kBlack),
                                         ),
@@ -796,11 +802,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
               ],
               if (result.skipped.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text(
+                EnrichmentNotice(child: Text(
                     '${result.skipped.length} ligne(s) n\'ont pas été importées '
                     'car elles ont de nouvelles anomalies : elles ont été '
                     'décochées.',
-                    style: GoogleFonts.poppins(fontSize: 14, color: kOrange)),
+                    style: GoogleFonts.poppins(fontSize: 14, color: kBlueEnd))),
               ],
             ],
           ),
@@ -1488,7 +1494,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       if (blocking.isNotEmpty && !checked) {
         box = Tooltip(
           message: 'À corriger avant validation :\n'
-              '${blocking.map((issue) => '• ${issue.message}').join('\n')}',
+              '${blocking.map((issue) => '• ${_issueText(issue)}').join('\n')}',
           child: box,
         );
       }
@@ -1502,6 +1508,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       ),
     );
   }
+
+  /// Phrase locale d'une anomalie (code du validateur) ; le message, le code et la
+  /// sévérité d'origine restent intacts dans le modèle.
+  static String _issueText(MerchantImportIssue issue) =>
+      MerchantEnrichmentMessages.importIssue(issue.code ?? '', field: issue.field);
 
   /// Résumé lisible de la ligne : ce qu'il reste à faire, en clair.
   Widget _statusCell(MerchantImportRow row, String status) {
@@ -1537,10 +1548,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     }
 
     String section(String title, List<MerchantImportIssue> issues) =>
-        '$title\n${issues.map((issue) => '• ${issue.message}').join('\n')}';
+        '$title\n${issues.map((issue) => '• ${_issueText(issue)}').join('\n')}';
     final List<String> tooltip = [
       if (status == MerchantImportRow.statusFailed && importError.isNotEmpty)
-        'Échec de l\'import : $importError',
+        'Échec de l\'import : ${MerchantEnrichmentMessages.importFailure(importError)}',
       if (errors.isNotEmpty)
         section('À corriger (bloque la validation) :', errors),
       if (warnings.isNotEmpty)
@@ -1622,7 +1633,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                 : null;
 
     final List<String> tooltip = [
-      ...issues.map((issue) => issue.message),
+      ...issues.map(_issueText),
       if (modified)
         'Valeur du fichier : '
             '${_typeLabel(field, row.originalOf(field)).isEmpty ? '(vide)' : _typeLabel(field, row.originalOf(field))}',
@@ -1837,10 +1848,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 Future<bool?> confirmCancelBatch(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => EnrichmentDialog(
+      maxWidth: 600,
       title: const Text('Abandonner ce lot'),
       content: const SizedBox(
-        width: 460,
+        width: double.infinity,
         child: Text('Le lot ne pourra plus être modifié ni importé. Les '
             'commerçants déjà importés restent dans le réseau.'),
       ),
@@ -1850,7 +1862,7 @@ Future<bool?> confirmCancelBatch(BuildContext context) {
             child: const Text('Annuler')),
         TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Abandonner', style: TextStyle(color: kRed))),
+            child: const Text('Abandonner', style: TextStyle(color: kBlueEnd))),
       ],
     ),
   );

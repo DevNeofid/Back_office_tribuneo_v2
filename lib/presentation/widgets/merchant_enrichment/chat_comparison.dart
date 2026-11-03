@@ -1,3 +1,4 @@
+import 'ui/enrichment_dialog.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -107,23 +108,34 @@ class _ChatComparisonState extends State<ChatComparison> {
   }
 
   @override
-  Widget build(BuildContext context) => Dialog(
-      child: SizedBox(
-          width: 720,
-          height: 690,
-          child: Column(children: [
-            Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                    'Comparaison Néo · Lot ${widget.session.reference.batchId} · Ligne ${widget.session.reference.rowId} · Version ${widget.session.reference.expectedVersion}\n'
-                    'Comparer les candidats publics existants. Le choix et l’application restent à confirmer.')),
-            Expanded(
-                child: ChangeNotifierProvider<AssistantController>.value(
-                    value: controller,
-                    child: ResearchActions(open: research,
+  Widget build(BuildContext context) => EnrichmentDialog(
+        maxWidth: 900,
+        scrollable: false,
+        title: const Text('Comparaison Néo'),
+        onClose: () => Navigator.pop(context),
+        content: Column(children: [
+          ConstrainedBox(
+              constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * .22),
+              child: SingleChildScrollView(
+                child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                        '${widget.session.enrichment.currentRow(widget.session.reference.rowId)?.textOf('name') ?? ''}\n'
+                        'Comparaison Néo · Lot ${widget.session.reference.batchId} · Ligne ${widget.session.enrichment.currentRow(widget.session.reference.rowId)?.position ?? widget.session.reference.rowId}\n'
+                        'Comparer les candidats publics existants. Le choix et l’application restent à confirmer.')),
+              )),
+          Expanded(
+              child: ChangeNotifierProvider<AssistantController>.value(
+                  value: controller,
+                  child: ResearchActions(
+                      open: research,
                       child: AssistantPanel(input: input, fullScreen: false)))),
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Retour au choix manuel')),
-          ])));
+        ]),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Retour au choix manuel'))
+        ],
+      );
 }

@@ -477,6 +477,14 @@ void main() {
     await panel(tester);
     expect(find.byKey(const ValueKey('research-metadata')), findsOneWidget);
     expect(find.textContaining('HISTORIQUE_SYNTHETIQUE'), findsOneWidget);
+    final text = tester.widget<SelectableText>(
+        find.byKey(const ValueKey('research-metadata'))).data!;
+    expect(text, contains('Nom : Atelier public'));
+    expect(text, contains('Adresse : —'));
+    expect(text, contains('Code postal : 04000'));
+    expect(text, contains('Ville : HISTORIQUE_SYNTHETIQUE'));
+    expect(text, isNot(contains('Version')));
+    expect(text, isNot(contains('zip :')));
     expect(find.text('Préciser la recherche'), findsNothing);
     expect(transport.posts, 0);
   });
