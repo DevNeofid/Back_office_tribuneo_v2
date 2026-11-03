@@ -1,4 +1,5 @@
 import '../../models/merchant_enrichment/enrichment_models.dart';
+import '../../models/merchant_enrichment/research_models.dart';
 import '../../models/merchant_import_row_model.dart';
 
 class EnrichmentResponse {
@@ -53,6 +54,12 @@ class EnrichmentRepository {
       EnrichmentCapability.fromJson(await request(
           tenant, 'GET', 'merchant-import/enrichment-capabilities'));
   String _jobs(int batch) => 'merchant-import/$batch/enrichment-jobs';
+  Future<EnrichmentJob> startResearch(String tenant, int batch, Json body, String key) async =>
+      EnrichmentJob.fromJson(await request(tenant, 'POST',
+          'merchant-import/$batch/enrichment-research-jobs', body: body, key: key));
+  Future<ResearchMetadata> researchMetadata(String tenant, int batch, String job) async =>
+      ResearchMetadata.fromJson(await request(tenant, 'GET',
+          'merchant-import/$batch/enrichment-research-jobs/$job'));
   Future<EnrichmentPage<EnrichmentJob>> jobs(String tenant, int batch,
           {int offset = 0}) async =>
       EnrichmentPage.fromJson(

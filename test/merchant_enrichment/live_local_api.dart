@@ -19,7 +19,10 @@ import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/merchant_enrichment/chat_context_reference.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/assistant_repository.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
+import 'package:back_office_tribuneo_v2/domain/models/merchant_enrichment/research_models.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/merchant_enrichment/research_usecase.dart';
 part 'm12_live_scenarios.dart';
+part 'm12_research_live.dart';
 
 const _host = String.fromEnvironment('ENRICHMENT_E2E');
 const _tenant = 'tribuneo_cci04';
@@ -38,6 +41,7 @@ class _LocalApi implements EnrichmentTransport {
   final String tenant;
   String token = '';
   final List<String> calls = [];
+  final List<({Json body, Map<String, String> headers})> researchPosts = [];
   _Raw? last;
   _LocalApi(int port, {this.tenant = _tenant}) : base = '$_host:$port';
 
@@ -61,6 +65,9 @@ class _LocalApi implements EnrichmentTransport {
       Json? body,
       Map<String, String>? headers}) async {
     calls.add('$method $path');
+    if (method == 'POST' && path.endsWith('enrichment-research-jobs')) {
+      researchPosts.add((body: body!, headers: headers!));
+    }
     final r = await raw(method, path,
         tenant: tenant,
         body: method == 'GET' ? null : (body ?? {}),
@@ -217,6 +224,7 @@ void main() {
     return;
   }
   _registerLot02Tests();
+  _registerLot03Tests();
 
   test(
       'flag serveur absent : capabilities false, routes 503, import existant intact',

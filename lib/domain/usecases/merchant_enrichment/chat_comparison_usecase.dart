@@ -70,10 +70,35 @@ class ChatComparisonUseCase implements AssistantRepository {
     // Only the dedicated comparison callback can render server candidate references.
     return AssistantReply(
         text: reply.text,
-        blocks: reply.blocks
-            .whereType<AssistantEnrichmentCandidatesBlock>()
-            .where((b) => b.reference.same(reference))
-            .toList());
+        blocks: reply.blocks.where((b) =>
+          (b is AssistantEnrichmentCandidatesBlock && b.reference.same(reference)) ||
+          (b is AssistantEnrichmentResearchBlock && enrichment.capability?.targetedResearch == true &&
+            b.reference.same(reference))).toList());
+  }
+
+  Future<void> prepareResearch(AssistantEnrichmentResearchBlock block) async {
+    await check();
+    if (!block.reference.same(reference) || !enrichment.canResearch(proposal)) {
+      throw const AssistantException(AssistantErrorKind.contextStale);
+    }
+    final rows = await enrichment.reloadRows();
+    await check();
+    final row = rows.where((r) => r.id == reference.rowId).firstOrNull;
+    if (row == null || !EnrichmentUseCase.eligible(row) || row.version != reference.expectedVersion) {
+      throw const AssistantException(AssistantErrorKind.contextStale);
+    }
+    final page = await enrichment.repository.proposals(tenant, reference.batchId, proposal.jobId);
+    await check();
+    // One-row research and original proposal pages are revalidated by reference.
+    EnrichmentProposal? fresh = page.items.where((p) => p.id == proposal.id).firstOrNull;
+    for (int offset = page.limit; fresh == null && offset < page.total && offset < 2000; offset += page.limit) {
+      final next = await enrichment.repository.proposals(tenant, reference.batchId, proposal.jobId, offset: offset);
+      await check();
+      fresh = next.items.where((p) => p.id == proposal.id).firstOrNull;
+    }
+    if (fresh == null || fresh.batchId != reference.batchId || fresh.rowId != reference.rowId ||
+        fresh.baseVersion != reference.expectedVersion || fresh.jobId != proposal.jobId ||
+        !enrichment.canResearch(fresh)) throw const AssistantException(AssistantErrorKind.contextStale);
   }
 
   Future<({EnrichmentProposal proposal, EnrichmentCandidate candidate})> review(
@@ -108,7 +133,9 @@ class ChatComparisonUseCase implements AssistantRepository {
     final candidate =
         fresh?.candidates.where((c) => c.id == candidateId).firstOrNull;
     if (fresh == null ||
-        fresh.state != 'ambiguous' ||
+        !(fresh.state == 'ambiguous' ||
+          (enrichment.capability?.targetedResearch == true &&
+            fresh.state == 'address_only')) ||
         fresh.batchId != reference.batchId ||
         fresh.rowId != reference.rowId ||
         fresh.baseVersion != reference.expectedVersion ||

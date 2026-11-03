@@ -1,3 +1,6 @@
+import 'research_form.dart';
+import 'research_metadata_view.dart';
+import '../../../domain/usecases/merchant_enrichment/research_usecase.dart';
 import '../../../domain/models/merchant_enrichment/chat_context_reference.dart';
 import '../../../domain/repositories/assistant_repository.dart';
 import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
@@ -118,7 +121,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
     final s = widget.session, row = s.currentRow(p.rowId);
     return (AssistantRepository.gatewayReady || widget.comparisonRepository != null) &&
       s.available && s.capability?.chatResolution == true && !s.busy && s.batchEditable() &&
-      p.state == 'ambiguous' && p.batchId == s.batchId && p.candidates.isNotEmpty &&
+      (p.state == 'ambiguous' || (s.capability?.targetedResearch == true &&
+        {'address_only', 'not_found', 'insufficient_input', 'provider_unavailable'}.contains(p.state))) &&
+      p.batchId == s.batchId && (p.candidates.isNotEmpty || s.capability?.targetedResearch == true) &&
       p.candidates.length <= 5 && row != null && EnrichmentUseCase.eligible(row) && row.version == p.baseVersion;
   }
   Future<void> _compare(EnrichmentProposal p) async {
@@ -145,6 +150,13 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
     } finally {
       if (mounted) setState(() => _comparing = false);
     }
+  }
+
+  Future<void> _research(EnrichmentProposal p) async {
+    if (!widget.session.canResearch(p)) return;
+    final form = ResearchUseCase(widget.session, p,
+      () => mounted && (widget.scopeActive?.call() ?? true));
+    await showDialog<bool>(context: context, builder: (_) => ResearchForm(session: form));
   }
 
   Future<void> _start() async {
@@ -221,6 +233,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                   '${_jobLabel(job.status)} · ${job.done}/${job.total} lignes'),
                           ]),
                       if (job != null) ...[
+                        if (s.capability?.targetedResearch == true) ResearchMetadataView(
+                          key: ValueKey('research-metadata-${job.id}'), session: s, jobId: job.id,
+                          active: () => mounted && (widget.scopeActive?.call() ?? true)),
                         LinearProgressIndicator(
                             value: job.total == 0
                                 ? 0
@@ -352,9 +367,14 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                                           'Ligne ${widget.rows().where((r) => r.id == p.rowId).firstOrNull?.position ?? p.rowId} · ${_stateLabel(p.state)}'),
                                                       subtitle: Text(p.reasons
                                                           .join(' · ')),
-                                                      trailing: _canCompare(p) ? OutlinedButton(
-                                                        onPressed: _comparing ? null : () => _compare(p),
-                                                        child: const Text('Comparer avec Néo')) : null,
+                                                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                                                        if (s.canResearch(p)) OutlinedButton(
+                                                          onPressed: () => _research(p),
+                                                          child: const Text('Préciser la recherche')),
+                                                        if (_canCompare(p)) OutlinedButton(
+                                                          onPressed: _comparing ? null : () => _compare(p),
+                                                          child: const Text('Comparer avec Néo')),
+                                                      ]),
                                                       children: p.candidates
                                                           .map((c) => ListTile(
                                                                 title: Text(

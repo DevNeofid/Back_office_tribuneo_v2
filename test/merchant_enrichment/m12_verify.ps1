@@ -1,7 +1,7 @@
 param([ValidateSet('Test','Analyze','BuildOn','BuildOff','E2E')][string]$Mode = 'Test', [string]$TestName = '')
 $ErrorActionPreference = 'Stop'
 $workspace = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
-$copy = [System.IO.Path]::GetFullPath((Join-Path $workspace '.dart_tool/m12-synthetic'))
+$copy = [System.IO.Path]::GetFullPath((Join-Path $workspace ('.dart_tool/m12-synthetic-' + $Mode)))
 if (-not $copy.StartsWith($workspace + [System.IO.Path]::DirectorySeparatorChar)) { throw 'Unsafe copy path' }
 if (Test-Path -LiteralPath $copy) { throw 'Synthetic copy exists: inspect before retrying' }
 $utf8 = [System.Text.UTF8Encoding]::new($false)
@@ -11,14 +11,20 @@ try {
   New-Item -ItemType Directory -Path $copy | Out-Null
   $files = @(git -C $workspace ls-files lib test docs assets web pubspec.yaml pubspec.lock analysis_options.yaml .metadata)
   $files += @(Get-ChildItem -LiteralPath (Join-Path $workspace 'test/merchant_enrichment') -File | ForEach-Object { 'test/merchant_enrichment/' + $_.Name })
-  $files = @($files | Sort-Object -Unique | Where-Object { $_ -ne 'lib/env/env.g.dart' -and -not $_.EndsWith('.env') })
+  $files = @($files | Sort-Object -Unique | Where-Object { $_ -ne 'lib/env/env.g.dart' -and -not $_.EndsWith('.env') -and -not $_.StartsWith('assets/keys/') -and -not $_.EndsWith('.pem') })
+  $sourceHashes = [ordered]@{}
   foreach ($relative in $files) {
     $source = Join-Path $workspace $relative
     $target = Join-Path $copy $relative
     New-Item -ItemType Directory -Force -Path ([System.IO.Path]::GetDirectoryName($target)) | Out-Null
     Copy-Item -LiteralPath $source -Destination $target
     if ((Get-FileHash -LiteralPath $source).Hash -ne (Get-FileHash -LiteralPath $target).Hash) { throw "Source mismatch: $relative" }
+    $sourceHashes[$relative] = (Get-FileHash -LiteralPath $source).Hash.ToLowerInvariant()
   }
+  [System.IO.File]::WriteAllText((Join-Path $workspace 'docs/merchant-enrichment/SOURCES_M12.json'), (($sourceHashes | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"), $utf8)
+  # Keep the declared asset directory, without copying repository key material.
+  New-Item -ItemType Directory -Force -Path (Join-Path $copy 'assets/keys') | Out-Null
+  [System.IO.File]::WriteAllText((Join-Path $copy 'assets/keys/synthetic.txt'), "Synthetic harness only. No key material.`n", $utf8)
   Write-Output "SUT: verified $($files.Count) files against integration worktree; private Env excluded"
   # Execute the actual pre-lot-02 parsers, extracted read-only from the BO base commit.
   foreach ($model in @('merchant_enrichment/enrichment_models.dart', 'assistant_model.dart')) {
@@ -28,6 +34,13 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Historical BO parser unavailable' }
     [System.IO.File]::WriteAllText($legacyPath, (($legacy -join "`n") + "`n"), $utf8)
     Write-Output "Legacy parser from BO 9348bdf: $relative"
+  }
+  foreach ($model in @('merchant_enrichment/enrichment_models.dart', 'assistant_model.dart')) {
+    $relative = 'lib/domain/models/' + $model
+    $legacyPath = Join-Path $copy ('lib/domain/models/' + $model.Replace('enrichment_models.dart', 'm12_lot02_enrichment_models.dart').Replace('assistant_model.dart', 'm12_lot02_assistant_model.dart'))
+    $legacy = git -C $workspace show "17ad436b5d71b40bcb36f48b7a3b79cd958c6104:$relative"
+    if ($LASTEXITCODE -ne 0) { throw 'Historical lot02 BO parser unavailable' }
+    [System.IO.File]::WriteAllText($legacyPath, (($legacy -join "`n") + "`n"), $utf8)
   }
   [System.IO.File]::WriteAllText((Join-Path $copy 'lib/env/env.g.dart'), "part of 'env.dart';`nclass _Env { static final String kUrl = 'http://127.0.0.1:9/'; }`n", $utf8)
   $configPath = Join-Path $workspace '.dart_tool/package_config.json'
@@ -53,7 +66,7 @@ try {
   } finally { Pop-Location }
 } finally {
   # Only this exact disposable copy, inside this integration workspace.
-  $expected = [System.IO.Path]::GetFullPath((Join-Path $workspace '.dart_tool/m12-synthetic'))
+  $expected = [System.IO.Path]::GetFullPath((Join-Path $workspace ('.dart_tool/m12-synthetic-' + $Mode)))
   if ($copy -eq $expected -and $copy.StartsWith($workspace + [System.IO.Path]::DirectorySeparatorChar) -and (Test-Path -LiteralPath $copy)) {
     Remove-Item -LiteralPath $copy -Recurse -Force
   }

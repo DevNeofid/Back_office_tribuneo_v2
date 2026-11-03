@@ -5,7 +5,7 @@ typedef Json = Map<String, dynamic>;
 Json object(dynamic value) => Map<String, dynamic>.from(value as Map);
 
 class EnrichmentCapability {
-  final bool enabled, registry, geocoding, chatResolution;
+  final bool enabled, registry, geocoding, chatResolution, targetedResearch;
   // TVA sourcée (contrat v1.1) : absente ou false = TVA ni affichée comme trouvée ni applicable.
   final bool vat;
   final int maxRows;
@@ -15,6 +15,7 @@ class EnrichmentCapability {
         geocoding = json['geocoding'] == true,
         vat = json['enabled'] == true && json['vat'] == true,
         chatResolution = json['enabled'] == true && json['chat_resolution'] == true,
+        targetedResearch = json['enabled'] == true && json['targeted_research'] == true,
         maxRows = json['max_rows'] as int;
   bool get available => enabled && (registry || geocoding);
 }
@@ -126,6 +127,14 @@ class EnrichmentException implements Exception {
   @override
   String toString() {
     switch (code) {
+      case 'ENRICHMENT_RESEARCH_RATE_LIMITED':
+        return 'Trop de relances. Patientez avant de réessayer.';
+      case 'ENRICHMENT_RESEARCH_DISABLED':
+        return 'La recherche ciblée est désactivée pour ce réseau.';
+      case 'ENRICHMENT_RESEARCH_UNSUPPORTED_COUNTRY':
+        return 'Seule la France est prise en charge.';
+      case 'ENRICHMENT_SEARCH_INSUFFICIENT_INPUT':
+        return 'Précisez un SIRET, ou un nom/une rue avec code postal ou ville.';
       case 'IDEMPOTENCY_REQUEST_IN_PROGRESS':
         return 'L’application précédente est encore en cours. Patientez puis réessayez.';
       case 'IDEMPOTENCY_KEY_RETRY':

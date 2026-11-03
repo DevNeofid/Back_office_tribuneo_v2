@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../merchant_enrichment/research_actions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -153,6 +154,12 @@ class AssistantBlockView extends StatelessWidget {
     final AssistantController controller = context.watch<AssistantController>();
     final AssistantBlock block = this.block;
     switch (block) {
+      case AssistantEnrichmentResearchBlock():
+        final actions = ResearchActions.of(context);
+        if (actions == null || controller.contextInvalid) return const SizedBox.shrink();
+        return OutlinedButton(
+          onPressed: controller.pending ? null : () => actions.open(block),
+          child: const Text('Préciser la recherche'));
       case AssistantEnrichmentCandidatesBlock():
         if (controller.onReviewCandidate == null || controller.contextInvalid) return const SizedBox.shrink();
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

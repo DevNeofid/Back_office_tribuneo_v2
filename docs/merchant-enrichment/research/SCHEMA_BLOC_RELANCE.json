@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bloc serveur de préparation de relance",
+  "type": "object",
+  "properties": {
+    "type": {
+      "const": "enrichment_research"
+    },
+    "batch_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "row_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "proposal_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "required": [
+    "type",
+    "batch_id",
+    "row_id",
+    "proposal_id",
+    "expected_version"
+  ],
+  "additionalProperties": false
+}

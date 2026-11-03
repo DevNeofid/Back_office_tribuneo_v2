@@ -5,6 +5,9 @@ import '../../../domain/models/assistant_model.dart';
 import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
 import '../assistant/assistant_controller.dart';
 import '../assistant/assistant_panel.dart';
+import 'research_actions.dart';
+import 'research_form.dart';
+import '../../../domain/usecases/merchant_enrichment/research_usecase.dart';
 
 /// Dedicated controller and session: the ordinary assistant is never reset or replaced.
 class ChatComparison extends StatefulWidget {
@@ -75,6 +78,23 @@ class _ChatComparisonState extends State<ChatComparison> {
     }
   }
 
+  Future<void> research(AssistantEnrichmentResearchBlock block) async {
+    if (reviewing || controller.contextInvalid) return;
+    reviewing = true;
+    try {
+      await widget.session.prepareResearch(block);
+      if (!mounted || controller.contextInvalid) return;
+      final form = ResearchUseCase(widget.session.enrichment, widget.session.proposal,
+        () => mounted && !controller.contextInvalid && widget.session.locallyValid);
+      final accepted = await showDialog<bool>(context: context,
+        builder: (_) => ResearchForm(session: form));
+      // A subsequent comparison is opened by a new human action and gets a new session.
+      if (accepted == true && mounted) Navigator.pop(context);
+    } catch (_) {
+      if (mounted) controller.invalidateContext();
+    } finally { reviewing = false; }
+  }
+
   @override
   void dispose() {
     timer?.cancel();
@@ -100,7 +120,8 @@ class _ChatComparisonState extends State<ChatComparison> {
             Expanded(
                 child: ChangeNotifierProvider<AssistantController>.value(
                     value: controller,
-                    child: AssistantPanel(input: input, fullScreen: false))),
+                    child: ResearchActions(open: research,
+                      child: AssistantPanel(input: input, fullScreen: false)))),
             TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Retour au choix manuel')),

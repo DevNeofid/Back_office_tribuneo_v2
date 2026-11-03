@@ -20,6 +20,8 @@ sealed class AssistantBlock {
         return AssistantLinkBlock.fromJson(map);
       case 'choices':
         return AssistantChoicesBlock.fromJson(map);
+      case 'enrichment_research':
+        return AssistantEnrichmentResearchBlock.fromJson(map);
       case 'enrichment_candidates':
         return AssistantEnrichmentCandidatesBlock.fromJson(map);
       case 'document':
@@ -27,6 +29,18 @@ sealed class AssistantBlock {
       default:
         return null;
     }
+  }
+}
+
+/// References only. The dedicated comparison opens a human form on click.
+class AssistantEnrichmentResearchBlock extends AssistantBlock {
+  final ChatContextReference reference;
+  const AssistantEnrichmentResearchBlock(this.reference);
+  static AssistantEnrichmentResearchBlock? fromJson(Map<String, dynamic> json) {
+    if (json.length != 5 || json.keys.any((k) => !{'type', 'batch_id',
+      'row_id', 'proposal_id', 'expected_version'}.contains(k))) return null;
+    final ref = ChatContextReference.parse(json);
+    return ref == null ? null : AssistantEnrichmentResearchBlock(ref);
   }
 }
 

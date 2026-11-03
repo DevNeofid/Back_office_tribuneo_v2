@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/utils/idempotency_key.dart';
 import '../../models/merchant_import_row_model.dart';
 import '../../models/merchant_enrichment/enrichment_models.dart';
+import '../../models/merchant_enrichment/research_models.dart';
 import '../../models/merchant_enrichment/vat_status.dart';
 import '../../repositories/merchant_enrichment/enrichment_repository.dart';
 
@@ -23,6 +24,7 @@ class EnrichmentUseCase extends ChangeNotifier {
   final int maxPolls;
   final _startKey = PendingIdempotencyKey();
   final Map<String, PendingIdempotencyKey> _applyKeys = {};
+  final Map<String, PendingIdempotencyKey> _researchKeys = {};
   final Set<String> _invalidProposals = {};
   String? _tenant;
   Timer? _timer;
@@ -91,6 +93,55 @@ class EnrichmentUseCase extends ChangeNotifier {
   static bool eligible(MerchantImportRow row) =>
       row.isPending && row.textOf('type') == 'partner';
 
+  bool canResearch(EnrichmentProposal p) {
+    final row = currentRow(p.rowId);
+    return !_disposed && available && capability?.targetedResearch == true &&
+      batchEditable() && !busy && job?.active != true && p.batchId == batchId &&
+      p.jobId == job?.id && !_invalidProposals.contains(p.id) &&
+      {'matched', 'ambiguous', 'address_only', 'not_found', 'insufficient_input',
+        'provider_unavailable'}.contains(p.state) && row != null &&
+      eligible(row) && row.version == p.baseVersion;
+  }
+
+  /// The form is the only caller; its lifetime is checked across every await.
+  Future<bool> research(EnrichmentProposal p, ResearchCriteria criteria,
+      String tenant, bool Function() active) async {
+    if (!canResearch(p) || criteria.error != null || !active()) return false;
+    var accepted = false;
+    final version = p.baseVersion;
+    bool current() => active() && !_disposed && batchEditable() &&
+      capability?.targetedResearch == true && currentRow(p.rowId)?.version == version &&
+      currentRow(p.rowId) != null && eligible(currentRow(p.rowId)!);
+    await _run(() async {
+      if (_tenant != tenant || !current() || job?.active == true) return;
+      final body = <String, dynamic>{'row_id': p.rowId, 'expected_version': version,
+        'source_proposal_id': p.id, 'search': criteria.toJson()};
+      final pending = _researchKeys.putIfAbsent(p.id, PendingIdempotencyKey.new);
+      final epoch = _readEpoch;
+      try {
+        final result = await repository.startResearch(tenant, batchId, body,
+          pending.keyFor(jsonEncode([tenant, batchId, body])));
+        await _checkTenant();
+        if (!current() || epoch != _readEpoch) return;
+        if (result.batchId != batchId || result.total != 1) throw const EnrichmentException();
+        pending.clear();
+        job = result;
+        page = null;
+        paused = false;
+        _polls = 0;
+        accepted = true;
+        await _read(epoch, offset: 0, current: current);
+      } on EnrichmentException catch (e) {
+        // Keep the key for the identical research body, including a lost response.
+        if (!current() || epoch != _readEpoch) return;
+        if (e.conflict && e.code != 'ENRICHMENT_ALREADY_RUNNING') _invalidProposals.add(p.id);
+        rethrow;
+      }
+    });
+    _schedule();
+    return accepted;
+  }
+
   Future<void> start(List<int> ids) async {
     if (!available || !batchEditable() || busy || job?.active == true) return;
     final sorted = ids.toSet().toList()..sort();
@@ -157,15 +208,15 @@ class EnrichmentUseCase extends ChangeNotifier {
     job = next;
   }
 
-  Future<void> _read(int epoch, {required int offset}) async {
+  Future<void> _read(int epoch, {required int offset, bool Function()? current}) async {
     final selected = job;
     if (selected == null) return;
     final next = await repository.read(_tenant!, batchId, selected.id);
-    if (_disposed || epoch != _readEpoch) return;
+    if (_disposed || epoch != _readEpoch || current?.call() == false) return;
     final proposals = await repository.proposals(_tenant!, batchId, selected.id,
         offset: offset);
     await _checkTenant();
-    if (_disposed || epoch != _readEpoch) return;
+    if (_disposed || epoch != _readEpoch || current?.call() == false) return;
     _acceptJob(next);
     page = proposals;
   }

@@ -210,6 +210,19 @@ void main() {
     await expectLater(
         c.review(b, candidateId), throwsA(isA<AssistantException>()));
   });
+  test('address-only candidate review requires the targeted research capability', () async {
+    transport.proposals = [proposalJson(state: 'address_only')];
+    final block = AssistantBlock.fromJson(blockJson()) as AssistantEnrichmentCandidatesBlock;
+    await expectLater(comparison().review(block, candidateId), throwsA(isA<AssistantException>()));
+    enrichment.capability = EnrichmentCapability.fromJson({
+      'enabled': true, 'registry': true, 'geocoding': true,
+      'chat_resolution': true, 'targeted_research': true, 'max_rows': 2000
+    });
+    final selected = await comparison().review(block, candidateId);
+    expect(selected.proposal.state, 'address_only');
+    expect(transport.calls.where((c) => c.path.endsWith('/apply')), isEmpty);
+  });
+
   testWidgets(
       'button to dedicated session to block to review to explicit human apply',
       (tester) async {
