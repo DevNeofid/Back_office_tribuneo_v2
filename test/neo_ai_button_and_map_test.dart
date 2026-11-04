@@ -116,4 +116,80 @@ void main() {
       expect(EnrichmentMiniMap.displayable(double.nan, 6.2), isFalse);
     });
   });
+
+  group('EnrichmentMapDialog', () {
+    test('projection round trip', () {
+      const GeoPoint p = (lat: 44.0925, lng: 6.2356);
+      for (final z in [5, 13, 17, 19]) {
+        final GeoPoint back = IgnTiles.unproject(IgnTiles.project(p, z), z);
+        expect(back.lat, closeTo(p.lat, 1e-9));
+        expect(back.lng, closeTo(p.lng, 1e-9));
+      }
+    });
+
+    /// Ouvre la grande carte ; [result] reçoit son retour.
+    Future<void> open(WidgetTester tester, void Function(MapPick?) result,
+        {bool editable = true}) async {
+      tester.view.physicalSize = const Size(1280, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(
+          home: Scaffold(
+              body: Builder(
+                  builder: (context) => TextButton(
+                      onPressed: () async => result(await showDialog<MapPick>(
+                          context: context,
+                          builder: (_) => EnrichmentMapDialog(
+                              proposed: (lat: 44.0925, lng: 6.2356),
+                              precision: 'street',
+                              editable: editable))),
+                      child: const Text('Carte'))))));
+      await tester.tap(find.text('Carte'));
+      await tester.pumpAndSettle();
+    }
+
+    Finder surface() => find.byKey(const ValueKey('map-surface'));
+
+    testWidgets('zoom, drag, recenter, then a tap at the centre picks the spot',
+        (tester) async {
+      MapPick? result;
+      await open(tester, (r) => result = r);
+      expect(find.byKey(const ValueKey('mini-map-marker')), findsOneWidget);
+      bool zoomShown(int z) =>
+          tester.widgetList<Positioned>(find.byType(Positioned)).any((w) =>
+              w.key is ValueKey<String> &&
+              (w.key as ValueKey<String>).value.startsWith('tile-$z-'));
+      expect(zoomShown(17), isTrue);
+      await tester.tap(find.byKey(const ValueKey('map-zoom-in')));
+      await tester.pumpAndSettle();
+      expect(zoomShown(18), isTrue);
+      await tester.tap(find.byKey(const ValueKey('map-zoom-out')));
+      await tester.pumpAndSettle();
+
+      // Glisser déplace la carte ; « Recentrer » ramène sur la proposition.
+      await tester.drag(surface(), const Offset(120, 60));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('map-recenter')));
+      await tester.pumpAndSettle();
+
+      final FilledButton use =
+          tester.widget(find.widgetWithText(FilledButton, 'Utiliser ce point'));
+      expect(use.onPressed, isNull, reason: 'aucun point posé');
+      await tester.tapAt(tester.getCenter(surface()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Utiliser ce point'));
+      await tester.pumpAndSettle();
+      expect(result!.point!.lat, closeTo(44.0925, 1e-4));
+      expect(result!.point!.lng, closeTo(6.2356, 1e-4));
+    });
+
+    testWidgets('read-only map: no placement', (tester) async {
+      await open(tester, (_) {}, editable: false);
+      expect(find.text('Position proposée'), findsOneWidget);
+      await tester.tapAt(tester.getCenter(surface()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('map-chosen-marker')), findsNothing);
+      expect(find.text('Utiliser ce point'), findsNothing);
+    });
+  });
 }

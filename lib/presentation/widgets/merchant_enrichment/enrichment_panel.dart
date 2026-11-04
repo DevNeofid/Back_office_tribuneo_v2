@@ -30,12 +30,18 @@ class EnrichmentButton extends StatefulWidget {
   final List<MerchantImportRow> Function() rows;
   final Future<bool> Function() prepare;
   final AssistantRepository Function(ChatContextReference, String)? comparisonRepository;
+
+  /// Enregistre un point posé sur la carte comme saisie manuelle des
+  /// coordonnées de la ligne ; `true` une fois enregistré. Absent : carte en
+  /// consultation seule.
+  final Future<bool> Function(int rowId, GeoPoint point)? onSetPosition;
   const EnrichmentButton(
       {super.key,
       required this.session,
       required this.rows,
       required this.prepare,
-      this.comparisonRepository});
+      this.comparisonRepository,
+      this.onSetPosition});
   @override
   State<EnrichmentButton> createState() => _EnrichmentButtonState();
 }
@@ -85,6 +91,7 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
                 scopeActive: () => mounted,
                 lifetime: _comparisonLifetime,
                 comparisonRepository: widget.comparisonRepository,
+                onSetPosition: widget.onSetPosition,
                 dockComparison: docked != null));
         widget.session.pause();
         if (comparison == null || docked == null || !mounted) return;
@@ -99,7 +106,8 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
               builder: (_) => _CandidateReview(
                   session: widget.session,
                   proposal: selection.proposal,
-                  candidate: selection.candidate));
+                  candidate: selection.candidate,
+                  onSetPosition: widget.onSetPosition));
         }
         if (!outcome.reopenPanel) return;
       }
@@ -168,9 +176,14 @@ class EnrichmentPanel extends StatefulWidget {
   /// « Comparer avec Néo » ferme ce dialogue en retournant la comparaison
   /// préparée, affichée ensuite dans le bouton flottant de Néo.
   final bool dockComparison;
+
+  /// Enregistre un point posé sur la carte comme saisie manuelle des
+  /// coordonnées de la ligne ; `true` une fois enregistré. Absent : carte en
+  /// consultation seule.
+  final Future<bool> Function(int rowId, GeoPoint point)? onSetPosition;
   const EnrichmentPanel({super.key, required this.session, required this.rows,
     this.scopeActive, this.lifetime, this.comparisonRepository,
-    this.dockComparison = false});
+    this.dockComparison = false, this.onSetPosition});
   @override
   State<EnrichmentPanel> createState() => _EnrichmentPanelState();
 }
@@ -220,7 +233,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
         context: context, builder: (_) => ChatComparison(session: comparison));
       if (!mounted || selected == null || !_canCompare(selected.proposal)) return;
       await showDialog<void>(context: context, builder: (_) => _CandidateReview(
-        session: s, proposal: selected.proposal, candidate: selected.candidate));
+        session: s, proposal: selected.proposal, candidate: selected.candidate,
+        onSetPosition: widget.onSetPosition));
     } catch (_) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Comparaison indisponible. Le choix manuel reste disponible.')));
@@ -560,7 +574,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
               pageItems: chained
                   ? () => widget.session.page?.items ?? const []
                   : null,
-              loadNextPage: chained ? _loadNextPage : null));
+              loadNextPage: chained ? _loadNextPage : null,
+              onSetPosition: widget.onSetPosition));
 
   Widget _proposalsTab(EnrichmentPage<EnrichmentProposal>? page,
       Map<int, MerchantImportRow> rowsById) {
@@ -717,12 +732,18 @@ class _CandidateReview extends StatefulWidget {
 
   /// Charge la page suivante ; `false` s'il n'y en a plus.
   final Future<bool> Function()? loadNextPage;
+
+  /// Enregistre un point posé sur la carte comme saisie manuelle des
+  /// coordonnées de la ligne ; `true` une fois enregistré. Absent : carte en
+  /// consultation seule.
+  final Future<bool> Function(int rowId, GeoPoint point)? onSetPosition;
   const _CandidateReview(
       {required this.session,
       required this.proposal,
       required this.candidate,
       this.pageItems,
-      this.loadNextPage});
+      this.loadNextPage,
+      this.onSetPosition});
   @override
   State<_CandidateReview> createState() => _CandidateReviewState();
 }
@@ -737,6 +758,12 @@ class _CandidateReviewState extends State<_CandidateReview> {
   late EnrichmentCandidate _c = widget.candidate;
   int _applied = 0;
   bool _advancing = false, _finished = false;
+
+  /// Point posé sur la carte : il remplace les coordonnées proposées et
+  /// s'enregistre comme saisie manuelle.
+  GeoPoint? _point;
+  bool _savingPoint = false;
+  String? _pointError;
 
   bool get _chained => widget.pageItems != null;
 
@@ -761,6 +788,8 @@ class _CandidateReviewState extends State<_CandidateReview> {
         _c = c ?? p.candidates.first;
         _fields.clear();
         _acknowledge = false;
+        _point = null;
+        _pointError = null;
       });
 
   /// Proposition suivante à traiter, sur cette page puis les suivantes ;
@@ -787,11 +816,54 @@ class _CandidateReviewState extends State<_CandidateReview> {
     }
   }
 
+  /// Le point peut-il être posé pour la ligne affichée ?
+  bool _canPlace(MerchantImportRow? row) =>
+      widget.onSetPosition != null &&
+      widget.session.batchEditable() &&
+      row != null &&
+      EnrichmentUseCase.eligible(row);
+
+  Future<void> _openMap(GeoPoint proposed, MerchantImportRow? row) async {
+    final MapPick? pick = await showDialog<MapPick>(
+        context: context,
+        builder: (_) => EnrichmentMapDialog(
+            proposed: proposed,
+            precision: _c.geoPrecision,
+            chosen: _point,
+            editable: _canPlace(row)));
+    if (pick == null || !mounted) return;
+    setState(() {
+      _point = pick.point;
+      _pointError = null;
+      // Le point posé remplace les coordonnées proposées.
+      if (_point != null) _fields.removeAll({'lat', 'lng'});
+    });
+  }
+
+  /// Champs cochés (application de la proposition), puis point posé sur la
+  /// carte (saisie manuelle) : dans cet ordre, la proposition est encore à
+  /// jour quand elle s'applique.
   Future<void> _apply({required bool thenNext}) async {
     final s = widget.session;
-    final applied =
-        await s.apply(_p, _c, {..._fields}, acknowledge: _acknowledge);
-    if (!mounted || !applied) return;
+    final GeoPoint? point = _point;
+    if (_fields.isNotEmpty) {
+      final applied =
+          await s.apply(_p, _c, {..._fields}, acknowledge: _acknowledge);
+      if (!mounted || !applied) return;
+    }
+    if (point != null) {
+      setState(() => _savingPoint = true);
+      final bool saved = await widget.onSetPosition!(_p.rowId, point);
+      if (!mounted) return;
+      setState(() {
+        _savingPoint = false;
+        if (!saved) {
+          _pointError =
+              'Le point n’a pas pu être enregistré. Réessayez, ou saisissez les coordonnées dans la grille.';
+        }
+      });
+      if (!saved) return;
+    }
     _applied++;
     if (thenNext) {
       await _advance();
@@ -890,9 +962,16 @@ class _CandidateReviewState extends State<_CandidateReview> {
               .toList();
           String before(String key) =>
               row?.textOf(key).isNotEmpty == true ? row!.textOf(key) : 'Vide';
+          final GeoPoint? point = _point;
+          bool placed(String key) =>
+              point != null && (key == 'lat' || key == 'lng');
+          String pointValue(String key) => key == 'lat'
+              ? point!.lat.toStringAsFixed(6)
+              : point!.lng.toStringAsFixed(6);
           final canApply = !s.busy &&
               !_advancing &&
-              _fields.isNotEmpty &&
+              !_savingPoint &&
+              (_fields.isNotEmpty || point != null) &&
               !(geo && c.approximate && !_acknowledge) &&
               VatRules.selectionValid(_fields, rowSiretEmpty: rowSiretEmpty);
           return EnrichmentDialog(
@@ -958,14 +1037,21 @@ class _CandidateReviewState extends State<_CandidateReview> {
                         ],
                         muted: {
                           for (var i = 0; i < entries.length; i++)
-                            if (!allowed.contains(entries[i].key)) i
+                            if (!allowed.contains(entries[i].key) &&
+                                !placed(entries[i].key))
+                              i
                         },
                         rows: entries.map((e) {
                           final proposed =
                               MerchantImportRow.displayText(e.value);
                           final chosen = _fields.contains(e.key);
                           return DataRow(cells: [
-                            DataCell(Checkbox(
+                            DataCell(placed(e.key)
+                                ? const Tooltip(
+                                    message: 'Point posé sur la carte',
+                                    child: Icon(Icons.push_pin,
+                                        size: 20, color: kRed))
+                                : Checkbox(
                                 value: chosen,
                                 onChanged: !allowed.contains(e.key) || s.busy
                                     ? null
@@ -989,25 +1075,59 @@ class _CandidateReviewState extends State<_CandidateReview> {
                                     fontWeight: FontWeight.w600))),
                             DataCell(Text(before(e.key))),
                             DataCell(Text(proposed.isEmpty ? '—' : proposed)),
-                            DataCell(Text(chosen ? proposed : before(e.key),
-                                style: chosen
-                                    ? const TextStyle(
-                                        color: kGreen,
-                                        fontWeight: FontWeight.w600)
-                                    : null)),
+                            DataCell(placed(e.key)
+                                ? Text('${pointValue(e.key)} (carte)',
+                                    style: const TextStyle(
+                                        color: kRed,
+                                        fontWeight: FontWeight.w600))
+                                : Text(chosen ? proposed : before(e.key),
+                                    style: chosen
+                                        ? const TextStyle(
+                                            color: kGreen,
+                                            fontWeight: FontWeight.w600)
+                                        : null)),
                           ]);
                         }).toList()),
                     if (EnrichmentMiniMap.displayable(
                         c.fields['lat'], c.fields['lng']))
                       _Collapsible(
                           key: const ValueKey('candidate-map'),
-                          title: 'Position proposée sur la carte',
+                          title: 'Position sur la carte',
                           initiallyExpanded: true,
                           children: [
                             EnrichmentMiniMap(
                                 lat: (c.fields['lat'] as num).toDouble(),
                                 lng: (c.fields['lng'] as num).toDouble(),
-                                precision: c.geoPrecision),
+                                precision: c.geoPrecision,
+                                chosen: point,
+                                canPlace: _canPlace(row),
+                                onOpen: () => _openMap((
+                                  lat: (c.fields['lat'] as num).toDouble(),
+                                  lng: (c.fields['lng'] as num).toDouble()
+                                ), row)),
+                            if (point != null)
+                              EnrichmentNotice(
+                                  key: const ValueKey('map-point-notice'),
+                                  child: Wrap(
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      spacing: 8,
+                                      children: [
+                                        Text(
+                                            'Point posé sur la carte : ${IgnTiles.format(point)}. '
+                                            'Il sera enregistré comme une saisie manuelle des coordonnées.'),
+                                        TextButton(
+                                            onPressed: _savingPoint
+                                                ? null
+                                                : () => setState(
+                                                    () => _point = null),
+                                            child: const Text(
+                                                'Garder la position proposée')),
+                                      ])),
+                            if (_pointError != null)
+                              EnrichmentNotice(
+                                  error: true,
+                                  child: Text(_pointError!)),
                           ]),
                     if (c.kind == 'establishment')
                       VatCandidateSection(
@@ -1022,7 +1142,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                               _fields, VatRules.field, value,
                               rowSiretEmpty: rowSiretEmpty))),
                     _sources(c),
-                    if (c.approximate)
+                    if (c.approximate && point == null)
                       CheckboxListTile(
                           value: _acknowledge,
                           onChanged: s.busy

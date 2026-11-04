@@ -54,7 +54,12 @@ void main() {
   late _Transport transport;
   late Map<int, MerchantImportRow> rows;
   late EnrichmentUseCase session;
+
+  /// Points posés sur la carte, avec le nombre d'appels au transport à ce
+  /// moment-là (ordre apply puis point).
+  late List<({int rowId, double lat, double lng, int callsBefore})> placed;
   setUp(() {
+    placed = [];
     transport = _Transport()
       ..currentJob = jobJson(status: 'completed', done: 3, total: 3)
       ..proposals = [
@@ -101,7 +106,16 @@ void main() {
             body: EnrichmentButton(
                 session: session,
                 rows: () => rows.values.toList(),
-                prepare: () async => true))));
+                prepare: () async => true,
+                onSetPosition: (rowId, point) async {
+                  placed.add((
+                    rowId: rowId,
+                    lat: point.lat,
+                    lng: point.lng,
+                    callsBefore: transport.calls.length
+                  ));
+                  return true;
+                }))));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Compléter les informations'));
     await tester.pumpAndSettle();
@@ -176,6 +190,104 @@ void main() {
     expect(find.text('Appliquer et suivante'), findsNothing);
     expect(find.widgetWithText(FilledButton, 'Appliquer au brouillon'),
         findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  /// Ouvre « Choisir » de la ligne 1, puis la grande carte.
+  Future<void> openMap(WidgetTester tester) async {
+    await tester.tap(find.byKey(const ValueKey('proposal-$proposalId')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Comparer / choisir'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('mini-map')));
+    await tester.pumpAndSettle();
+    expect(
+        find.text('Cliquer pour agrandir et ajuster le point'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('mini-map')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ajuster la position'), findsOneWidget);
+  }
+
+  /// Pose le point à [offset] du centre de la carte, puis le valide.
+  Future<void> placePoint(WidgetTester tester, Offset offset) async {
+    final surface = find.byKey(const ValueKey('map-surface'));
+    expect(find.text('Utiliser ce point'), findsOneWidget);
+    await tester.tapAt(tester.getCenter(surface) + offset);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-chosen-marker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('map-chosen-text')), findsOneWidget);
+    await tester.tap(find.text('Utiliser ce point'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('point placed on the map alone: manual coordinates, no apply',
+      (tester) async {
+    await pump(tester);
+    await openMap(tester);
+    await placePoint(tester, const Offset(40, -30));
+
+    // Retour dans « Choisir » : le point remplace les coordonnées proposées.
+    expect(find.byKey(const ValueKey('map-point-notice')), findsOneWidget);
+    expect(find.textContaining('(carte)'), findsNWidgets(2));
+    expect(anyChecked(tester), isFalse);
+    final apply = find.widgetWithText(FilledButton, 'Appliquer au brouillon');
+    expect(tester.widget<FilledButton>(apply).onPressed, isNotNull);
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    expect(transport.calls.where((c) => c.path.endsWith('/apply')), isEmpty);
+    expect(placed, hasLength(1));
+    expect(placed.single.rowId, 1);
+    // À l'est et au nord du point proposé (0, 0).
+    expect(placed.single.lng, greaterThan(0));
+    expect(placed.single.lat, greaterThan(0));
+    expect(find.textContaining('Choisir :'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('checked fields are applied first, then the placed point',
+      (tester) async {
+    await pump(tester);
+    await openMap(tester);
+    await placePoint(tester, const Offset(-20, 20));
+    // Ville (3e case) cochée en plus du point.
+    await tester.ensureVisible(find.byType(Checkbox).at(2));
+    await tester.tap(find.byType(Checkbox).at(2));
+    await tester.pumpAndSettle();
+    final apply = find.widgetWithText(FilledButton, 'Appliquer au brouillon');
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    final applies =
+        transport.calls.where((c) => c.path.endsWith('/apply')).toList();
+    expect(applies, hasLength(1));
+    expect(applies.single.body!['fields'], isNot(contains('lat')));
+    expect(placed, hasLength(1));
+    expect(placed.single.callsBefore,
+        greaterThan(transport.calls.indexOf(applies.single)),
+        reason: 'le point s’enregistre après l’application');
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('cancel or « Garder la position proposée » keeps the proposal',
+      (tester) async {
+    await pump(tester);
+    await openMap(tester);
+    await tester.tap(find.text('Annuler'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-point-notice')), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('mini-map')));
+    await tester.tap(find.byKey(const ValueKey('mini-map')));
+    await tester.pumpAndSettle();
+    await placePoint(tester, const Offset(10, 10));
+    expect(find.byKey(const ValueKey('map-point-notice')), findsOneWidget);
+    await tester.tap(find.text('Garder la position proposée'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('map-point-notice')), findsNothing);
+    expect(find.textContaining('(carte)'), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
 }

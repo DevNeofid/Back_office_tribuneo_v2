@@ -6,6 +6,7 @@ import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/network_amount_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/stats_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/paged_total.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/export_to_csv_button.dart';
 
 class StatsContentView extends StatefulWidget {
@@ -1000,14 +1001,11 @@ class PartnerTotalDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + data.length;
-      if (data.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: data.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1048,14 +1046,11 @@ class UsersDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + users.length;
-      if (users.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: users.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1107,14 +1102,11 @@ class VoucherTotalBalancePerCustomerDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + vouchers.length;
-      if (vouchers.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: vouchers.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1158,14 +1150,11 @@ class PartnerDigitalNeverOpenSessionDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + partners.length;
-      if (partners.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: partners.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1213,14 +1202,11 @@ class SumExpiredVouchersConsumerDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + items.length;
-      if (items.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: items.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1263,14 +1249,11 @@ class DigitalPartnerNoActivityDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + partners.length;
-      if (partners.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: partners.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1340,14 +1323,11 @@ class ListAllPartnersDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + partners.length;
-      if (partners.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: partners.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1408,14 +1388,11 @@ class ListAllCustomersDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + customers.length;
-      if (customers.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: customers.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1468,14 +1445,11 @@ class GetInfoTechnicalSupportDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + orders.length;
-      if (orders.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: orders.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }
@@ -1565,14 +1539,11 @@ class QrCodeStatusByUserInfosDataSource extends AsyncDataTableSource {
       ));
     }
 
-    if (paginated.total > 0) {
-      _lastKnownTotal = paginated.total;
-    } else {
-      _lastKnownTotal = startIndex + qrCodes.length;
-      if (qrCodes.length == limit) {
-        _lastKnownTotal += 1;
-      }
-    }
+    _lastKnownTotal = resolvePagedTotal(
+        apiTotal: paginated.total,
+        startIndex: startIndex,
+        received: qrCodes.length,
+        limit: limit);
 
     return AsyncRowsResponse(_lastKnownTotal, rows);
   }

@@ -1095,6 +1095,14 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           EnrichmentButton(
             session: _enrichment,
             rows: () => _rows,
+            // Point posé sur la carte : saisie manuelle des deux cellules.
+            onSetPosition: (rowId, point) async {
+              _finishEdit(commit: true);
+              _queue.editField(rowId, 'lat', point.lat.toStringAsFixed(6));
+              _queue.editField(rowId, 'lng', point.lng.toStringAsFixed(6));
+              await _queue.waitUntilIdle();
+              return mounted && _queue.failedCount == 0;
+            },
             prepare: () async {
               _finishEdit(commit: true);
               if (!_queue.isIdle) {
