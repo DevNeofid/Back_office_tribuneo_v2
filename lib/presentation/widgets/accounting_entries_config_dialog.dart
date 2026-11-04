@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 
 /// Affiche les comptes bancaires qui empêchent la génération des écritures comptables
 /// (journal ou compte 512 manquant). Ce paramétrage est géré par Neofid.
@@ -14,95 +12,77 @@ class AccountingEntriesConfigDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
+    final double maxListHeight = MediaQuery.of(context).size.height * 0.4;
 
-    return AlertDialog(
-      backgroundColor: Colors.transparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Container(
-        width: SizeConfig.screenWidth * 0.45,
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          color: kPLGrey2,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: SelectableText(
-                'Aucune écriture comptable générée',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  letterSpacing: 0.3,
-                  fontWeight: FontWeight.w600,
-                  color: kRed,
-                ),
+    return ArcDialog(
+      icon: Icons.error_outline_rounded,
+      tone: ArcTone.danger,
+      title: 'Aucune écriture comptable générée',
+      maxWidth: 540,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SelectableText(
+            'Un ou plusieurs comptes bancaires utilisés sur la période n\'ont pas '
+            'de journal ou de compte 512 renseigné. Contactez Neofid pour compléter '
+            'leur paramétrage, puis relancez le déclenchement.',
+          ),
+          const SizedBox(height: 16),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxListHeight),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: kSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: kBorder),
               ),
-            ),
-            const SizedBox(height: 20),
-            SelectableText(
-              'Un ou plusieurs comptes bancaires utilisés sur la période n\'ont pas '
-              'de journal ou de compte 512 renseigné. Contactez Neofid pour compléter '
-              'leur paramétrage, puis relancez le déclenchement.',
-              style: GoogleFonts.poppins(fontSize: 14, color: kBlack),
-            ),
-            const SizedBox(height: 20),
-            Flexible(
               child: SingleChildScrollView(
-                child: Container(
-                  width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: kPWhite,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: kRed.withValues(alpha: 0.35)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: errors
-                        .map(
-                          (error) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(top: 2, right: 8),
-                                  child: Icon(Icons.error_outline,
-                                      size: 16, color: kRed),
-                                ),
-                                Expanded(
-                                  child: SelectableText(
-                                    error,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 13, color: kBlack),
-                                  ),
-                                ),
-                              ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (int i = 0; i < errors.length; i++)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xffFFFBF3),
+                          border: i == 0
+                              ? null
+                              : const Border(top: BorderSide(color: kNavy100)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(top: 2, right: 10),
+                              child: Icon(Icons.error_outline_rounded,
+                                  size: 18, color: kDangerText),
                             ),
-                          ),
-                        )
-                        .toList(),
-                  ),
+                            Expanded(
+                              child: SelectableText(
+                                errors[i],
+                                style: ArcText.body(color: kInk)
+                                    .copyWith(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 30),
-            Align(
-              alignment: Alignment.centerRight,
-              child: NeoButton(
-                text: 'Fermer',
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Fermer'),
+        ),
+      ],
     );
   }
 }

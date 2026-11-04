@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/address_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/address_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class UpdateAddressForm extends StatefulWidget {
   final EntityModel entity;
@@ -91,7 +88,7 @@ class _UpdateAddressFormState extends State<UpdateAddressForm> {
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Modification de l\'adresse réussie'),
-        backgroundColor: Colors.green,
+        backgroundColor: kSuccessText,
       ));
 
       Navigator.of(context).pop(true);
@@ -104,7 +101,7 @@ class _UpdateAddressFormState extends State<UpdateAddressForm> {
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Erreur lors de la modification de l\'adresse'),
-        backgroundColor: Colors.red,
+        backgroundColor: kDangerText,
       ));
     }
   }
@@ -122,146 +119,118 @@ class _UpdateAddressFormState extends State<UpdateAddressForm> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    double inputWidth = Responsive.isDesktop(context) ? 400 : double.infinity;
+    final String name = widget.entity.name ?? '';
+    final bool isPartner = widget.entity.type == 'partner';
 
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            child: Container(
-              width: SizeConfig.screenWidth * 0.4,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                        child: SelectableText(
-                          "Indiquer l'adresse",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                              fontSize: 32,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w600,
-                              color: kOrange),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: streetController,
-                          hintText: 'Adresse',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateText(value ?? '');
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: zipController,
-                          hintText: 'Code postal',
-                          keyboardType: TextInputType.number,
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateInt(value ?? '');
-                          },
-                          formatter: FilteringTextInputFormatter.digitsOnly,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: cityController,
-                          hintText: 'Ville',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateText(value ?? '');
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: countryController,
-                          hintText: 'Pays',
-                          fillColor: kPWhite,
-                          validator: (value) {
-                            return FormValidator.validateText(value ?? '');
-                          },
-                        ),
-                      ),
-                      if (widget.entity.type == 'partner') ...[
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: latController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            hintText: 'Latitude',
-                            fillColor: kPWhite,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return null;
-                              }
-                              return FormValidator.validatePosition(value);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: lngController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            hintText: 'Longitude',
-                            fillColor: kPWhite,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return null;
-                              }
-                              return FormValidator.validatePosition(value);
-                            },
-                          ),
-                        ),
-                      ],
-                      SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      _isSaving
-                          ? const SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(
-                                color: kOrange,
-                              ),
-                            )
-                          : NeoButton(
-                              text: "Enregistrer",
-                              onPressed: updateAddress,
-                            ),
-                    ],
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: "Modifier l'adresse",
+        title: name.trim().isEmpty ? "Indiquer l'adresse" : name,
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ArcSubmitButton(
+            label: 'Enregistrer',
+            busy: _isSaving,
+            onPressed: updateAddress,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            icon: Icons.place_outlined,
+            title: isPartner ? 'Adresse du magasin' : 'Adresse du client',
+            children: [
+              ArcFormGrid([
+                ArcGridItem(
+                  NeoInput(
+                    controller: streetController,
+                    hintText: 'Adresse',
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
+                  ),
+                  span: true,
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: zipController,
+                      hintText: 'Code postal',
+                      keyboardType: TextInputType.number,
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validateInt(value ?? '');
+                      },
+                      formatter: FilteringTextInputFormatter.digitsOnly,
+                    ),
                   ),
                 ),
-              ),
-            ),
+                ArcGridItem(
+                  NeoInput(
+                    controller: cityController,
+                    hintText: 'Ville',
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
+                  ),
+                ),
+                ArcGridItem(
+                  NeoInput(
+                    controller: countryController,
+                    hintText: 'Pays',
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
+                  ),
+                  span: true,
+                ),
+                if (isPartner) ...[
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: latController,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        hintText: 'Latitude',
+                        fillColor: kSurface,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          return FormValidator.validatePosition(value);
+                        },
+                      ),
+                    ),
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: lngController,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        hintText: 'Longitude',
+                        fillColor: kSurface,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          return FormValidator.validatePosition(value);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ]),
+            ],
           ),
-        ]),
+        ],
       ),
     );
   }

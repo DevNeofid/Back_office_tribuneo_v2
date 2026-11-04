@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
@@ -18,12 +17,14 @@ import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/payment_submission_validation.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/update_order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/beneficiaries_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/show_vouchers.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 
@@ -52,6 +53,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   final OrderUseCase _orderUseCase = OrderUseCase();
   final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   late final OrderDataSource _dataSource;
+  final PaginatorController _paginator = PaginatorController();
   ScreenOpenRequests? _openRequests;
 
   @override
@@ -81,6 +83,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   @override
   void dispose() {
     _openRequests?.removeListener(_handleOpenRequest);
+    _paginator.dispose();
     super.dispose();
   }
 
@@ -97,8 +100,8 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         'Chargement de la commande...', () => _orderUseCase.getOrder(idOrder));
     if (!mounted) return;
     if (order == null) {
-      snackbarKey.currentState?.showSnackBar(
-          const SnackBar(content: Text('Élément introuvable')));
+      snackbarKey.currentState
+          ?.showSnackBar(const SnackBar(content: Text('Élément introuvable')));
       return;
     }
     final String number = order.orderNumber ?? '';
@@ -142,8 +145,8 @@ class _OrdersContentViewState extends State<OrdersContentView> {
   }
 
   Future<void> _changeExpiryDate(OrderModel order) async {
-    final bool updated =
-        await changeOrderExpiryDate(context, order, orderUseCase: _orderUseCase);
+    final bool updated = await changeOrderExpiryDate(context, order,
+        orderUseCase: _orderUseCase);
     if (updated) {
       _dataSource.refreshDatasource();
     }
@@ -199,12 +202,14 @@ class _OrdersContentViewState extends State<OrdersContentView> {
           showDialog(
               context: currentContext,
               builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Génération terminée'),
+                return ArcDialog(
+                  icon: Icons.qr_code_2_rounded,
+                  tone: ArcTone.success,
+                  title: 'Génération terminée',
                   content: Text(
                       'Les QR Codes pour la commande $number sont prêts. Le téléchargement commence.'),
                   actions: <Widget>[
-                    TextButton(
+                    OutlinedButton(
                       child: const Text('Fermer'),
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -371,32 +376,25 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     bool? dialogResult = await showDialog<bool>(
       context: navigatorKey.currentState!.context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-              'Voulez-vous ajouter des informations supplémentaires ?'),
-          content: SizedBox(
-            width: 500,
-            height: 200,
+        return ArcDialog(
+          icon: Icons.receipt_long_outlined,
+          title: 'Voulez-vous ajouter des informations supplémentaires ?',
+          maxWidth: 540,
+          content: Padding(
+            padding: const EdgeInsets.only(top: 8),
             child: TextField(
               controller: textEditingController,
+              style: ArcText.body(),
               decoration: const InputDecoration(hintText: 'Référence commande'),
             ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Annuler',
-                style: TextStyle(
-                    color: kRed, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+            OutlinedButton(
+              child: const Text('Annuler'),
               onPressed: () => Navigator.of(context).pop(false),
             ),
-            TextButton(
-              child: const Text(
-                'Générer la facture',
-                style: TextStyle(
-                    color: kBlue, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+            FilledButton(
+              child: const Text('Générer la facture'),
               onPressed: () {
                 additionalInfo = textEditingController.text;
                 Navigator.of(context).pop(true);
@@ -448,18 +446,21 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     final result = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Supprimer une commande'),
+          return ArcDialog(
+            icon: Icons.delete_outline_rounded,
+            tone: ArcTone.danger,
+            title: 'Supprimer une commande',
             content: const Text(
                 'Êtes-vous sûr de vouloir supprimer cette commande ?'),
             actions: <Widget>[
-              TextButton(
+              OutlinedButton(
                 child: const Text('Annuler'),
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
               ),
-              TextButton(
+              FilledButton(
+                style: arcDangerButtonStyle(),
                 child: const Text('Supprimer'),
                 onPressed: () async {
                   bool deleted = await _orderUseCase.deleteOrder(id);
@@ -493,170 +494,133 @@ class _OrdersContentViewState extends State<OrdersContentView> {
     _dataSource.isCompact = isCompact;
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Ajouter une commande', style: GoogleFonts.poppins(fontSize: 20)),
-        const SizedBox(height: 10),
-        Center(
-          child: ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(kOrange),
-              iconColor: WidgetStateProperty.all(kWhite),
+        ArcPageHeader(
+          eyebrow: 'Réseau',
+          title: 'Commandes',
+          actions: [
+            FilledButton.icon(
+              onPressed: () => _addOrder(),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Ajouter une commande'),
             ),
-            onPressed: () => _addOrder(),
-            child: const Icon(Icons.add),
-          ),
+          ],
         ),
-        const SizedBox(height: 50),
-        SizedBox(
-          width: SizeConfig.screenWidth * 0.3,
-          child: TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: kBlue),
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-              labelText: "Rechercher",
-              labelStyle: TextStyle(color: kBlue),
-              iconColor: kBlue,
-              hintText: "Rechercher par numéro de commande, offert par, etc.",
-              hintStyle: TextStyle(color: Colors.grey),
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-            ),
-            onChanged: (value) {
-              _dataSource.updateSearch(value);
-            },
-          ),
-        ),
-        const SizedBox(height: 50),
         ValueListenableBuilder<int>(
           valueListenable: _dataSource.currentPageItemCount,
           builder: (context, itemCount, _) {
-            final double tableHeight =
-                54.0 + (itemCount.clamp(1, 50) * 53.0) + 70.0;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              height: tableHeight,
-              decoration: BoxDecoration(
-                color: kWhite,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: kBlue.withValues(alpha: 0.07),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+            final double tableHeight = 44.0 + (itemCount.clamp(1, 50) * 52.0);
+            return ArcTableCard(
+              toolbar: ArcSearchField(
+                controller: _searchController,
+                hint: 'Rechercher par numéro de commande, offert par, etc.',
+                onChanged: _dataSource.updateSearch,
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    dataTableTheme: DataTableThemeData(
-                      headingRowColor: WidgetStateProperty.all(kBlue),
-                      headingTextStyle: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: kWhite,
-                      ),
-                      dataTextStyle: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: kBlueEnd,
-                      ),
-                      dividerThickness: 0.6,
-                      dataRowMinHeight: 50,
-                      dataRowMaxHeight: 56,
-                      headingRowHeight: 54,
-                    ),
+              footer: ListenableBuilder(
+                listenable: _paginator,
+                builder: (context, _) {
+                  if (!_paginator.isAttached) {
+                    return const ArcPagination(label: '');
+                  }
+                  final count = _paginator.rowCount;
+                  final start = _paginator.currentRowIndex;
+                  final end = (start + _paginator.rowsPerPage).clamp(0, count);
+                  return ArcPagination(
+                    label: count == 0
+                        ? 'Aucun résultat'
+                        : '${start + 1}–$end sur $count',
+                    onPrevious: start > 0 ? _paginator.goToPreviousPage : null,
+                    onNext: end < count ? _paginator.goToNextPage : null,
+                  );
+                },
+              ),
+              child: SizedBox(
+                height: tableHeight,
+                child: AsyncPaginatedDataTable2(
+                  wrapInCard: false,
+                  controller: _paginator,
+                  hidePaginator: true,
+                  headingRowHeight: 44,
+                  dataRowHeight: 52,
+                  columnSpacing: isCompact ? 16 : 22,
+                  horizontalMargin: isCompact ? 10 : 14,
+                  minWidth: isCompact ? 1180 : 1280,
+                  rowsPerPage: 50,
+                  showCheckboxColumn: false,
+                  loading: const Center(
+                    child: CircularProgressIndicator(color: kBlue),
                   ),
-                  child: AsyncPaginatedDataTable2(
-                    wrapInCard: false,
-                    columnSpacing: isCompact ? 16 : 22,
-                    horizontalMargin: isCompact ? 10 : 14,
-                    minWidth: isCompact ? 980 : 1180,
-                    rowsPerPage: 50,
-                    showCheckboxColumn: false,
-                    loading: const Center(
-                      child: CircularProgressIndicator(color: kBlue),
+                  columns: const [
+                    DataColumn2(
+                      size: ColumnSize.S,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('N°', textAlign: TextAlign.center))),
                     ),
-                    columns: const [
-                      DataColumn2(
+                    DataColumn2(
+                      size: ColumnSize.L,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Offert par',
+                                  textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.L,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Occasion',
+                                  textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.S,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Qté', textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.S,
+                      numeric: true,
+                      label: Text('Payé'),
+                    ),
+                    DataColumn2(
                         size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child:
-                                    Text('N°', textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.L,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Offert par',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.L,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Occasion',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child:
-                                    Text('Qté', textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child:
-                                    Text('Payé', textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Montant total',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Création',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Expiration',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Gestion',
-                                    textAlign: TextAlign.center))),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.S,
-                        label: Expanded(
-                            child: Center(
-                                child: Text('Edition',
-                                    textAlign: TextAlign.center))),
-                      ),
-                    ],
-                    source: _dataSource,
-                  ),
+                        numeric: true,
+                        label: Text('Montant total')),
+                    DataColumn2(
+                      size: ColumnSize.M,
+                      label: Text('Paiement'),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.M,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Création',
+                                  textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.M,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Expiration',
+                                  textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.S,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Gestion',
+                                  textAlign: TextAlign.center))),
+                    ),
+                    DataColumn2(
+                      size: ColumnSize.S,
+                      label: Expanded(
+                          child: Center(
+                              child: Text('Edition',
+                                  textAlign: TextAlign.center))),
+                    ),
+                  ],
+                  source: _dataSource,
                 ),
               ),
             );
@@ -738,16 +702,17 @@ class OrderDataSource extends AsyncDataTableSource {
       final order = pageItems[i];
       final int rowIndex = startIndex + i;
       final isEvenRow = rowIndex % 2 == 0;
-      final bool isPaid = order.paid == order.totalAmount;
+
       final double cellWidth = isCompact ? 120.0 : 170.0;
 
       rows.add(DataRow(
         color: isEvenRow
             ? WidgetStateProperty.all(kWhite)
-            : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
+            : WidgetStateProperty.all(kSurface2),
         cells: [
           DataCell(Center(
               child: SelectableText(order.orderNumber ?? '',
+                  style: ArcText.data(color: kNavy900),
                   textAlign: TextAlign.center))),
           DataCell(Center(
             child: SizedBox(
@@ -782,18 +747,19 @@ class OrderDataSource extends AsyncDataTableSource {
           DataCell(Center(
               child: Text(order.fundQuantity?.toString() ?? '',
                   textAlign: TextAlign.center))),
-          DataCell(Center(
+          DataCell(Align(
+              alignment: Alignment.centerRight,
               child: Text(
-            (order.paid ?? 0).toStringAsFixed(2),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: isPaid ? kGreen : kRed),
-          ))),
-          DataCell(Center(
+                (order.paid ?? 0).toStringAsFixed(2),
+                style: ArcText.data(),
+              ))),
+          DataCell(Align(
+              alignment: Alignment.centerRight,
               child: Text(
-            (order.totalAmount ?? 0).toStringAsFixed(2),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: isPaid ? kGreen : kRed),
-          ))),
+                (order.totalAmount ?? 0).toStringAsFixed(2),
+                style: ArcText.data(),
+              ))),
+          DataCell(OrderPaymentStatus.of(order).pill()),
           DataCell(Center(
               child: Text(
                   DateFormater().modifyDate(order.createdDate!.date!) ?? '',
@@ -801,7 +767,9 @@ class OrderDataSource extends AsyncDataTableSource {
           DataCell(Center(
               child: Text(
                   DateFormater().modifyDate(order.fundExpiryDate!.date!) ?? '',
-                  textAlign: TextAlign.center))),
+                  textAlign: TextAlign.center,
+                  style: ArcText.small(
+                      color: isOrderExpired(order) ? kDangerText : kText2)))),
           DataCell(
             Center(
               child: PopupMenuButton<SampleItem>(
@@ -1015,15 +983,8 @@ class ShowPaymentState extends State<ShowPayment> {
 
   DateTime selectedDate = DateTime.now();
   _selectDate(BuildContext context) async {
+    // Couleurs du sélecteur : thème « Arc » global.
     final DateTime? selected = await showDatePicker(
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(primary: kBlue),
-          ),
-          child: child!,
-        );
-      },
       fieldHintText: "Jour/Mois/Année",
       locale: const Locale("fr", "FR"),
       context: context,
@@ -1059,6 +1020,9 @@ class ShowPaymentState extends State<ShowPayment> {
     return "$day/$month/${date.year}";
   }
 
+  String _paymentDate(PaymentModel payment) =>
+      DateFormater().modifyDate(payment.paymentDate!.toString()) ?? '';
+
   void _submitPayment([String? value]) {
     if (_bankAccountSelectRequired && _selectedBankAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -1085,16 +1049,17 @@ class ShowPaymentState extends State<ShowPayment> {
     final result = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Confirmation'),
+          return ArcDialog(
+            icon: Icons.payments_outlined,
+            title: 'Confirmation',
             content: Text(
                 'Vous allez envoyer un paiement de $amount € à la date du ${_getDisplayableDate(selectedDate)}'
                 '${_bankAccountSelectRequired ? ' sur le compte « ${_selectedBankAccount!.label} »' : ''} ?'),
             actions: <Widget>[
-              TextButton(
+              OutlinedButton(
                   child: const Text('Annuler'),
                   onPressed: () => Navigator.of(context).pop(false)),
-              TextButton(
+              FilledButton(
                   child: const Text('Valider'),
                   onPressed: () {
                     Navigator.of(context).pop(true);
@@ -1161,23 +1126,14 @@ class ShowPaymentState extends State<ShowPayment> {
   }
 
   Future _deletePayment(PaymentModel payment) async {
-    final bool? confirmed = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Supprimer un paiement'),
-            content: Text(
-                'Êtes-vous sûr de vouloir supprimer le paiement de ${payment.amount!.toStringAsFixed(2)} € du ${DateFormater().modifyDate(payment.paymentDate!.toString())} ?'),
-            actions: <Widget>[
-              TextButton(
-                  child: const Text('Annuler'),
-                  onPressed: () => Navigator.of(context).pop(false)),
-              TextButton(
-                  child: const Text('Supprimer'),
-                  onPressed: () => Navigator.of(context).pop(true)),
-            ],
-          );
-        });
+    final bool confirmed = await showArcConfirm(
+      context,
+      title: 'Supprimer un paiement',
+      message:
+          'Êtes-vous sûr de vouloir supprimer le paiement de ${payment.amount!.toStringAsFixed(2)} € du ${_paymentDate(payment)} ?',
+      confirmLabel: 'Supprimer',
+      danger: true,
+    );
 
     if (confirmed != true) return;
 
@@ -1204,10 +1160,13 @@ class ShowPaymentState extends State<ShowPayment> {
     // Pour un réseau à un seul compte, la colonne n'apporte rien.
     final bool showBankAccount = _bankAccounts?.hasSeveralAccounts ?? false;
 
-    return AlertDialog(
-      title: const SelectableText('Paiements'),
+    return ArcDialog(
+      icon: Icons.payments_outlined,
+      title: 'Paiements',
+      maxWidth: 1100,
       content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.5,
+        width: double.maxFinite,
+        height: MediaQuery.sizeOf(context).height * 0.6,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(15.0),
           child: Column(
@@ -1215,14 +1174,12 @@ class ShowPaymentState extends State<ShowPayment> {
             children: [
               Table(
                 border: TableBorder(
-                  horizontalInside:
-                      BorderSide(width: 1, color: Colors.grey.shade300),
-                  verticalInside:
-                      BorderSide(width: 1, color: Colors.grey.shade300),
+                  horizontalInside: const BorderSide(color: kBorder),
                 ),
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 children: [
                   TableRow(
+                    decoration: const BoxDecoration(color: kSurface2),
                     children: [
                       const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -1276,9 +1233,11 @@ class ShowPaymentState extends State<ShowPayment> {
                               Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Center(
+                                  child: Align(
+                                      alignment: Alignment.centerRight,
                                       child: Text(
-                                          payment.amount!.toStringAsFixed(2)))),
+                                          payment.amount!.toStringAsFixed(2),
+                                          style: ArcText.data()))),
                               Center(
                                 child: IconButton(
                                   icon: const Icon(Icons.delete, color: kRed),

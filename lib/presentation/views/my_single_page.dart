@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import 'package:back_office_tribuneo_v2/config/responsive.dart';
@@ -9,7 +8,9 @@ import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/assistant_repository.dart';
+import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/invoice_download.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/url_opener.dart';
@@ -28,7 +29,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_deep_link.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_docked_panel.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_overlay.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/header_widget.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 
 class MySinglePage extends StatefulWidget {
   const MySinglePage({super.key});
@@ -46,8 +47,6 @@ class MySinglePage extends StatefulWidget {
 }
 
 class MySinglePageState extends State<MySinglePage> {
-  static const double _sideMenuWidth = 120;
-
   String selectedMenu = 'dashboard';
   String contentTitle = 'Dashboard';
   late Widget content = const DashboardContentView();
@@ -92,35 +91,35 @@ class MySinglePageState extends State<MySinglePage> {
       "title": "Tableau de bord",
       "short": "Accueil",
       "content": const DashboardContentView(),
-      "icon": Icons.home,
+      "icon": Icons.home_rounded,
     },
     1: {
       "name": "customer",
       "title": "Liste des clients",
       "short": "Clients",
       "content": CustomersContentView(),
-      "icon": Icons.people,
+      "icon": Icons.people_alt_outlined,
     },
     2: {
       "name": "orders",
       "title": "Liste des commandes",
       "short": "Commandes",
       "content": const OrdersContentView(),
-      "icon": Icons.list_alt,
+      "icon": Icons.receipt_long_outlined,
     },
     3: {
       "name": "partner",
       "title": "Liste des magasins partenaires",
       "short": "Partenaires",
       "content": const PartnersContentView(),
-      "icon": Icons.storefront,
+      "icon": Icons.storefront_outlined,
     },
     4: {
       "name": "merchantImport",
       "title": "Import de commerçants",
       "short": "Import",
       "content": const MerchantImportView(),
-      "icon": Icons.upload_file,
+      "icon": Icons.upload_file_outlined,
       // La grille d'import gère son propre défilement : pas de défilement de
       // page, le contenu occupe la hauteur restante.
       "fullHeight": true,
@@ -130,21 +129,21 @@ class MySinglePageState extends State<MySinglePage> {
       "title": "Secteurs d'activité",
       "short": "Secteurs",
       "content": const SectorActivityView(),
-      "icon": Icons.construction,
+      "icon": Icons.sell_outlined,
     },
     6: {
       "name": "document",
       "title": "Documents",
       "short": "Documents",
       "content": const DocumentsContentView(),
-      "icon": Icons.document_scanner_outlined,
+      "icon": Icons.description_outlined,
     },
     7: {
       "name": "bankTransfertOrder",
       "title": "Historique d'ordres de virement bancaire",
       "short": "Virements",
       "content": const TranferOrderView(),
-      "icon": Icons.reorder,
+      "icon": Icons.swap_horiz_rounded,
     },
     // Nom « refund » conservé : c'est lui qui est mémorisé comme dernier menu ouvert.
     8: {
@@ -152,23 +151,31 @@ class MySinglePageState extends State<MySinglePage> {
       "title": "Prochain virement",
       "short": "Prochain virement",
       "content": const NextTransferView(),
-      "icon": Icons.euro,
+      "icon": Icons.euro_rounded,
     },
     9: {
       "name": "accountingentries",
       "title": "Écritures comptables",
       "short": "Écritures",
       "content": const AccountingEntriesView(),
-      "icon": Icons.edit,
+      "icon": Icons.table_chart_outlined,
     },
     10: {
       "name": "stats",
       "title": "Statistiques",
       "short": "Statistiques",
       "content": const StatsContentView(),
-      "icon": Icons.bar_chart,
+      "icon": Icons.bar_chart_rounded,
     },
   };
+
+  /// Ordre et groupes du menu latéral (noms de [menuItems]).
+  static const List<(String?, List<String>)> _menuGroups = [
+    (null, ['dashboard']),
+    ('RÉSEAU', ['customer', 'partner', 'orders', 'merchantImport', 'activitySectors']),
+    ('FINANCE', ['refund', 'bankTransfertOrder', 'accountingentries', 'document']),
+    ('ANALYSE', ['stats']),
+  ];
 
   Future<void> checkForNewRefunds() async {
     // Pastille : au moins une demande prête à être payée au prochain virement.
@@ -238,14 +245,33 @@ class MySinglePageState extends State<MySinglePage> {
     });
   }
 
-  late SideMenu menu;
-  buildMenu() {
-    menu = SideMenu(
-      menuItemsInfos: menuItems,
-      selectedMenu: selectedMenu,
-      callback: callBackMenu,
-      showRefundNotification: showRefundNotification,
+  Widget _buildMenu() {
+    Map<String, dynamic> item(String name) =>
+        menuItems.values.firstWhere((entry) => entry['name'] == name);
+    return ArcSidebar(
+      selected: selectedMenu,
+      onSelect: openMenu,
+      userName: globalNetworkName,
+      onSignOut: _signOut,
+      groups: [
+        for (final (title, names) in _menuGroups)
+          ArcNavGroup(title, [
+            for (final name in names)
+              ArcNavItem(
+                name: name,
+                label: item(name)['short'],
+                icon: item(name)['icon'],
+                badge: name == 'refund' && showRefundNotification ? '1' : null,
+              ),
+          ]),
+      ],
     );
+  }
+
+  Future<void> _signOut() async {
+    await MainUseCase().logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   /// Assistant : son état vit avec la page, il survit donc au changement
@@ -298,7 +324,6 @@ class MySinglePageState extends State<MySinglePage> {
   /* Test Graph - End */
   @override
   Widget build(BuildContext context) {
-    buildMenu();
     SizeConfig().init(context);
 
     return MultiProvider(
@@ -314,38 +339,28 @@ class MySinglePageState extends State<MySinglePage> {
   }
 
   Widget _buildScaffold(BuildContext context) {
+    final bool desktop = Responsive.isDesktop(context);
     return Scaffold(
       key: _drawerKey,
-      drawer: SizedBox(
-        width: _sideMenuWidth,
-        child: menu,
-      ),
-      appBar: !Responsive.isDesktop(context)
-          ? AppBar(
+      drawer: desktop ? null : Drawer(width: kSidebarWidth, child: _buildMenu()),
+      appBar: desktop
+          ? null
+          : AppBar(
+              backgroundColor: kNavy900,
+              foregroundColor: Colors.white,
               elevation: 0,
-              backgroundColor: kPWhite,
+              title: const ArcWordmark(height: 20),
               leading: IconButton(
-                  onPressed: () {
-                    _drawerKey.currentState?.openDrawer();
-                  },
-                  icon: const Icon(Icons.menu, color: kBlue)),
-              actions: const [
-                // AppBarActionItems(),
-              ],
-            )
-          : const PreferredSize(
-              preferredSize: Size.zero,
-              child: SizedBox(),
+                  tooltip: 'Menu',
+                  onPressed: () => _drawerKey.currentState?.openDrawer(),
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white)),
             ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            _buildContent(context),
-            if (AssistantRepository.visible)
-              Positioned.fill(
-                  child: AssistantOverlay(docked: _dockedAssistant)),
-          ],
-        ),
+      body: Stack(
+        children: [
+          _buildContent(context, desktop),
+          if (AssistantRepository.visible)
+            Positioned.fill(child: AssistantOverlay(docked: _dockedAssistant)),
+        ],
       ),
     );
   }
@@ -354,306 +369,33 @@ class MySinglePageState extends State<MySinglePage> {
   bool get _isFullHeight => menuItems.values.any(
       (item) => item['name'] == selectedMenu && item['fullHeight'] == true);
 
-  Widget _buildContent(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (Responsive.isDesktop(context))
-          SizedBox(
-            width: _sideMenuWidth,
-            child: menu,
-          ),
-        if (loadedData && _isFullHeight)
-          Expanded(
-            flex: 10,
-            child: SafeArea(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Header(title: contentTitle),
-                    SizedBox(
-                      height: SizeConfig.blockSizeVertical * 2,
-                    ),
-                    Expanded(child: content),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        if (loadedData && !_isFullHeight)
-          Expanded(
-            flex: 10,
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Header(title: contentTitle),
-                    SizedBox(
-                      height: SizeConfig.blockSizeVertical * 4,
-                    ),
-                    content,
-                  ],
-                ),
-              ),
-            ),
-          ),
-        if (!loadedData)
-          const Expanded(
-            flex: 10,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-        if (Responsive.isDesktop(context) && selectedMenu == 'dashboard')
-          Expanded(
-            flex: 3,
-            child: SafeArea(
-              child: Container(
-                width: double.infinity,
-                height: SizeConfig.screenHeight,
-                decoration: const BoxDecoration(color: kLBlue),
-                child: SingleChildScrollView(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-                  child: Column(
-                    children: [
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: 220,
-                            minHeight: 220,
-                            maxWidth: 350,
-                            maxHeight: 300),
-                        decoration: const BoxDecoration(
-                          color: kTransparent,
-                        ),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: 220,
-                            minHeight: 220,
-                            maxWidth: 350,
-                            maxHeight: 300),
-                        decoration: const BoxDecoration(
-                          color: kTransparent,
-                        ),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: 220,
-                            minHeight: 220,
-                            maxWidth: 350,
-                            maxHeight: 300),
-                        decoration: const BoxDecoration(
-                          color: kTransparent,
-                        ),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints(
-                            minWidth: 220,
-                            minHeight: 220,
-                            maxWidth: 350,
-                            maxHeight: 300),
-                        decoration: const BoxDecoration(
-                          color: kTransparent,
-                        ),
-                      ),
-                      // AppBarActionItems(),
-                      // PaymentDetailList(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
+  /// Marges du contenu ; chaque écran affiche son propre [ArcPageHeader].
+  static const EdgeInsets _contentPadding = EdgeInsets.fromLTRB(40, 36, 40, 48);
 
-/*
-----------------------------------
-           OTHER FILE
-----------------------------------
-*/
-
-class SideMenu extends StatefulWidget {
-  const SideMenu(
-      {super.key,
-      required this.menuItemsInfos,
-      required this.selectedMenu,
-      required this.callback,
-      required this.showRefundNotification});
-
-  final Map<int, Map<String, dynamic>> menuItemsInfos;
-  final String selectedMenu;
-  final Function(int) callback;
-  final bool showRefundNotification;
-
-  @override
-  State<SideMenu> createState() => _SideMenuState();
-}
-
-class _SideMenuState extends State<SideMenu> {
-  List<Widget> menuItems = [];
-  int? hoveredMenuIndex;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    return Drawer(
-      elevation: 0,
-      child: Container(
-        width: double.infinity,
-        height: SizeConfig.screenHeight,
-        decoration: const BoxDecoration(color: kPLGrey2),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                height: 100,
-                width: double.infinity,
-                alignment: Alignment.topCenter,
-                padding: const EdgeInsets.only(
-                    top: 20, bottom: 20, left: 20, right: 20),
-                child: SvgPicture.asset(
-                  'assets/svg/picto_tribuneo_squared.svg',
-                  fit: BoxFit.contain,
-                  alignment: Alignment.center,
-                ),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: widget.menuItemsInfos.length,
-                itemBuilder: (context, index) {
-                  final bool isSelected = widget.selectedMenu ==
-                      widget.menuItemsInfos[index]!['name'];
-                  final bool isHovered = hoveredMenuIndex == index;
-
-                  return InkWell(
-                    onTap: () {
-                      if (kDebugMode) {
-                        print(
-                            "###DEBUG### Menu clic on : ${widget.menuItemsInfos[index]!['title']}");
-                      }
-                      widget.callback(index);
-                    },
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      onEnter: (_) => setState(() => hoveredMenuIndex = index),
-                      onExit: (_) => setState(() => hoveredMenuIndex = null),
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOutCubic,
-                        opacity: isHovered ? 0.8 : 1,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOutCubic,
-                          height: 65,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? kLBlue.withValues(alpha: 0.20)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      IconButton(
-                                        iconSize: 30,
-                                        padding: const EdgeInsets.only(
-                                            top: 10.0, bottom: 2.0),
-                                        icon: Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            Icon(
-                                              widget.menuItemsInfos[index]![
-                                                  'icon'],
-                                              color: (isSelected || isHovered)
-                                                  ? kBlue
-                                                  : kLBlue,
-                                            ),
-                                            if (widget.showRefundNotification &&
-                                                widget.menuItemsInfos[index]![
-                                                        'name'] ==
-                                                    'refund')
-                                              Positioned(
-                                                right: -4,
-                                                top: -4,
-                                                child: Container(
-                                                  width: 10,
-                                                  height: 10,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                    color: Colors.red,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        onPressed: null,
-                                      ),
-                                      // Une seule ligne : l'item a une hauteur
-                                      // fixe, un libellé long est réduit.
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 4),
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            widget.menuItemsInfos[index]![
-                                                'short'],
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: (isSelected || isHovered)
-                                                  ? kBlue
-                                                  : kLBlue,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20)
-            ],
+  Widget _buildContent(BuildContext context, bool desktop) {
+    final Widget body;
+    if (!loadedData) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (_isFullHeight) {
+      body = content;
+    } else {
+      body = SingleChildScrollView(
+        padding: _contentPadding,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+            child: content,
           ),
         ),
-      ),
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (desktop) _buildMenu(),
+        Expanded(child: SafeArea(child: body)),
+      ],
     );
   }
 }

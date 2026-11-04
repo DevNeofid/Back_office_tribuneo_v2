@@ -2,6 +2,7 @@ import '../merchant_enrichment/ui/enrichment_dialog.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
@@ -163,13 +164,13 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   final FocusNode _gridFocus = FocusNode(debugLabel: 'merchant-import-grid');
 
   static const int _pageSize = 50;
-  static const double _rowHeight = 40;
+  static const double _rowHeight = 52;
 
   /// Trait vertical entre les colonnes, pour suivre une ligne.
   static final Border _cellSeparator =
-      Border(right: BorderSide(color: kLBlue.withValues(alpha: 0.45)));
+      Border(right: BorderSide(color: kBorder));
   static final Border _headerSeparator =
-      Border(right: BorderSide(color: kWhite.withValues(alpha: 0.25)));
+      Border(right: BorderSide(color: kBorder));
   static const double _headerHeight = 44;
   static const String _typePartner = 'partner';
   static const String _typeCustomer = 'customer';
@@ -876,9 +877,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Annuler')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: kOrange, foregroundColor: kBlueEnd),
+          FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Importer'),
           ),
@@ -1085,7 +1084,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         filtered.sublist(start, (start + _pageSize).clamp(0, filtered.length));
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+      padding: const EdgeInsets.fromLTRB(40, 36, 40, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1145,34 +1144,32 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   Widget _buildHeader(Map<_Filter, int> counts) {
     final int validated = counts[_Filter.validated]!;
     final String date = formatFrenchDate(_batch.createdDate);
-    return Row(
-      children: [
-        TextButton.icon(
-          onPressed: _back,
-          icon: const Icon(Icons.arrow_back, size: 18),
-          label: const Text('Lots'),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: SelectableText(
-            '${_batch.source ?? 'Lot ${_batch.id}'}'
-            '${date.isEmpty ? '' : ' — $date'}',
-            maxLines: 1,
-            style: GoogleFonts.poppins(
-                fontSize: 20, fontWeight: FontWeight.w600, color: kBlue),
-          ),
-        ),
+    return ArcPageHeader(
+      leading: TextButton.icon(
+        onPressed: _back,
+        icon: const Icon(Icons.arrow_back, size: 18),
+        label: const Text('Lots'),
+      ),
+      title: 'Relecture du lot',
+      subtitle: SelectableText(
+        '${_batch.source ?? 'Lot ${_batch.id}'}'
+        '${date.isEmpty ? '' : ' — $date'}',
+        maxLines: 1,
+        style: ArcText.dataSmall(),
+      ),
+      actions: [
+        ArcPill(_batch.statusLabel,
+            tone: _batch.isDone ? ArcTone.success : ArcTone.info,
+            icon: _batch.isDone
+                ? Icons.check_circle_outline
+                : Icons.info_outline),
         _buildSaveIndicator(),
-        const SizedBox(width: 12),
         IconButton(
           tooltip: 'Recharger',
           onPressed: _isImporting ? null : _reloadAll,
-          icon: const Icon(Icons.refresh, color: kBlue),
+          icon: const Icon(Icons.refresh_rounded),
         ),
-        const SizedBox(width: 8),
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: kOrange, foregroundColor: kPWhite),
+        FilledButton.icon(
           onPressed: validated > 0 && _editable ? _import : null,
           icon: const Icon(Icons.download_done, size: 18),
           label: Text('Importer les lignes validées ($validated)'),
@@ -1371,10 +1368,13 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                 .map((filter) => ChoiceChip(
                       label: Text('${filter.label} (${counts[filter]})'),
                       selected: _filter == filter,
-                      selectedColor: kBlue,
+                      selectedColor: kNavy100,
+                      backgroundColor: kSurface,
+                      side: BorderSide(
+                          color: _filter == filter ? kNavy300 : kBorder),
                       labelStyle: GoogleFonts.poppins(
                           fontSize: 13,
-                          color: _filter == filter ? kWhite : kBlueEnd),
+                          color: _filter == filter ? kNavy900 : kText2),
                       showCheckmark: false,
                       onSelected: (_) {
                         setState(() {
@@ -1451,25 +1451,11 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   Widget _buildPagination(int total, int page, int pageCount) {
     final int from = total == 0 ? 0 : page * _pageSize + 1;
     final int to = (page * _pageSize + _pageSize).clamp(0, total);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Text('Lignes $from–$to sur $total',
-            style: GoogleFonts.poppins(fontSize: 13, color: kGrey)),
-        const SizedBox(width: 8),
-        IconButton(
-          tooltip: 'Page précédente',
-          onPressed: page > 0 ? () => _goToPage(page - 1) : null,
-          icon: const Icon(Icons.chevron_left),
-        ),
-        Text('${page + 1} / $pageCount',
-            style: GoogleFonts.poppins(fontSize: 13, color: kBlueEnd)),
-        IconButton(
-          tooltip: 'Page suivante',
-          onPressed: page < pageCount - 1 ? () => _goToPage(page + 1) : null,
-          icon: const Icon(Icons.chevron_right),
-        ),
-      ],
+    return ArcPagination(
+      label: 'Lignes $from–$to sur $total',
+      leading: Text('${page + 1} / $pageCount', style: ArcText.dataSmall()),
+      onPrevious: page > 0 ? () => _goToPage(page - 1) : null,
+      onNext: page < pageCount - 1 ? () => _goToPage(page + 1) : null,
     );
   }
 
@@ -1600,13 +1586,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     return Focus(
       focusNode: _gridFocus,
       onKeyEvent: _onGridKey,
-      child: Container(
-        decoration: BoxDecoration(
-          color: kPWhite,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: kLBlue.withValues(alpha: 0.7)),
-        ),
-        clipBehavior: Clip.antiAlias,
+      child: ArcTableCard(
+          child: Expanded(
         child: LayoutBuilder(
           builder: (context, constraints) => Stack(
             children: [
@@ -1688,7 +1669,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 
@@ -1703,14 +1684,14 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
   Widget _headerRow(List<Widget> cells) => Container(
         height: _headerHeight,
-        color: kBlue,
+        color: kSurface2,
         child: Row(children: cells),
       );
 
   Widget _headerCell(String label, double width,
       {String? hint, String? required}) {
     final TextStyle style = GoogleFonts.poppins(
-        fontSize: 13, fontWeight: FontWeight.w600, color: kWhite);
+        fontSize: 12, fontWeight: FontWeight.w600, color: kText2);
     Widget cell = Container(
       width: width,
       decoration: BoxDecoration(border: _headerSeparator),
@@ -1721,7 +1702,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           child: Text.rich(
             TextSpan(text: label, children: [
               if (required != null)
-                const TextSpan(text: ' *', style: TextStyle(color: kOrange)),
+                const TextSpan(text: ' *', style: TextStyle(color: kOrange700)),
             ]),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1920,26 +1901,18 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         'Aucune anomalie : cochez la ligne pour la valider.',
     ];
 
-    Widget chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 14),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                    fontSize: 12, fontWeight: FontWeight.w600, color: color)),
-          ),
-        ],
-      ),
+    Widget chip = ArcPill(
+      label,
+      icon: icon,
+      tone: color == kRed
+          ? ArcTone.danger
+          : color == kGreen
+              ? ArcTone.success
+              : color == kOrange
+                  ? ArcTone.warning
+                  : color == kGrey
+                      ? ArcTone.neutral
+                      : ArcTone.info,
     );
     if (errors.isNotEmpty && _rowEditable(row)) {
       chip = MouseRegion(
@@ -2189,7 +2162,14 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
             textStyle: GoogleFonts.poppins(fontSize: 12),
           ),
           onPressed: _editable ? () => _setRejected(row, !rejected) : null,
-          child: Text(rejected ? 'Rétablir' : 'Écarter'),
+          child: Text(
+            rejected ? 'Rétablir' : 'Écarter',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: ArcText.small(
+                color:
+                    !_editable ? kText3 : (rejected ? kNavy600 : kDangerText)),
+          ),
         ),
       ),
     );
@@ -2226,9 +2206,10 @@ Future<bool?> confirmCancelBatch(BuildContext context) {
         TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Annuler')),
-        TextButton(
+        FilledButton(
+            style: arcDangerButtonStyle(),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Abandonner', style: TextStyle(color: kBlueEnd))),
+            child: const Text('Abandonner')),
       ],
     ),
   );

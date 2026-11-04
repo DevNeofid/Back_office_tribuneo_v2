@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Import · relecture du lot</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="import" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 20px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+<a href="Import.dc.html" style="display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: #63677F; text-decoration: none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Import de commerçants</a>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 34px; line-height: 1.1; letter-spacing: -0.02em; color: #1F2240">Relecture du lot</h1>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #545873">NEO_RECETTE_IMPORT_24_CAS (1).csv · 04/11/2026</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 11px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 999px; background: #F8AA36"></span>En relecture</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<button type="button" style="height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: #B3123F; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Abandonner</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Rechercher les établissements</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Importer les validées<span style="padding: 0 7px; border-radius: 999px; background: #1F2240; color: #FFFFFF; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px">{{validatedCount}}</span></button>
+</div>
+</header>
+
+<div style="padding: 0 40px 40px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<section aria-label="Lignes du lot" style="flex: 999 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; border-bottom: 1px solid #ECEDF6">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="8">
+<button type="button" onClick="{{f.pick}}" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid {{f.border}}; border-radius: 999px; background: {{f.bg}}; color: {{f.fg}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{f.label}}<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; opacity: 0.8">{{f.count}}</span></button>
+</sc-for>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="width: 4px; padding: 0"></th>
+<th style="width: 40px; padding: 10px 6px 10px 14px; text-align: left"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Relue</span></th>
+<th style="text-align: left; padding: 10px 8px; font-size: 12px; font-weight: 600; color: #545873">Statut</th>
+<th style="text-align: left; padding: 10px 8px; font-size: 12px; font-weight: 600; color: #545873">Nom <span style="color: #B3123F">*</span></th>
+<th style="text-align: left; padding: 10px 8px; font-size: 12px; font-weight: 600; color: #545873">SIRET</th>
+<th style="text-align: left; padding: 10px 8px; font-size: 12px; font-weight: 600; color: #545873">Ville</th>
+<th style="text-align: left; padding: 10px 14px 10px 8px; font-size: 12px; font-weight: 600; color: #545873">Email <span style="color: #B3123F">*</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<tr style="background: {{r.rowBg}}">
+<td style="padding: 0; border-top: 1px solid #ECEDF6; background: {{r.accent}}; width: 4px"></td>
+<td style="padding: 10px 6px 10px 14px; border-top: 1px solid #ECEDF6"><input type="checkbox" aria-label="Ligne {{r.pos}} relue" checked="{{r.checked}}" onChange="{{r.toggle}}" style="width: 18px; height: 18px; accent-color: #3A4276; margin: 0"></td>
+<td style="padding: 10px 8px; border-top: 1px solid #ECEDF6"><span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: {{r.sBg}}; color: {{r.sFg}}; font-size: 12px; font-weight: 600; white-space: nowrap"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"/></svg>{{r.status}}</span></td>
+<td style="padding: 10px 8px; border-top: 1px solid #ECEDF6"><div style="display: flex; flex-direction: column"><span style="font-weight: 600; color: #1F2240; white-space: nowrap">{{r.name}}</span><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">L{{r.pos}} · {{r.code}}</span></div></td>
+<td style="padding: 10px 8px; border-top: 1px solid #ECEDF6"><span style="display: inline-block; padding: 3px 6px; border-radius: 6px; border: 1.5px solid {{r.siretBorder}}; background: {{r.siretBg}}; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; white-space: nowrap">{{r.siret}}</span></td>
+<td style="padding: 10px 8px; border-top: 1px solid #ECEDF6; white-space: nowrap">{{r.city}}</td>
+<td style="padding: 10px 14px 10px 8px; border-top: 1px solid #ECEDF6"><span style="display: inline-block; padding: 3px 6px; border-radius: 6px; border: 1.5px solid {{r.mailBorder}}; background: {{r.mailBg}}; color: {{r.mailFg}}; font-size: 12px; white-space: nowrap">{{r.email}}</span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 16px; font-size: 12px; color: #545873; border-top: 1px solid #ECEDF6">
+<span>Survolez un statut pour la liste des anomalies ; cliquez pour aller à la première.</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–8 sur 42</span>
+</div>
+</section>
+
+<aside aria-label="Recherche d'établissements" style="flex: 1 1 380px; max-width: 440px; background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 8px 24px -10px rgba(31,34,64,0.18)">
+<div style="padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #ECEDF6">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #1F2240">Recherche d'établissements</h2>
+<button type="button" aria-label="Fermer le panneau" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #545873">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A4276" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4M12 8v4l3 2"/></svg>
+<label for="hist" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Historique des recherches</label>
+<select id="hist" style="flex: 1; height: 34px; padding: 0 8px; border: 1.5px solid #E4E5EE; border-radius: 8px; font-family: Poppins, sans-serif; font-size: 12px; color: #1B1D30; background: #FFFFFF"><option>Terminée · 04/11/2026 [heure]</option></select>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 8px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 500"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>[n] correspondances</span>
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 8px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 500"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 17h.01"/></svg>[n] ambiguïtés</span>
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 8px; background: #EEEFF4; color: #545873; font-size: 12px; font-weight: 500">[n] non résolues</span>
+</div>
+<div role="tablist" style="display: flex; padding: 3px; gap: 3px; border-radius: 10px; background: #ECEDF6">
+<button type="button" role="tab" style="flex: 1; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #545873; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Lignes à rechercher</button>
+<button type="button" role="tab" style="flex: 1; height: 32px; border: 0; border-radius: 8px; background: #FFFFFF; color: #1F2240; box-shadow: 0 1px 3px rgba(31,34,64,0.15); font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Propositions</button>
+</div>
+</div>
+
+<div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: flex-start; gap: 10px">
+<span style="width: 28px; height: 28px; flex: 0 0 auto; border-radius: 8px; background: #FFF2DC; color: #9A5B00; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 17h.01"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
+<span style="font-weight: 600; color: #1F2240">Ligne 5 · Atelier Vélo Durance</span>
+<span style="font-size: 12px; color: #9A5B00">Ambiguïté · 2 candidats</span>
+<span style="font-size: 12px; color: #63677F">Nom proche · même commune · adresse différente</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Préciser la recherche</button>
+<span style="display: inline-flex; padding: 2px; border-radius: 999px; background: conic-gradient(from 210deg, #7C4DFF, #2979FF, #00BFA5, #FFC400, #FF6D00, #F50057, #7C4DFF)"><button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #FFFFFF; color: #292D52; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="neoR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C4DFF"/><stop offset="0.35" stop-color="#2979FF"/><stop offset="0.6" stop-color="#00BFA5"/><stop offset="0.8" stop-color="#FF6D00"/><stop offset="1" stop-color="#F50057"/></linearGradient></defs><path fill="url(#neoR)" d="M11 2.5l1.9 5.1 5.1 1.9-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9zM18 14l.9 2.1 2.1.9-2.1.9L18 20l-.9-2.1-2.1-.9 2.1-.9z"/></svg>Comparer avec Néo</button></span>
+</div>
+
+<div style="border-radius: 14px; background: #F5F5FA; border: 1px solid #D9DBEE; overflow: hidden">
+<div style="position: relative; height: 170px; border-bottom: 1px solid #D9DBEE">
+<svg viewBox="0 0 400 170" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Plan IGN autour du candidat">
+<rect width="400" height="170" fill="#F3F0E8"/>
+<path d="M0 128 C 80 118, 150 146, 230 128 S 340 100, 400 108 L400 128 C 340 120, 290 146, 230 150 S 80 140, 0 150Z" fill="#B9DAF2"/>
+<rect x="270" y="14" width="100" height="44" rx="6" fill="#D9E8C9"/>
+<rect x="20" y="18" width="56" height="26" rx="3" fill="#E4DDCF"/><rect x="88" y="18" width="48" height="26" rx="3" fill="#E4DDCF"/><rect x="20" y="64" width="44" height="36" rx="3" fill="#E4DDCF"/><rect x="160" y="18" width="64" height="22" rx="3" fill="#E4DDCF"/><rect x="160" y="76" width="54" height="26" rx="3" fill="#E4DDCF"/><rect x="250" y="76" width="80" height="24" rx="3" fill="#E4DDCF"/><rect x="84" y="74" width="46" height="30" rx="3" fill="#E4DDCF"/>
+<path d="M0 54 H400" stroke="#FFFFFF" stroke-width="10"/><path d="M0 54 H400" stroke="#F6C76B" stroke-width="5"/>
+<path d="M146 0 V170" stroke="#FFFFFF" stroke-width="7"/>
+<path d="M0 68 L400 68" stroke="#FFFFFF" stroke-width="4"/>
+<path d="M238 0 L238 120" stroke="#FFFFFF" stroke-width="5"/>
+<circle cx="196" cy="70" r="24" fill="#F8AA36" fill-opacity="0.18" stroke="#F8AA36" stroke-opacity="0.8" stroke-width="2"/>
+<path d="M196 66 c-7-9-11-14-11-19 a11 11 0 0 1 22 0 c0 5-4 10-11 19z" fill="#E61B54" stroke="#FFFFFF" stroke-width="2"/>
+<circle cx="196" cy="47" r="4" fill="#FFFFFF"/>
+<path d="M306 92 c-5-7-8-10-8-14 a8 8 0 0 1 16 0 c0 4-3 7-8 14z" fill="#3A4276" fill-opacity="0.75" stroke="#FFFFFF" stroke-width="1.6"/>
+</svg>
+<div style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 6px rgba(31,34,64,0.2); overflow: hidden">
+<button type="button" aria-label="Zoomer" style="width: 30px; height: 30px; border: 0; background: #FFFFFF; color: #3A4276; font-size: 16px; cursor: pointer">+</button>
+<button type="button" aria-label="Dézoomer" style="width: 30px; height: 30px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; font-size: 16px; cursor: pointer">−</button>
+<button type="button" aria-label="Agrandir et ajuster le point" style="width: 30px; height: 30px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"/></svg></button>
+</div>
+<div style="position: absolute; left: 8px; bottom: 8px; display: flex; gap: 6px">
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); font-size: 10px; color: #545873"><span style="width: 8px; height: 8px; border-radius: 999px; background: #E61B54"></span>Proposée</span>
+<span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); font-size: 10px; color: #545873"><span style="width: 8px; height: 8px; border-radius: 999px; background: #3A4276"></span>Fichier</span>
+</div>
+<span style="position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.85); font-size: 9px; color: #545873">© IGN · Plan IGN</span>
+</div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-weight: 600; color: #292D52">Candidat 1 · [Raison sociale] · [adresse], Oraison</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 3px 9px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 500">Établissement</span>
+<span style="padding: 3px 9px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">SIRET [SIRET]</span>
+<span style="padding: 3px 9px; border-radius: 8px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 500">Correspondance partielle</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Retenir</button>
+<button type="button" style="height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">annuaire-entreprises</button>
+</div>
+</div>
+</div>
+
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1px solid #E4E5EE">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 600; color: #292D52; font-size: 13px">Candidat 2 · Adresse seule</span>
+<span style="font-size: 12px; color: #63677F">[adresse], Oraison</span>
+</div>
+<button type="button" aria-label="Déplier le candidat 2" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all', checked: { 4: true } };
+  }
+  renderVals() {
+    const ST = {
+      fix: (n) => ({ kind: 'errors', status: n + ' à corriger', sBg: '#FDEAF0', sFg: '#B3123F', accent: '#E61B54', icon: 'M12 7.5v5.5M12 16.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0' }),
+      warn: (n) => ({ kind: 'pending', status: n + ' à vérifier', sBg: '#FFF2DC', sFg: '#9A5B00', accent: '#F8AA36', icon: 'M12 4 2.5 20h19zM12 10v4M12 17h.01' }),
+      ready: () => ({ kind: 'pending', status: 'Prête à valider', sBg: '#ECEDF6', sFg: '#3A4276', accent: '#3A4276', icon: 'm5 12 5 5 9-10' }),
+      ok: () => ({ kind: 'validated', status: 'Validée', sBg: '#E7F7EC', sFg: '#0B7A34', accent: '#14B946', icon: 'm5 12 5 5 9-10' }),
+      out: () => ({ kind: 'rejected', status: 'Écartée', sBg: '#EEEFF4', sFg: '#545873', accent: '#CDCFDD', icon: 'M8 12h8' })
+    };
+    const cell = (bad) => bad ? { b: '#E61B54', bg: '#FDEAF0' } : { b: 'transparent', bg: 'transparent' };
+    const data = [
+      { pos: 1, name: 'Boulangerie Les Arcades', code: 'BLA01', siret: '1234 5678 9', city: 'Manosque', email: 'requis', badSiret: true, badMail: true, st: ST.fix(3) },
+      { pos: 2, name: 'Fromagerie du Pré', code: 'FDP02', siret: '123 456 789 00012', city: 'Sisteron', email: 'contact@[domaine]', st: ST.warn(2) },
+      { pos: 3, name: 'Librairie La Plume', code: 'LLP03', siret: '123 456 789 00020', city: 'Forcalquier', email: 'bonjour@[domaine]', st: ST.ready() },
+      { pos: 4, name: 'Cave Saint-Jean', code: 'CSJ04', siret: '123 456 789 00038', city: 'Digne-les-Bains', email: 'cave@[domaine]', st: ST.ok() },
+      { pos: 5, name: 'Atelier Vélo Durance', code: 'AVD05', siret: '123 456 789 00046', city: 'Oraison', email: 'atelier@[domaine]', st: ST.warn(1), selected: true },
+      { pos: 6, name: 'Pizzeria Bella Vista', code: 'PBV06', siret: '123 456 789 00053', city: 'Barcelonnette', email: 'requis', badMail: true, st: ST.fix(1) },
+      { pos: 7, name: 'Fromagerie du Pré', code: 'FDP02', siret: '123 456 789 00012', city: 'Sisteron', email: 'doublon de L2', st: ST.out() },
+      { pos: 8, name: 'Institut Belle Peau', code: 'IBP08', siret: '123 456 789 00061', city: 'Riez', email: 'rdv@[domaine]', st: ST.ready() }
+    ];
+    const rows = data.map((r, i) => {
+      const s = cell(r.badSiret), m = cell(r.badMail);
+      const checked = !!this.state.checked[i] || r.st.kind === 'validated';
+      return {
+        ...r, ...r.st,
+        checked,
+        toggle: () => this.setState({ checked: { ...this.state.checked, [i]: !this.state.checked[i] } }),
+        rowBg: r.selected ? '#FFFBF3' : '#FFFFFF',
+        siretBorder: s.b, siretBg: s.bg,
+        mailBorder: m.b, mailBg: m.bg, mailFg: r.badMail ? '#B3123F' : '#1B1D30'
+      };
+    });
+    const tests = {
+      all: () => true,
+      pending: (r) => r.kind === 'pending',
+      errors: (r) => r.kind === 'errors',
+      validated: (r) => r.kind === 'validated',
+      rejected: (r) => r.kind === 'rejected'
+    };
+    const filters = [
+      { id: 'all', label: 'Toutes', count: '42' },
+      { id: 'pending', label: 'À relire', count: '23' },
+      { id: 'errors', label: 'En anomalie', count: '18' },
+      { id: 'enriched', label: 'Complétées par la recherche', count: '' },
+      { id: 'validated', label: 'Validées', count: '1' },
+      { id: 'rejected', label: 'Écartées', count: '' },
+      { id: 'imported', label: 'Importées', count: '0' },
+      { id: 'failed', label: 'En échec', count: '' }
+    ].map((f) => {
+      const on = this.state.filter === f.id;
+      return { ...f, bg: on ? '#1F2240' : '#FFFFFF', fg: on ? '#FFFFFF' : '#31376A', border: on ? '#1F2240' : '#E4E5EE', pick: () => this.setState({ filter: f.id }) };
+    });
+    const test = tests[this.state.filter] || (() => false);
+    return {
+      filters,
+      rows: rows.filter(test),
+      validatedCount: String(rows.filter((r) => r.kind === 'validated').length)
+    };
+  }
+}
+</script>
+</body>
+</html>

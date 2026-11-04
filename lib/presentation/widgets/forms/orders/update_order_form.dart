@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/order_error_messages.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
@@ -11,12 +9,11 @@ import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/beneficiaries_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 
 /// Modification d'une commande (`PUT /order/{id}`).
 ///
@@ -49,7 +46,6 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   List<UrssafModel> _urssafEvent = [];
   final OrderUseCase _orderUseCase = OrderUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool isChecked = false;
   late OrderModel modifyItem;
   UrssafModel? _selectedUrssafEvent;
 
@@ -90,7 +86,6 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   void _buildRows() {
     neorow = [];
     final List<OrderItems> items = modifyItem.orderItems ?? [];
-    isChecked = items.length > 1;
     for (final item in items) {
       neorow.add(NeoRow(
         key: UniqueKey(),
@@ -131,6 +126,24 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
     return before.entries.any((entry) => (after[entry.key] ?? 0) < entry.value);
   }
 
+  /// Lignes enregistrées (montant, quantité).
+  Iterable<MapEntry<num, int>> get _initialLines => (modifyItem.orderItems ??
+          [])
+      .map((item) => MapEntry(item.amount ?? 0, item.quantity ?? 0));
+
+  /// Nombre de bons retirés par [lines] : baisse de quantité, montant par
+  /// montant (affichage seulement ; l'API fait foi).
+  int _removedVouchers(Iterable<MapEntry<num, int>> lines) {
+    final Map<double, int> before = _quantitiesByAmount(_initialLines);
+    final Map<double, int> after = _quantitiesByAmount(lines);
+    int removed = 0;
+    for (final entry in before.entries) {
+      final int decrease = entry.value - (after[entry.key] ?? 0);
+      if (decrease > 0) removed += decrease;
+    }
+    return removed;
+  }
+
   Future<void> sendModifiedOrder() async {
     if (_invoiced || _isSaving) return;
     if (!_formKey.currentState!.validate()) {
@@ -169,26 +182,25 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
       }
 
       if (_hasQuantityDecrease(items)) {
+        final int removed = _removedVouchers(items.map((item) =>
+            MapEntry(item['amount'] as num, item['quantity'] as int)));
         final bool? confirmed = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Retrait de bons'),
-            content: const SizedBox(
-              width: 480,
-              child: Text(
-                  'Les bons retirés seront les derniers créés parmi ceux qui ne '
-                  'sont pas encore attribués. Si leurs QR ont déjà été imprimés et '
-                  'distribués, ils ne seront plus valables. Continuer ?'),
-            ),
+          builder: (context) => ArcDialog(
+            icon: Icons.warning_amber_rounded,
+            tone: ArcTone.warning,
+            title: 'Retrait de $removed bon(s)',
+            content: const Text(
+                'Les bons retirés seront les derniers créés parmi ceux qui ne '
+                'sont pas encore attribués. Si leurs QR ont déjà été imprimés et '
+                'distribués, ils ne seront plus valables. Continuer ?'),
             actions: [
-              TextButton(
+              OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Annuler')),
-              TextButton(
+              FilledButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Continuer',
-                      style:
-                          TextStyle(color: kRed, fontWeight: FontWeight.bold))),
+                  child: const Text('Continuer')),
             ],
           ),
         );
@@ -306,359 +318,275 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
     super.dispose();
   }
 
-  Widget _notice(String text, {Widget? action}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: kOrange.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline, color: kOrange),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(text,
-                style: GoogleFonts.poppins(fontSize: 14, color: kBlueEnd)),
-          ),
-          if (action != null) ...[const SizedBox(width: 12), action],
-        ],
-      ),
-    );
+  // ---------------------------------------------------------------------------
+  // Affichage
+  // ---------------------------------------------------------------------------
+
+  void _close() => Navigator.pop(context, _hasChanged);
+
+  /// « C202610161 · créée le 16/10/2026 », sans les parties absentes.
+  String get _eyebrow {
+    final String number = modifyItem.orderNumber?.trim() ?? '';
+    final String created = formatFrenchDate(modifyItem.createdDate?.date);
+    return [
+      if (number.isNotEmpty) number,
+      if (created.isNotEmpty) 'créée le $created',
+    ].join(' · ');
   }
 
   @override
   Widget build(BuildContext context) {
-    Color getColor(Set<WidgetState> states) {
-      const Set<WidgetState> interactiveStates = <WidgetState>{
-        WidgetState.pressed,
-        WidgetState.hovered,
-        WidgetState.focused,
-      };
-      if (states.any(interactiveStates.contains)) {
-        return kOrange;
-      }
-      return kBlue;
-    }
-
-    SizeConfig().init(context);
-
+    final String eyebrow = _eyebrow;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) Navigator.pop(context, _hasChanged);
       },
-      child: AlertDialog(
-        backgroundColor: kTransparent,
-        contentPadding: const EdgeInsets.all(0),
-        content: Form(
-          key: _formKey,
-          child: SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
+      child: Form(
+        key: _formKey,
+        child: OrderSheet(
+          semanticLabel: 'Modifier la commande',
+          width: 620,
+          header: OrderSheetHeader(
+            eyebrow: eyebrow.isEmpty
+                ? null
+                : OrderSheetEyebrow(eyebrow, data: true),
+            title: 'Modifier la commande',
+            trailing: [
+              OrderSheetCloseButton(onPressed: _isSaving ? null : _close),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ..._notices(),
+              _buildFields(),
+              const SizedBox(height: 18),
+              _buildLines(),
+            ],
+          ),
+          footer: OrderSheetFooter(
+            actions: [
+              OutlinedButton(
+                onPressed: _isSaving ? null : _close,
+                child: const Text('Fermer'),
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Center(
-                      child: SelectableText(
-                        "Modifier la commande ${modifyItem.orderNumber ?? ''}",
-                        style: GoogleFonts.poppins(
-                            fontSize: 32,
-                            letterSpacing: 0.3,
-                            fontWeight: FontWeight.w600,
-                            color: kOrange),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    if (_invoiced)
-                      _notice(
-                          OrderErrorMessages.forCode('ORDER_INVOICED', const {})!),
-                    if (!_invoiced && _imported)
-                      _notice(
-                        'Commande importée par fichier : les montants et les '
-                        'quantités se modifient depuis l\'écran Bénéficiaires.',
-                        action: NeoButton(
-                          width: 160,
-                          height: 40,
-                          fontSize: 13,
-                          verticalPadding: 0,
-                          horizontalPadding: 0,
-                          backgroundColor: kBlue,
-                          text: 'Bénéficiaires',
-                          onPressed: _openBeneficiaries,
-                        ),
-                      ),
-                    if (!_invoiced && _fromShop)
-                      _notice(OrderErrorMessages.forCode(
-                          'SHOP_ORDER_LINES', const {})!),
-                    SizedBox(
-                      height: 60,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: GestureDetector(
-                              onTap: _invoiced
-                                  ? null
-                                  : () => _selectExpiryDate(context),
-                              child: AbsorbPointer(
-                                child: NeoInput(
-                                  controller: expiryDateController,
-                                  hintText: 'Date d\'expiration',
-                                  fillColor: kPWhite,
-                                  readOnly: true,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            flex: 2,
-                            child: NeoButton(
-                              width: 100,
-                              height: 40,
-                              verticalPadding: 0,
-                              horizontalPadding: 0,
-                              fontSize: 12,
-                              text: _invoiced
-                                  ? 'Changer la date de validité'
-                                  : 'Choisir une date',
-                              backgroundColor: kBlue,
-                              onPressed: () {
-                                _invoiced
-                                    ? _changeExpiryDateOfInvoicedOrder()
-                                    : _selectExpiryDate(context);
-                              },
-                            ),
-                          ),
-                          !Responsive.isMobile(context)
-                              ? Expanded(
-                                  flex: Responsive.isDesktop(context) ? 4 : 2,
-                                  child: const SizedBox(height: 10),
-                                )
-                              : const SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.screenHeight * 0.01),
-                    if (!_linesLocked)
-                      SizedBox(
-                        height: 60,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Text(
-                                "Différents fonds ?",
-                                style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    letterSpacing: 0.3,
-                                    fontWeight: FontWeight.w600,
-                                    color: kBlue),
-                              ),
-                            ),
-                            Expanded(
-                                flex: 0,
-                                child: Checkbox(
-                                  checkColor: Colors.white,
-                                  fillColor:
-                                      WidgetStateProperty.resolveWith(getColor),
-                                  value: isChecked,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      isChecked = value!;
-                                      if (neorow.length != 1) {
-                                        neorow.removeRange(1, neorow.length);
-                                      }
-                                    });
-                                  },
-                                )),
-                            !Responsive.isMobile(context)
-                                ? Expanded(
-                                    flex: Responsive.isDesktop(context) ? 3 : 1,
-                                    child: const SizedBox(height: 10),
-                                  )
-                                : const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
-                    SizedBox(height: SizeConfig.screenHeight * 0.01),
-                    ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: neorow.length,
-                        itemBuilder: (_, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: neorow[index],
-                          );
-                        }),
-                    if (isChecked && !_linesLocked)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            child: RawMaterialButton(
-                              onPressed: () {
-                                setState(() {
-                                  neorow.add(NeoRow(key: UniqueKey()));
-                                });
-                              },
-                              padding: const EdgeInsets.all(15.0),
-                              shape: const CircleBorder(
-                                side: BorderSide(
-                                  color: kBlue,
-                                  width: 1,
-                                ),
-                              ),
-                              elevation: 2.0,
-                              child: const Icon(
-                                Icons.add,
-                                color: kBlue,
-                              ),
-                            ),
-                          ),
-                          if (neorow.length > 1)
-                            SizedBox(
-                                child: RawMaterialButton(
-                              onPressed: () {
-                                setState(() {
-                                  neorow.removeLast();
-                                });
-                              },
-                              padding: const EdgeInsets.all(15.0),
-                              shape: const CircleBorder(
-                                side: BorderSide(
-                                  color: kBlue,
-                                  width: 1,
-                                ),
-                              ),
-                              elevation: 2.0,
-                              child: const Icon(
-                                Icons.remove,
-                                color: kBlue,
-                              ),
-                            )),
-                        ],
-                      ),
-                    SizedBox(height: SizeConfig.screenHeight * 0.01),
-                    SizedBox(
-                      height: 60,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: giftFromController,
-                              decoration: InputDecoration(
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 18,
-                                ),
-                                labelText: 'Offert par',
-                                filled: true,
-                                hintStyle: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w300,
-                                  color: kGrey,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              readOnly: true,
-                            ),
-                          ),
-                          !Responsive.isMobile(context)
-                              ? Expanded(
-                                  flex: Responsive.isDesktop(context) ? 3 : 1,
-                                  child: const SizedBox(height: 10),
-                                )
-                              : const SizedBox(height: 10),
-                          Expanded(
-                            flex: 2,
-                            child: DropdownButtonFormField<UrssafModel>(
-                              // Recréé une fois la liste chargée : la valeur
-                              // initiale n'est lue qu'à la création du champ.
-                              key: ValueKey(
-                                  'urssaf-${_urssafEvent.length}-${_selectedUrssafEvent?.id}'),
-                              items: _urssafEvent
-                                  .map((event) => DropdownMenuItem<UrssafModel>(
-                                        value: event,
-                                        child: Text(event.name ?? ''),
-                                      ))
-                                  .toList(),
-                              onChanged: _invoiced
-                                  ? null
-                                  : (value) {
-                                      setState(() {
-                                        _selectedUrssafEvent = value;
-                                      });
-                                    },
-                              initialValue: _selectedUrssafEvent,
-                              decoration: InputDecoration(
-                                labelText: "Pour l'occasion de",
-                                labelStyle:
-                                    const TextStyle(color: Colors.grey),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 16),
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: SizeConfig.screenHeight * 0.04),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: _isSaving
-                              ? null
-                              : () => Navigator.pop(context, _hasChanged),
-                          child: const Text('Fermer'),
-                        ),
-                        const SizedBox(width: 20),
-                        if (!_invoiced)
-                          _isSaving
-                              ? const SizedBox(
-                                  height: 40,
-                                  width: 40,
-                                  child: CircularProgressIndicator(
-                                    color: kOrange,
-                                  ),
-                                )
-                              : NeoButton(
-                                  text: "Enregistrer",
-                                  onPressed: sendModifiedOrder),
-                      ],
-                    ),
-                  ],
+              if (!_invoiced)
+                FilledButton(
+                  onPressed: _isSaving ? null : sendModifiedOrder,
+                  child: _isSaving
+                      ? const OrderButtonSpinner()
+                      : const Text('Enregistrer'),
                 ),
-              ),
-            ),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  List<Widget> _notices() {
+    final List<Widget> notices = [
+      if (_invoiced)
+        OrderNotice(
+          OrderErrorMessages.forCode('ORDER_INVOICED', const {})!,
+          warning: true,
+          action: FilledButton(
+            style: orderCompactButtonStyle(),
+            onPressed: _changeExpiryDateOfInvoicedOrder,
+            child: const Text('Changer la date de validité'),
+          ),
+        ),
+      if (!_invoiced && _imported)
+        OrderNotice(
+          'Commande importée par fichier : les montants et les '
+          'quantités se modifient depuis l\'écran Bénéficiaires.',
+          action: ElevatedButton(
+            style: orderCompactButtonStyle(),
+            onPressed: _openBeneficiaries,
+            child: const Text('Bénéficiaires'),
+          ),
+        ),
+      if (!_invoiced && _fromShop)
+        OrderNotice(OrderErrorMessages.forCode('SHOP_ORDER_LINES', const {})!),
+    ];
+    return [
+      for (final notice in notices) ...[notice, const SizedBox(height: 18)],
+    ];
+  }
+
+  Widget _buildFields() {
+    final List<Widget> fields = [
+      OrderField(
+        label: 'Offert par',
+        child: TextFormField(
+          controller: giftFromController,
+          readOnly: true,
+          style: ArcText.body(),
+          decoration: orderReadOnlyDecoration(),
+        ),
+      ),
+      OrderField(
+        label: "Pour l'occasion de",
+        child: DropdownButtonFormField<UrssafModel>(
+          // Recréé une fois la liste chargée : la valeur
+          // initiale n'est lue qu'à la création du champ.
+          key: ValueKey(
+              'urssaf-${_urssafEvent.length}-${_selectedUrssafEvent?.id}'),
+          isExpanded: true,
+          hint: const Text("Choisir l'occasion (URSSAF)",
+              overflow: TextOverflow.ellipsis),
+          items: _urssafEvent
+              .map((event) => DropdownMenuItem<UrssafModel>(
+                    value: event,
+                    child:
+                        Text(event.name ?? '', overflow: TextOverflow.ellipsis),
+                  ))
+              .toList(),
+          onChanged: _invoiced
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedUrssafEvent = value;
+                  });
+                },
+          initialValue: _selectedUrssafEvent,
+          decoration:
+              _invoiced ? orderReadOnlyDecoration() : const InputDecoration(),
+        ),
+      ),
+      OrderField(
+        label: "Date d'expiration",
+        child: TextFormField(
+          controller: expiryDateController,
+          readOnly: true,
+          style: ArcText.data(),
+          onTap: _invoiced ? null : () => _selectExpiryDate(context),
+          decoration: _invoiced
+              ? orderReadOnlyDecoration(
+                  prefixIcon: const Icon(Icons.calendar_month_outlined,
+                      size: 18))
+              : const InputDecoration(
+                  hintText: 'Jour/Mois/Année',
+                  prefixIcon: Icon(Icons.calendar_month_outlined,
+                      size: 18, color: kNavy600),
+                ),
+        ),
+      ),
+      OrderField(
+        label: 'Paiement',
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: OrderPaymentStatus.of(modifyItem).pill(detailed: true),
+          ),
+        ),
+      ),
+    ];
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final bool twoColumns = constraints.maxWidth >= 420;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (int i = 0; i < fields.length; i += twoColumns ? 2 : 1) ...[
+            if (i > 0) const SizedBox(height: 14),
+            if (twoColumns)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: fields[i]),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: i + 1 < fields.length
+                          ? fields[i + 1]
+                          : const SizedBox.shrink()),
+                ],
+              )
+            else
+              fields[i],
+          ],
+        ],
+      );
+    });
+  }
+
+  Widget _buildLines() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Bons', style: ArcText.cardTitle()),
+        const SizedBox(height: 10),
+        for (int i = 0; i < neorow.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          OrderLineBox(
+            trailing: !_linesLocked && neorow.length > 1
+                ? IconButton(
+                    tooltip: 'Retirer la ligne',
+                    color: kDangerText,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    onPressed: () {
+                      setState(() {
+                        neorow.removeAt(i);
+                      });
+                    },
+                  )
+                : null,
+            child: neorow[i],
+          ),
+        ],
+        const SizedBox(height: 10),
+        _quantityHint(),
+        if (!_linesLocked) ...[
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: kNavy400, width: 1.5),
+              ).merge(orderCompactButtonStyle()),
+              onPressed: () {
+                setState(() {
+                  neorow.add(NeoRow(key: UniqueKey()));
+                });
+              },
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: const Text('Ajouter un autre montant'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// « Actuellement 5 bons : 2 seront retirés. », recalculé à la saisie.
+  Widget _quantityHint() {
+    if (_linesLocked) {
+      return Text('Lignes non modifiables ici.',
+          style: ArcText.small(color: kText2));
+    }
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        for (final row in neorow) ...[
+          row.fundNumberController,
+          row.fundValueController,
+        ],
+      ]),
+      builder: (context, _) {
+        final int current =
+            _initialLines.fold<int>(0, (sum, line) => sum + line.value);
+        final int removed = _removedVouchers(neorow.map((row) => MapEntry(
+            num.tryParse(row.fundValueController.text) ?? 0,
+            int.tryParse(row.fundNumberController.text) ?? 0)));
+        return Text(
+          removed > 0
+              ? 'Actuellement ${plural(current, 'bon')} : $removed '
+                  '${removed > 1 ? 'seront retirés' : 'sera retiré'}.'
+              : 'Actuellement ${plural(current, 'bon')}.',
+          style: ArcText.small(color: removed > 0 ? kWarningText : kText2),
+        );
+      },
     );
   }
 }

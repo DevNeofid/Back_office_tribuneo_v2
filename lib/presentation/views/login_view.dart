@@ -1,14 +1,12 @@
 import 'package:back_office_tribuneo_v2/presentation/views/_base_view.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/rate_limit_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/login_usecase.dart';
 import 'package:back_office_tribuneo_v2/domain/models/user_model.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:flutter/services.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_service.dart';
 import 'package:back_office_tribuneo_v2/domain/repositories/network_repository.dart';
@@ -33,6 +31,14 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
   bool _showPassword = true;
   bool _isLoading = false;
 
+  /// Échec de la dernière tentative, affiché au-dessus des champs.
+  String? _errorMessage;
+
+  void _showError(String message) {
+    if (!mounted) return;
+    setState(() => _errorMessage = message);
+  }
+
   void _redirect({String routeName = '/'}) {
     Navigator.pushNamedAndRemoveUntil(context, routeName, (route) => false);
   }
@@ -48,16 +54,8 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
       });
     }
 
-    final messenger = snackbarKey.currentState ?? ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: const Text(
-          'Accès refusé : votre compte n\'est pas un compte administrateur.',
-        ),
-        backgroundColor: Colors.red.shade300,
-      ),
-    );
+    _showError(
+        'Accès refusé : votre compte n\'est pas un compte administrateur.');
   }
 
   @override
@@ -66,12 +64,21 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
   }
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   void onDataReceived(dynamic data) {}
 
   Future<void> login() async {
+    if (_isLoading) return;
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
+        _errorMessage = null;
       });
 
       try {
@@ -120,14 +127,7 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
           });
         }
 
-        snackbarKey.currentState?.hideCurrentSnackBar();
-        snackbarKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(e.userMessage),
-            backgroundColor: Colors.red.shade300,
-            duration: const Duration(seconds: 8),
-          ),
-        );
+        _showError(e.userMessage);
       } catch (e) {
         if (mounted) {
           setState(() {
@@ -135,198 +135,240 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
           });
         }
 
-        snackbarKey.currentState?.hideCurrentSnackBar();
-        snackbarKey.currentState?.showSnackBar(
-          SnackBar(
-            content: const Text(
-                "Erreur de connexion. Veuillez vérifier vos identifiants."),
-            backgroundColor: Colors.red.shade300,
-          ),
-        );
+        _showError("Erreur de connexion. Veuillez vérifier vos identifiants.");
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: kWhite,
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(kOrange),
-              ),
-            )
-          : Column(
-              children: [
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        margin: const EdgeInsets.only(top: 150, bottom: 20),
-                        height: screenSize.height * 0.20,
-                        width: screenSize.width,
-                        decoration: const BoxDecoration(
-                          color: kWhite,
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(50),
-                            bottomRight: Radius.circular(50),
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 70,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Center(
-                                    child: SvgPicture.asset(
-                                      'assets/svg/logo_tribuneo.svg',
-                                      fit: BoxFit.contain,
-                                      alignment: Alignment.topCenter,
-                                      width: 280,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            Text(
-                              "Backoffice",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 34,
-                                  letterSpacing: 0.3,
-                                  fontWeight: FontWeight.w500,
-                                  color: kGrey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SizedBox(
-                        width: 400,
-                        child: AutofillGroup(
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                autofillHints: const [AutofillHints.username],
-                                controller: usernameController,
-                                decoration: const InputDecoration(
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(width: 2, color: kBlue),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                  ),
-                                  labelText: "Nom d'utilisateur",
-                                  labelStyle: TextStyle(
-                                    color: kBlue,
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.person,
-                                    color: kBlue,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                                validator: (String? value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Entrez un identifiant valide';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              TextFormField(
-                                autofillHints: const [AutofillHints.password],
-                                controller: passwordController,
-                                obscureText: _showPassword,
-                                decoration: InputDecoration(
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(width: 2, color: kBlue),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                  ),
-                                  labelText: "Mot de passe",
-                                  labelStyle: const TextStyle(
-                                    color: kBlue,
-                                  ),
-                                  prefixIcon: const Icon(
-                                    Icons.lock,
-                                    color: kBlue,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    hoverColor: kLBlue,
-                                    splashRadius: 16,
-                                    icon: Icon(
-                                      _showPassword
-                                          ? Icons.visibility
-                                          : Icons.visibility_off,
-                                      color: kBlue,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _showPassword = !_showPassword;
-                                      });
-                                    },
-                                  ),
-                                  border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(
-                                      Radius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              SizedBox(
-                                height: 50,
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    NeoButton(
-                                      key: UniqueKey(),
-                                      text: "Connexion",
-                                      onPressed: login,
-                                      fontSize: 16,
-                                      foregroundColor: kPWhite,
-                                      backgroundColor: kOrange,
-                                      shadowColor: kBlue,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+      backgroundColor: kCanvas,
+      body: LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth >= 960) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Expanded(flex: 52, child: _BrandPanel()),
+              Expanded(
+                flex: 48,
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 48),
+                    child: _buildForm(),
                   ),
                 ),
+              ),
+            ],
+          );
+        }
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 300, child: _BrandPanel(compact: true)),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                child: Center(child: _buildForm()),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _fieldLabel(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Text(text,
+            style: ArcText.body(color: kNavy700)
+                .copyWith(fontSize: 13, fontWeight: FontWeight.w500)),
+      );
+
+  Widget _buildForm() {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child: Form(
+        key: _formKey,
+        child: AutofillGroup(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Connexion',
+                  style: ArcText.display().copyWith(fontSize: 36, height: 1.1)),
+              const SizedBox(height: 6),
+              Text('Réservée aux comptes administrateurs.',
+                  style: ArcText.body(color: kText2)),
+              const SizedBox(height: 22),
+              if (_errorMessage != null) ...[
+                _ErrorBanner(_errorMessage!),
+                const SizedBox(height: 22),
               ],
+              _fieldLabel("Nom d'utilisateur"),
+              Semantics(
+                label: "Nom d'utilisateur",
+                child: TextFormField(
+                  autofillHints: const [AutofillHints.username],
+                  controller: usernameController,
+                  textInputAction: TextInputAction.next,
+                  style: ArcText.body().copyWith(fontSize: 15),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                  ),
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Entrez un identifiant valide';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 22),
+              _fieldLabel('Mot de passe'),
+              Semantics(
+                label: 'Mot de passe',
+                child: TextFormField(
+                  autofillHints: const [AutofillHints.password],
+                  controller: passwordController,
+                  obscureText: _showPassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => login(),
+                  style: ArcText.body().copyWith(fontSize: 15),
+                  decoration: InputDecoration(
+                    prefixIcon:
+                        const Icon(Icons.lock_outline_rounded, size: 20),
+                    suffixIcon: IconButton(
+                      tooltip: _showPassword
+                          ? 'Afficher le mot de passe'
+                          : 'Masquer le mot de passe',
+                      color: kNavy600,
+                      icon: Icon(
+                        _showPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              FilledButton(
+                onPressed: _isLoading ? null : login,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                  textStyle: ArcText.body()
+                      .copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: kNavy600),
+                      )
+                    : const Text('Se connecter'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Panneau navy de gauche : logo, accroche et motif des arcs.
+class _BrandPanel extends StatelessWidget {
+  final bool compact;
+  const _BrandPanel({this.compact = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(color: kNavy900),
+      child: Stack(children: [
+        Positioned(
+          right: compact ? -60 : -90,
+          bottom: compact ? -40 : 120,
+          child: Opacity(
+            opacity: compact ? 0.22 : 1,
+            child: ArcPicto(
+                width: compact ? 300 : 560, ink: kNavy700, accent: kOrange),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(compact ? 32 : 56),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const ArcWordmark(height: 40),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('BACKOFFICE',
+                        style: ArcText.dataSmall(color: kNavy400)
+                            .copyWith(letterSpacing: 1.3)),
+                    const SizedBox(height: 12),
+                    Text("L'espace de gestion du réseau Tribuneo",
+                        style: ArcText.display(color: Colors.white)
+                            .copyWith(fontSize: compact ? 34 : 52, height: 1)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Alerte d'échec de connexion (fond framboise clair).
+class _ErrorBanner extends StatelessWidget {
+  final String message;
+  const _ErrorBanner(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: kDangerBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xffF7B9CB)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 1),
+              child: Icon(Icons.error_outline_rounded,
+                  size: 18, color: kDangerText),
             ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(message,
+                  style:
+                      ArcText.body(color: kDangerText).copyWith(fontSize: 13)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

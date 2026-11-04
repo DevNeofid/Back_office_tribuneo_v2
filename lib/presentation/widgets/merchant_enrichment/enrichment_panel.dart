@@ -9,6 +9,7 @@ import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dar
 import 'chat_comparison.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../config/responsive.dart';
 import '../assistant/assistant_docked_panel.dart';
 import '../assistant/neo_ai_button.dart';
@@ -19,10 +20,7 @@ import '../../../domain/models/merchant_enrichment/vat_status.dart';
 import 'vat_presentation.dart';
 import 'ui/enrichment_mini_map.dart';
 import '../../utils/common.dart';
-
-/// Orange lisible sur fond clair (le `kOrange` de la charte est trop pâle
-/// pour du texte).
-const kOrangeText = Color(0xffB86E00);
+import '../arc/arc.dart';
 
 /// Shared by the real grid and the local, transport-free widget harness.
 class EnrichmentButton extends StatefulWidget {
@@ -154,13 +152,15 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
                     child: OutlinedButton.icon(
                         onPressed:
                             session.available && !_opening ? _open : null,
-                        icon: const Icon(Icons.manage_search, size: 18),
+                        icon: const Icon(Icons.search_rounded, size: 18),
                         label: const Text('Compléter les informations'))),
-                if (!session.available)
-                  IconButton(
+                if (!session.available) ...[
+                  const SizedBox(width: 6),
+                  ArcIconAction(
+                      icon: Icons.refresh_rounded,
                       tooltip: 'Vérifier la disponibilité de la recherche',
-                      onPressed: session.busy ? null : session.initialize,
-                      icon: const Icon(Icons.refresh, size: 18)),
+                      onPressed: session.busy ? null : session.initialize),
+                ],
               ],
             ));
   }
@@ -344,10 +344,14 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                     active: () =>
                                         mounted &&
                                         (widget.scopeActive?.call() ?? true)),
-                              LinearProgressIndicator(
-                                  value: job.total == 0
-                                      ? 0
-                                      : (job.done / job.total).clamp(0, 1)),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(999),
+                                child: LinearProgressIndicator(
+                                    minHeight: 6,
+                                    value: job.total == 0
+                                        ? 0
+                                        : (job.done / job.total).clamp(0, 1)),
+                              ),
                               const SizedBox(height: 8),
                               _jobSummary(job),
                             ],
@@ -360,7 +364,7 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                         '${_jobLabel(job.status)} · ${job.done}/${job.total} lignes',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w600,
-                                            color: kBlueEnd)),
+                                            color: kNavy900)),
                                   TextButton.icon(
                                       onPressed:
                                           s.busy ? null : () => s.resume(),
@@ -378,27 +382,28 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                             'Fermer met la lecture en pause ; la recherche serveur continue.'
                                         : 'Propositions issues de sources publiques. Les valeurs déjà saisies sont conservées. TVA non vérifiée.\n'
                                             'Fermer met la lecture en pause ; la recherche serveur continue.',
-                                    child: const Icon(Icons.info_outline,
-                                        size: 20, color: kBlue),
+                                    child: const Icon(
+                                        Icons.info_outline_rounded,
+                                        size: 20,
+                                        color: kNavy600),
                                   ),
                                 ]),
                             if (s.history != null &&
                                 s.history!.items.isNotEmpty)
                               _historyPicker(job),
                           ]))),
-                  const Divider(),
+                  const SizedBox(height: 4),
                   Expanded(
                       flex: 5,
                       child: DefaultTabController(
                           length: 2,
                           child: Column(children: [
-                            const TabBar(
-                                isScrollable: true,
-                                tabAlignment: TabAlignment.start,
-                                tabs: [
-                                  Tab(text: 'Lignes à rechercher'),
-                                  Tab(text: 'Propositions / historique')
-                                ]),
+                            const SizedBox(height: 4),
+                            const _SegmentedTabs(tabs: [
+                              Tab(text: 'Lignes à rechercher', height: 34),
+                              Tab(text: 'Propositions / historique', height: 34)
+                            ]),
+                            const SizedBox(height: 8),
                             Expanded(
                                 child: TabBarView(children: [
                               _rowsTab(eligible),
@@ -420,19 +425,19 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
       padding: const EdgeInsets.only(bottom: 4),
       child: Wrap(spacing: 6, runSpacing: 6, children: [
         EnrichmentChip(_count(job.matched, 'correspondance'),
-            icon: Icons.check_circle_outline, color: kGreen),
+            icon: Icons.check_circle_outline, color: kSuccessText),
         EnrichmentChip(_count(job.ambiguous, 'ambiguïté'),
-            icon: Icons.help_outline, color: kOrangeText),
+            icon: Icons.help_outline, color: kWarningText),
         EnrichmentChip(_count(job.unresolved, 'non résolue', 'non résolues'),
-            icon: Icons.search_off, color: kGrey),
+            icon: Icons.search_off, color: kNeutralText),
         if (job.stale > 0)
           EnrichmentChip(_count(job.stale, 'obsolète'),
-              icon: Icons.update, color: kGrey),
+              icon: Icons.update, color: kNeutralText),
         if (job.errorCode != null)
           EnrichmentChip(
               MerchantEnrichmentMessages.error(code: job.errorCode),
               icon: Icons.error_outline,
-              color: kRed),
+              color: kDangerText),
       ]));
 
   /// Recherche affichée, choisie dans les plus récentes.
@@ -447,13 +452,22 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
             children: [
               // Texte flexible : il passe à la ligne sur un écran étroit.
               const Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.history, size: 18, color: kBlue),
+                Icon(Icons.history_rounded, size: 18, color: kNavy600),
                 SizedBox(width: 6),
-                Flexible(child: Text('Historique des recherches')),
+                Flexible(
+                    child: Text('Historique des recherches',
+                        style: TextStyle(fontSize: 13, color: kText2))),
               ]),
-              SizedBox(
+              Container(
                   width: 300,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      color: kSurface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: kBorder, width: 1.5)),
                   child: DropdownButton<String>(
+                      underline: const SizedBox.shrink(),
+                      borderRadius: BorderRadius.circular(10),
                       isExpanded: true,
                       itemHeight: null,
                       value: s.history!.items.any((j) => j.id == job?.id)
@@ -498,10 +512,11 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
               eligible.length > _maxRows
                   ? 'Sélectionner les $_maxRows premières lignes'
                   : 'Tout sélectionner',
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, color: kNavy900)),
           subtitle: Text(
               '${_selected.length} / ${eligible.length} lignes sélectionnées pour cette recherche (maximum $_maxRows)')),
-      const Divider(height: 1),
+      const Divider(height: 1, color: kNavy100),
       Expanded(
           child: ListView.builder(
               itemCount: eligible.length,
@@ -637,6 +652,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
     final actions = [
       if (s.canResearch(p))
         OutlinedButton(
+            style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, kControlHeightCompact),
+                padding: const EdgeInsets.symmetric(horizontal: 12)),
             onPressed: () => _research(p),
             child: const Text('Préciser la recherche')),
       if (_canCompare(p))
@@ -644,37 +662,60 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
             label: 'Comparer avec Néo',
             onPressed: _comparing ? null : () => _compare(p)),
     ];
-    return ExpansionTile(
-        key: ValueKey('proposal-${p.id}'),
-        leading: Tooltip(
-            message: _stateLabel(p.state),
-            child: Icon(style.icon, color: style.color)),
-        title: Text('Ligne ${row?.position ?? p.rowId}${name.isEmpty ? '' : ' · $name'}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  [
-                    _stateLabel(p.state),
-                    if (count > 0) '$count candidat${count > 1 ? 's' : ''}',
-                  ].join(' · '),
-                  style: TextStyle(color: style.color, fontSize: 13)),
-              if (actions.isNotEmpty)
-                Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Wrap(spacing: 8, runSpacing: 6, children: actions)),
-            ]),
-        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        children: [
-          if (reasons.isNotEmpty)
-            Text(reasons.join(' · '),
-                style: const TextStyle(fontSize: 12, color: kGrey)),
-          ...p.candidates.map((c) => _candidateCard(p, c)),
-        ]);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: kBorder)),
+      child: ExpansionTile(
+          key: ValueKey('proposal-${p.id}'),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          tilePadding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+          iconColor: kNavy600,
+          collapsedIconColor: kNavy600,
+          leading: Tooltip(
+              message: _stateLabel(p.state),
+              child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                      color: EnrichmentChip.backgroundFor(style.color),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Icon(style.icon, color: style.color, size: 17))),
+          title: Text('Ligne ${row?.position ?? p.rowId}${name.isEmpty ? '' : ' · $name'}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 14, fontWeight: FontWeight.w600, color: kNavy900)),
+          subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                    [
+                      _stateLabel(p.state),
+                      if (count > 0) '$count candidat${count > 1 ? 's' : ''}',
+                    ].join(' · '),
+                    style: TextStyle(color: style.color, fontSize: 12)),
+                if (actions.isNotEmpty)
+                  Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: actions)),
+              ]),
+          expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          children: [
+            if (reasons.isNotEmpty)
+              Text(reasons.join(' · '),
+                  style: const TextStyle(fontSize: 12, color: kText3)),
+            ...p.candidates.map((c) => _candidateCard(p, c)),
+          ]),
+    );
   }
 
   Widget _candidateCard(EnrichmentProposal p, EnrichmentCandidate c) {
@@ -682,23 +723,23 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
     final reasons = MerchantEnrichmentMessages.reasons(c.reasons);
     final establishment = c.kind == 'establishment';
     return Container(
-        margin: const EdgeInsets.only(top: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-            color: kLGrey,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: kLBlue.withValues(alpha: 0.6))),
+            color: kNavy50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: kNavy200)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(c.label,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  fontWeight: FontWeight.w600, color: kBlueEnd)),
-          const SizedBox(height: 8),
+                  fontWeight: FontWeight.w600, color: kNavy800)),
+          const SizedBox(height: 10),
           Wrap(spacing: 6, runSpacing: 6, children: [
             EnrichmentChip(establishment ? 'Établissement' : 'Adresse seule',
                 icon: establishment ? Icons.storefront : Icons.place_outlined),
-            if (c.siret != null) EnrichmentChip('SIRET ${c.siret}'),
+            if (c.siret != null) EnrichmentChip('SIRET ${c.siret}', mono: true),
             if (establishment) _establishmentChip(c.establishmentStatus),
             _matchChip(c.matchLevel,
                 tooltip: reasons.isEmpty ? null : reasons.join('\n')),
@@ -713,8 +754,11 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
           Align(
               alignment: Alignment.centerRight,
               child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: 10),
                   child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, kControlHeightCompact),
+                          padding: const EdgeInsets.symmetric(horizontal: 14)),
                       onPressed: s.busy ? null : () => _review(p, c, chained: false),
                       child: const Text('Comparer / choisir')))),
         ]));
@@ -879,8 +923,16 @@ class _CandidateReviewState extends State<_CandidateReview> {
       content: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.task_alt, color: kGreen, size: 48),
-            const SizedBox(height: 12),
+            Center(
+                child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                        color: kSuccessBg,
+                        borderRadius: BorderRadius.circular(16)),
+                    child: const Icon(Icons.task_alt_rounded,
+                        color: kSuccessText, size: 30))),
+            const SizedBox(height: 14),
             Text(
                 'Plus aucune proposition à traiter. '
                 '${_count(_applied, 'proposition appliquée', 'propositions appliquées')} au brouillon pendant cette revue.',
@@ -889,7 +941,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
             const Text(
                 'Validez ensuite les lignes dans la grille avant l’import.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: kGrey)),
+                style: TextStyle(color: kText3)),
           ]),
       actions: [
         FilledButton(
@@ -910,16 +962,16 @@ class _CandidateReviewState extends State<_CandidateReview> {
             children: [
               Text('Ligne ${row?.position ?? _p.rowId}${name.isEmpty ? '' : ' · $name'}',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, color: kBlueEnd)),
+                      fontWeight: FontWeight.w600, color: kNavy900)),
               EnrichmentChip(
                   '${_count(remaining, 'proposition')} à traiter sur cette page',
                   icon: Icons.playlist_play,
-                  color: kBlue),
+                  color: kNavy600),
               if (_applied > 0)
                 EnrichmentChip(
                     _count(_applied, 'appliquée', 'appliquées'),
                     icon: Icons.check,
-                    color: kGreen),
+                    color: kSuccessText),
             ]));
   }
 
@@ -984,8 +1036,10 @@ class _CandidateReviewState extends State<_CandidateReview> {
                     if (_advancing) const LinearProgressIndicator(),
                     if (p.candidates.length > 1) _candidatePicker(),
                     Wrap(spacing: 6, runSpacing: 6, children: [
-                      EnrichmentChip('SIRET ${c.siret ?? 'non attribué'}'),
-                      EnrichmentChip('SIREN ${c.siren ?? 'non attribué'}'),
+                      EnrichmentChip('SIRET ${c.siret ?? 'non attribué'}',
+                          mono: c.siret != null),
+                      EnrichmentChip('SIREN ${c.siren ?? 'non attribué'}',
+                          mono: c.siren != null),
                       if (c.legalName != null)
                         EnrichmentChip(c.legalName!, icon: Icons.business),
                       if (c.kind == 'establishment')
@@ -1026,7 +1080,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                             'Cochez les champs vides à remplir. Les valeurs déjà saisies sont conservées.',
-                            style: TextStyle(fontSize: 13, color: kGrey))),
+                            style: TextStyle(fontSize: 13, color: kText3))),
                     EnrichmentComparison(
                         columns: const [
                           DataColumn(label: Text('Appliquer')),
@@ -1050,7 +1104,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                                 ? const Tooltip(
                                     message: 'Point posé sur la carte',
                                     child: Icon(Icons.push_pin,
-                                        size: 20, color: kRed))
+                                        size: 20, color: kDanger))
                                 : Checkbox(
                                 value: chosen,
                                 onChanged: !allowed.contains(e.key) || s.busy
@@ -1078,12 +1132,12 @@ class _CandidateReviewState extends State<_CandidateReview> {
                             DataCell(placed(e.key)
                                 ? Text('${pointValue(e.key)} (carte)',
                                     style: const TextStyle(
-                                        color: kRed,
+                                        color: kDangerText,
                                         fontWeight: FontWeight.w600))
                                 : Text(chosen ? proposed : before(e.key),
                                     style: chosen
                                         ? const TextStyle(
-                                            color: kGreen,
+                                            color: kSuccessText,
                                             fontWeight: FontWeight.w600)
                                         : null)),
                           ]);
@@ -1201,7 +1255,8 @@ class _CandidateReviewState extends State<_CandidateReview> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(g.fields.join(', '),
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, color: kNavy800)),
                       Text(
                           [
                             MerchantEnrichmentMessages.provider(
@@ -1213,7 +1268,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                             if (g.source.precision != null || g.geo)
                               'Précision : ${MerchantEnrichmentMessages.geoPrecision(g.source.precision)}',
                           ].join(' · '),
-                          style: const TextStyle(fontSize: 12, color: kGrey)),
+                          style: const TextStyle(fontSize: 12, color: kText3)),
                       EnrichmentSourceLink(g.source.url),
                     ])),
         ]);
@@ -1236,7 +1291,9 @@ class _Collapsible extends StatelessWidget {
       initiallyExpanded: initiallyExpanded,
       title: Text(title,
           style: const TextStyle(
-              fontSize: 14, fontWeight: FontWeight.w600, color: kBlue)),
+              fontSize: 14, fontWeight: FontWeight.w600, color: kNavy600)),
+      iconColor: kNavy600,
+      collapsedIconColor: kNavy600,
       tilePadding: EdgeInsets.zero,
       dense: true,
       shape: const Border(),
@@ -1254,39 +1311,39 @@ String _count(int n, String singular, [String? plural]) =>
 ({IconData icon, Color color}) _stateStyle(String state) {
   switch (state) {
     case 'matched':
-      return (icon: Icons.check_circle, color: kGreen);
+      return (icon: Icons.check_circle_outline, color: kSuccessText);
     case 'applied':
-      return (icon: Icons.done_all, color: kGreen);
+      return (icon: Icons.done_all, color: kSuccessText);
     case 'ambiguous':
-      return (icon: Icons.help, color: kOrangeText);
+      return (icon: Icons.help_outline, color: kWarningText);
     case 'address_only':
-      return (icon: Icons.place, color: kBlue);
+      return (icon: Icons.place_outlined, color: kNavy600);
     case 'insufficient_input':
-      return (icon: Icons.edit_note, color: kOrangeText);
+      return (icon: Icons.edit_note, color: kWarningText);
     case 'provider_unavailable':
-      return (icon: Icons.cloud_off, color: kRed);
+      return (icon: Icons.cloud_off, color: kDangerText);
     case 'stale':
-      return (icon: Icons.update, color: kRed);
+      return (icon: Icons.update, color: kDangerText);
     default:
-      return (icon: Icons.search_off, color: kGrey);
+      return (icon: Icons.search_off, color: kNeutralText);
   }
 }
 
 Widget _establishmentChip(String? status) => EnrichmentChip(
     MerchantEnrichmentMessages.establishmentStatus(status),
     color: status == 'closed'
-        ? kRed
+        ? kDangerText
         : status == 'active'
-            ? kGreen
-            : kGrey);
+            ? kSuccessText
+            : kNeutralText);
 
 Widget _matchChip(String level, {String? tooltip}) => EnrichmentChip(
     MerchantEnrichmentMessages.matchLevel(level),
     icon: Icons.join_inner,
     tooltip: tooltip,
     color: level == 'exact_identifier' || level == 'name_address'
-        ? kGreen
-        : kOrangeText);
+        ? kSuccessText
+        : kWarningText);
 
 bool _comparable(EnrichmentUseCase s, EnrichmentProposal p,
     {required bool hasRepository}) {
@@ -1305,3 +1362,41 @@ String _jobLabel(String value) => MerchantEnrichmentMessages.jobStatus(value);
 String _stateLabel(String value) =>
     MerchantEnrichmentMessages.proposalState(value);
 String _fieldLabel(String value) => MerchantEnrichmentMessages.field(value);
+
+/// Onglets segmentés « Arc » (fond Navy 100, onglet choisi en blanc) sur un
+/// [TabBar] : clavier, sémantique et [DefaultTabController] inchangés.
+class _SegmentedTabs extends StatelessWidget {
+  final List<Tab> tabs;
+  const _SegmentedTabs({required this.tabs});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+            color: kNavy100, borderRadius: BorderRadius.circular(kRadiusSm)),
+        child: TabBar(
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          dividerColor: Colors.transparent,
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: kNavy900,
+          unselectedLabelColor: kText2,
+          labelStyle:
+              GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+          unselectedLabelStyle:
+              GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+          splashBorderRadius: BorderRadius.circular(8),
+          indicator: BoxDecoration(
+            color: kSurface,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x261F2240), blurRadius: 3, offset: Offset(0, 1))
+            ],
+          ),
+          tabs: tabs,
+        ),
+      );
+}

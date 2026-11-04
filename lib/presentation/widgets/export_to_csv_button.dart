@@ -1,6 +1,5 @@
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'export_to_csv_helper_web.dart';
 
@@ -52,27 +51,16 @@ class _ExportToCsvButtonState extends State<ExportToCsvButton> {
   Widget build(BuildContext context) {
     final bool isBusy = _loading || widget.externalLoading;
 
-    return ElevatedButton(
+    // Action principale de l'écran : bouton orange du thème « Arc ».
+    return FilledButton.icon(
       onPressed: isBusy ? null : _onPressed,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(200, 50),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        backgroundColor: kBlue,
-        foregroundColor: kWhite,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        textStyle: GoogleFonts.poppins(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      child: isBusy
+      icon: isBusy
           ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(color: kWhite, strokeWidth: 2))
-          : const Text('Exporter en CSV'),
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(color: kNavy600, strokeWidth: 2))
+          : const Icon(Icons.download_rounded, size: 18),
+      label: const Text('Exporter en CSV'),
     );
   }
 }

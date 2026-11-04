@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Commandes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="commandes" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 24px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #63677F">Réseau</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; color: #1F2240">Commandes</h1>
+</div>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle commande</button>
+</header>
+
+<div style="padding: 0 40px 48px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #ECEDF6">
+<div role="tablist" style="display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: #ECEDF6">
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+<button type="button" role="tab" onClick="{{f.pick}}" style="display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: {{f.bg}}; color: {{f.fg}}; box-shadow: {{f.shadow}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{f.label}}<span style="padding: 0 6px; border-radius: 999px; background: {{f.countBg}}; color: {{f.countFg}}; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px">{{f.count}}</span></button>
+</sc-for>
+</div>
+<div style="flex: 0 1 340px; display: flex; align-items: center; gap: 10px; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #E4E5EE; border-radius: 10px; color: #63677F">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+<label for="co-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rechercher une commande</label>
+<input id="co-search" type="search" placeholder="N°, client, occasion…" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: Poppins, sans-serif; font-size: 14px; background: transparent">
+</div>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="text-align: left; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">Commande</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Offert par</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Occasion</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Qté</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Payé / total</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Paiement</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Expiration</th>
+<th style="text-align: right; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">Actions</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="o" hint-placeholder-count="11">
+<tr>
+<td style="padding: 10px 20px; border-top: 1px solid #ECEDF6"><div style="display: flex; flex-direction: column"><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; font-weight: 500; color: #1F2240">{{o.id}}</span><span style="font-size: 11px; color: #63677F">créée le {{o.created}}</span></div></td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; font-weight: 500">{{o.by}}</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; color: #545873">{{o.occasion}}</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{o.qty}}</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; text-align: right; white-space: nowrap"><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; color: #63677F">{{o.paid}} / </span><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500; color: #1B1D30">{{o.total}}</span></td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; font-size: 12px; font-weight: 600; white-space: nowrap"><span style="width: 6px; height: 6px; border-radius: 999px; background: {{o.dot}}"></span>{{o.status}}</span></td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; white-space: nowrap"><span style="font-size: 13px; color: {{o.expColor}}; font-weight: {{o.expWeight}}">{{o.exp}}</span></td>
+<td style="padding: 6px 20px; border-top: 1px solid #ECEDF6; text-align: right; white-space: nowrap">
+<button type="button" aria-label="Bénéficiaires et bons" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v12" stroke-dasharray="2 2.5"/></svg></button>
+<button type="button" aria-label="Plus d'actions" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; font-size: 12px; color: #545873; border-top: 1px solid #ECEDF6">
+<span>Expirées et écarts signalés en couleur, le reste reste neutre.</span>
+<div style="display: flex; align-items: center; gap: 6px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–11 sur [total]</span>
+<button type="button" aria-label="Page précédente" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">‹</button>
+<button type="button" aria-label="Page suivante" style="width: 32px; height: 32px; border: 1px solid #CDCFDD; border-radius: 8px; background: #FFFFFF; color: #3A4276; cursor: pointer">›</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<button type="button" aria-label="Ouvrir Néo" style="position: absolute; right: 28px; bottom: 28px; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all' };
+  }
+  renderVals() {
+    const S = {
+      paid: { kind: 'paid', status: 'Payée', bg: '#E7F7EC', fg: '#0B7A34', dot: '#14B946' },
+      unpaid: { kind: 'unpaid', status: 'Non payée', bg: '#FDEAF0', fg: '#B3123F', dot: '#E61B54' },
+      gap: { kind: 'gap', status: 'Écart +25,00 €', bg: '#FFF2DC', fg: '#9A5B00', dot: '#F8AA36' }
+    };
+    const exp = (d, expired) => ({ exp: expired ? 'Expirée · ' + d : d, expColor: expired ? '#B3123F' : '#545873', expWeight: expired ? 600 : 400, expired });
+    const data = [
+      { id: 'C202610162', created: '16/10/2026', by: 'Toinou', occasion: 'Départ à la retraite', qty: '2', paid: '0,00', total: '2 600,00 €', ...S.unpaid, ...exp('16/10/2027') },
+      { id: 'C202610161', created: '16/10/2026', by: 'Jey', occasion: 'Hors évènement Urssaf', qty: '5', paid: '150,00', total: '125,00 €', ...S.gap, ...exp('17/10/2027') },
+      { id: 'C202610121', created: '12/10/2026', by: 'test multi-compte', occasion: 'Fête des mères', qty: '10', paid: '200,00', total: '200,00 €', ...S.paid, ...exp('28/11/2027') },
+      { id: 'C202610072', created: '05/10/2026', by: 'Second payment', occasion: 'Saint-Nicolas', qty: '25', paid: '250,00', total: '250,00 €', ...S.paid, ...exp('05/10/2027') },
+      { id: 'C202610071', created: '05/10/2026', by: 'main payment', occasion: 'Naissance', qty: '5', paid: '250,00', total: '250,00 €', ...S.paid, ...exp('05/10/2027') },
+      { id: 'C202607291', created: '29/07/2026', by: 'Big B', occasion: 'Départ à la retraite', qty: '10', paid: '100,00', total: '100,00 €', ...S.paid, ...exp('31/10/2026', true) },
+      { id: 'C202602131', created: '13/02/2026', by: 'OYOPI', occasion: 'Hors évènement Urssaf', qty: '1', paid: '10,00', total: '10,00 €', ...S.paid, ...exp('28/02/2027') },
+      { id: 'C202512181', created: '18/12/2025', by: 'NEOFID TECHNOLOGY', occasion: 'Noël des salariés', qty: '5', paid: '500,00', total: '500,00 €', ...S.paid, ...exp('31/01/2027') },
+      { id: 'C202512161', created: '16/12/2025', by: 'La cave de Régusse', occasion: 'Noël des salariés', qty: '1', paid: '100,00', total: '100,00 €', ...S.paid, ...exp('31/01/2027') },
+      { id: 'C202512111', created: '11/12/2025', by: 'François GIRAUD', occasion: 'Hors évènement Urssaf', qty: '1', paid: '10,00', total: '10,00 €', ...S.paid, ...exp('31/12/2026') },
+      { id: 'C202512041', created: '04/12/2025', by: 'Amicale du Personnel', occasion: 'Hors évènement Urssaf', qty: '52', paid: '1 450,00', total: '1 450,00 €', ...S.paid, ...exp('31/12/2026') }
+    ];
+    const tests = {
+      all: () => true,
+      unpaid: (r) => r.kind === 'unpaid',
+      gap: (r) => r.kind === 'gap',
+      expired: (r) => r.expired
+    };
+    const filters = [
+      { id: 'all', label: 'Toutes' },
+      { id: 'unpaid', label: 'Non payées' },
+      { id: 'gap', label: 'Écarts' },
+      { id: 'expired', label: 'Expirées' }
+    ].map((f) => {
+      const on = this.state.filter === f.id;
+      return {
+        ...f,
+        count: String(data.filter(tests[f.id]).length),
+        bg: on ? '#FFFFFF' : 'transparent',
+        fg: on ? '#1F2240' : '#545873',
+        shadow: on ? '0 1px 3px rgba(31,34,64,0.15)' : 'none',
+        countBg: on ? '#1F2240' : '#D9DBEE',
+        countFg: on ? '#FFFFFF' : '#31376A',
+        pick: () => this.setState({ filter: f.id })
+      };
+    });
+    return { filters, rows: data.filter(tests[this.state.filter]) };
+  }
+}
+</script>
+</body>
+</html>

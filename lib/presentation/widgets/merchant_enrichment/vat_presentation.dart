@@ -38,18 +38,19 @@ class VatCandidateSection extends StatelessWidget {
     final source = candidate.sources[VatRules.field];
     return Container(
         key: const ValueKey('vat-section'),
+        margin: const EdgeInsets.symmetric(vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-            color: kLGrey,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: kLBlue)),
+            color: kNavy50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: kNavy200)),
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text('TVA intracommunautaire',
               style: Theme.of(context)
                   .textTheme
                   .titleSmall
-                  ?.copyWith(color: kBlueEnd, fontWeight: FontWeight.w600)),
+                  ?.copyWith(color: kNavy900, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           SelectableText(
               'Statut : ${vatStatusLabel(candidate.vatStatus, capability: capability)}'
@@ -84,7 +85,8 @@ class VatCandidateSection extends StatelessWidget {
           if (capability && candidate.vatStatus != VatStatus.notChecked)
             const Text(vatDisclaimer,
                 key: ValueKey('vat-disclaimer'),
-                style: TextStyle(fontStyle: FontStyle.italic)),
+                style: TextStyle(
+                    fontSize: 12, color: kText3, fontStyle: FontStyle.italic)),
         ]));
   }
 }

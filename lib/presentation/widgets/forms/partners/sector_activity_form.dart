@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/domain/models/sector_model.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class SectorCreationForm extends StatefulWidget {
   final EntityModel partner;
@@ -21,7 +21,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
   late List<Sector> _sectors = [];
   late final Set<int> _selectedIds;
 
-  bool isHovered = false;
+  bool _sectorsLoaded = false;
   bool _isSaving = false;
   bool _isCreating = false;
 
@@ -40,6 +40,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
     if (mounted) {
       setState(() {
         _sectors = data;
+        _sectorsLoaded = true;
       });
     }
   }
@@ -64,7 +65,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
 
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Modification des secteurs d\'activité réussie'),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ));
       } catch (e) {
         if (!mounted) return;
@@ -74,7 +75,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content:
               Text('Erreur lors de la modification des secteurs d\'activité'),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ));
       }
     }
@@ -96,7 +97,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
         });
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Le secteur d’activité a été ajouté'),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ));
       } catch (e) {
         if (!mounted) return;
@@ -105,7 +106,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
         });
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de l’ajout du secteur d’activité'),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ));
       }
     }
@@ -113,162 +114,133 @@ class SectorCreationFormState extends State<SectorCreationForm> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.7,
-            height: SizeConfig.screenHeight * 0.9,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+    final String name = widget.partner.name ?? '';
+
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: "Secteurs d'activité",
+        title: name.trim().isEmpty ? "Secteurs d'activité" : name,
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ArcSubmitButton(
+            label: 'Enregistrer',
+            busy: _isSaving,
+            onPressed: _submitForm,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            icon: Icons.sell_outlined,
+            title: "Secteurs d'activité",
+            children: [
+              Text("Sélectionnez les options qui s'appliquent.",
+                  style: ArcText.body(color: kText2)),
+              if (!_sectorsLoaded)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: LinearProgressIndicator(),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final sector in _sectors)
+                      _SectorChip(
+                        label: sector.name ?? '',
+                        selected: _selectedIds.contains(sector.id),
+                        onTap: () {
+                          setState(() {
+                            if (_selectedIds.contains(sector.id)) {
+                              _selectedIds.remove(sector.id);
+                            } else {
+                              _selectedIds.add(sector.id!);
+                            }
+                          });
+                        },
+                      ),
+                  ],
+                ),
+            ],
+          ),
+          ArcFormSection(
+            icon: Icons.add_rounded,
+            title: 'Secteur absent de la liste',
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const SelectableText(
-                    'Sélectionnez les options qui s\'appliquent:',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  Container(
-                    height: SizeConfig.screenHeight * 0.5,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: kLBlue,
-                        width: 1.2,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          const Color.fromARGB(255, 248, 248, 248)
-                              .withValues(alpha: 0.8),
-                          Colors.white,
-                          Colors.white,
-                          const Color.fromARGB(255, 248, 248, 248)
-                              .withValues(alpha: 0.8),
-                        ],
-                        stops: const [
-                          0.0,
-                          0.04,
-                          0.96,
-                          1.0,
-                        ],
-                      ),
-                    ),
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      controller: ScrollController(
-                        initialScrollOffset: 0.0,
-                        keepScrollOffset: true,
-                      ),
-                      child: Column(
-                        children: _sectors.map((sector) {
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                if (_selectedIds.contains(sector.id)) {
-                                  _selectedIds.remove(sector.id);
-                                } else {
-                                  _selectedIds.add(sector.id!);
-                                }
-                              });
-                            },
-                            child: MouseRegion(
-                              onHover: (event) {
-                                setState(() {
-                                  isHovered = true;
-                                });
-                              },
-                              cursor: SystemMouseCursors.click,
-                              child: CheckboxListTile(
-                                activeColor: kLBlue,
-                                title: Text(sector.name!),
-                                tileColor: isHovered ? kBlue : kBlack,
-                                value: _selectedIds.contains(sector.id),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value!) {
-                                      _selectedIds.add(sector.id!);
-                                    } else {
-                                      _selectedIds.remove(sector.id);
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _newSectorController,
+                      decoration: const InputDecoration(
+                        labelText: "Nouveau secteur d'activité",
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16.0),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _newSectorController,
-                          decoration: const InputDecoration(
-                            labelText: "Nouveau secteur d'activité",
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8.0),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: kBlueStart,
-                            foregroundColor: kWhite),
-                        onPressed: _isCreating ? null : _addNewSector,
-                        child: _isCreating
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Créer'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 38.0),
-                  Center(
-                    child: _isSaving
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: _isCreating ? null : _addNewSector,
+                    child: _isCreating
                         ? const SizedBox(
-                            height: 40,
-                            width: 40,
-                            child: CircularProgressIndicator(
-                              color: kOrange,
-                            ),
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : NeoButton(
-                            key: UniqueKey(),
-                            text: "Enregistrer",
-                            onPressed: _submitForm,
-                            fontSize: 16,
-                            foregroundColor: kPWhite,
-                            backgroundColor: kOrange,
-                            shadowColor: kBlue,
-                          ),
+                        : const Text('Créer'),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
-        ]),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pastille de secteur à cocher (maquette FormPartenaire, étape 5).
+class _SectorChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _SectorChip(
+      {required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color fg = selected ? Colors.white : kNavy700;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
+        color: selected ? kNavy900 : kSurface,
+        shape: StadiumBorder(
+          side: BorderSide(
+              color: selected ? kNavy900 : kNavy200, width: 1.5),
+        ),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              if (selected) ...[
+                Icon(Icons.check_rounded, size: 16, color: fg),
+                const SizedBox(width: 6),
+              ],
+              Text(label,
+                  style: ArcText.body(color: fg).copyWith(
+                      fontSize: 13, fontWeight: FontWeight.w500)),
+            ]),
+          ),
+        ),
       ),
     );
   }

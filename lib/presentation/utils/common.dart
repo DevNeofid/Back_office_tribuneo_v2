@@ -103,5 +103,5 @@ const kButtonFontWeight = FontWeight.w700;
 
 /// DEFAULT INPUT STYLE
 const kInputRadius = 10.0;
-const kInputHintFontSize = 15.0;
-const kInputHintFontWeight = FontWeight.w300;
+const kInputHintFontSize = 14.0;
+const kInputHintFontWeight = FontWeight.w400;

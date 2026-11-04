@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Design system Arc · Composants</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="min-height: 2240px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5">
+<div style="max-width: 1312px; margin: 0 auto; padding: 56px 32px 96px; display: flex; flex-direction: column; gap: 48px">
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">05</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Boutons</h2>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 16px 24px; align-items: center">
+<span style="font-size: 12px; font-weight: 600; color: #63677F">Taille L · 44 px</span>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-7z"/></svg>Générer l'ordre de virement</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Exporter en CSV</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Préciser la recherche</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: transparent; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg>Recharger</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #E61B54; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Abandonner le lot</button>
+</div>
+<span style="font-size: 12px; font-weight: 600; color: #63677F">Taille M · 36 px</span>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Valider la ligne</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Ouvrir</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: #B3123F; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Abandonner</button>
+<span style="width: 1px; height: 28px; background: #E4E5EE"></span>
+<button type="button" aria-label="Télécharger" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+<button type="button" aria-label="Justificatifs" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></button>
+<button type="button" aria-label="QR code" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2M20 14v6h-4M14 18v2"/></svg></button>
+<button type="button" aria-label="Plus d'actions" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+</div>
+<span style="font-size: 12px; font-weight: 600; color: #63677F">États</span>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F09A1A; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; box-shadow: 0 8px 20px -8px rgba(240,154,26,0.7)">Survol</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; box-shadow: 0 0 0 3px #FFFFFF, 0 0 0 5px #3A4276">Focus clavier</button>
+<button type="button" disabled style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #ECEDF6; color: #8288BC; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px">Désactivé</button>
+<button type="button" style="display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9" opacity="0.9"/></svg>Génération…</button>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">06</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Néo · composants de l'import</h2>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 22px">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1F2240">« Comparer avec Néo » · bordure arc-en-ciel</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+<span style="display: inline-flex; padding: 2px; border-radius: 999px; background: conic-gradient(from 210deg, #7C4DFF, #2979FF, #00BFA5, #FFC400, #FF6D00, #F50057, #7C4DFF)"><button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: #FFFFFF; color: #292D52; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="neoA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C4DFF"/><stop offset="0.35" stop-color="#2979FF"/><stop offset="0.6" stop-color="#00BFA5"/><stop offset="0.8" stop-color="#FF6D00"/><stop offset="1" stop-color="#F50057"/></linearGradient></defs><path fill="url(#neoA)" d="M11 2.5l1.9 5.1 5.1 1.9-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9zM18 14l.9 2.1 2.1.9-2.1.9L18 20l-.9-2.1-2.1-.9 2.1-.9z"/></svg>Comparer avec Néo</button></span>
+<span style="display: inline-flex; padding: 2px; border-radius: 999px; background: conic-gradient(from 20deg, #7C4DFF, #2979FF, #00BFA5, #FFC400, #FF6D00, #F50057, #7C4DFF); box-shadow: 0 0 18px 2px rgba(124,77,255,0.35)"><button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: #FFFFFF; color: #292D52; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="neoB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C4DFF"/><stop offset="0.35" stop-color="#2979FF"/><stop offset="0.6" stop-color="#00BFA5"/><stop offset="0.8" stop-color="#FF6D00"/><stop offset="1" stop-color="#F50057"/></linearGradient></defs><path fill="url(#neoB)" d="M11 2.5l1.9 5.1 5.1 1.9-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9zM18 14l.9 2.1 2.1.9-2.1.9L18 20l-.9-2.1-2.1-.9 2.1-.9z"/></svg>Survol · tourne</button></span>
+<span style="display: inline-flex; padding: 2px; border-radius: 999px; background: #D9DBEE"><button type="button" disabled style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 999px; background: #F5F5FA; color: #8288BC; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 2.5l1.9 5.1 5.1 1.9-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9zM18 14l.9 2.1 2.1.9-2.1.9L18 20l-.9-2.1-2.1-.9 2.1-.9z"/></svg>Désactivé</button></span>
+</div>
+<p style="margin: 0; font-size: 13px; color: #545873">On garde le NeoAiButton tel quel : anneau de 2 px en SweepGradient, icône étincelles dégradée, rotation au survol (2,4 s) coupée si « réduire les animations ». Seul changement : fond blanc pur et texte Navy 800.</p>
+<div style="height: 1px; background: #ECEDF6"></div>
+<h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1F2240">Pastilles de recherche (EnrichmentChip)</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>14 correspondances</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 17h.01"/></svg>5 ambiguïtés</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #EEEFF4; color: #545873; font-size: 12px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="m20 20-5-5M8 8l5 5M13 8l-5 5"/></svg>3 non résolues</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 5 4h14l1.5 5M5 12v8h14v-8"/></svg>Établissement</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>Adresse seule</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 500; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">SIRET 449 760 859 00024</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 500">Correspondance forte<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></span>
+</div>
+</div>
+
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1F2240">Carte candidat avec mini-carte IGN</h3>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; padding: 18px; border-radius: 16px; background: #F5F5FA; border: 1px solid #D9DBEE">
+<div style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+<span style="font-weight: 600; color: #292D52; font-size: 15px">A CORPS PARFAIT · [adresse trouvée par la recherche]</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 500">Établissement</span>
+<span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">SIRET 449 760 859 00024</span>
+<span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 500">Nom et adresse concordants</span>
+</div>
+<span style="font-size: 12px; color: #63677F">Sources : recherche-entreprises.api.gouv.fr · data.geopf.fr</span>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto">
+<button type="button" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Retenir ce candidat</button>
+<span style="display: inline-flex; padding: 2px; border-radius: 999px; background: conic-gradient(from 210deg, #7C4DFF, #2979FF, #00BFA5, #FFC400, #FF6D00, #F50057, #7C4DFF)"><button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border: 0; border-radius: 999px; background: #FFFFFF; color: #292D52; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="neoC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C4DFF"/><stop offset="0.35" stop-color="#2979FF"/><stop offset="0.6" stop-color="#00BFA5"/><stop offset="0.8" stop-color="#FF6D00"/><stop offset="1" stop-color="#F50057"/></linearGradient></defs><path fill="url(#neoC)" d="M11 2.5l1.9 5.1 5.1 1.9-5.1 1.9L11 16.5l-1.9-5.1L4 9.5l5.1-1.9zM18 14l.9 2.1 2.1.9-2.1.9L18 20l-.9-2.1-2.1-.9 2.1-.9z"/></svg>Comparer avec Néo</button></span>
+</div>
+</div>
+<div style="position: relative; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid #CDCFDD">
+<svg viewBox="0 0 300 200" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Plan IGN autour de la position proposée">
+<rect width="300" height="200" fill="#F3F0E8"/>
+<path d="M0 150 C 60 140, 110 170, 170 150 S 260 120, 300 128 L300 148 C 260 140, 220 168, 170 172 S 60 162, 0 172Z" fill="#B9DAF2"/>
+<rect x="196" y="18" width="80" height="54" rx="6" fill="#D9E8C9"/>
+<rect x="20" y="22" width="46" height="30" rx="3" fill="#E4DDCF"/><rect x="74" y="22" width="40" height="30" rx="3" fill="#E4DDCF"/><rect x="20" y="66" width="38" height="40" rx="3" fill="#E4DDCF"/><rect x="128" y="22" width="52" height="24" rx="3" fill="#E4DDCF"/><rect x="128" y="88" width="44" height="30" rx="3" fill="#E4DDCF"/><rect x="196" y="88" width="62" height="26" rx="3" fill="#E4DDCF"/><rect x="72" y="88" width="36" height="34" rx="3" fill="#E4DDCF"/>
+<path d="M0 60 H300" stroke="#FFFFFF" stroke-width="9"/><path d="M0 60 H300" stroke="#F6C76B" stroke-width="5"/>
+<path d="M120 0 V200" stroke="#FFFFFF" stroke-width="7"/>
+<path d="M0 80 L300 80" stroke="#FFFFFF" stroke-width="5"/>
+<path d="M186 0 L186 140" stroke="#FFFFFF" stroke-width="5"/>
+<path d="M64 60 L64 140" stroke="#FFFFFF" stroke-width="4"/>
+<circle cx="150" cy="80" r="26" fill="#F8AA36" fill-opacity="0.18" stroke="#F8AA36" stroke-opacity="0.8" stroke-width="2"/>
+<path d="M150 82 c-7-9-11-14-11-19 a11 11 0 0 1 22 0 c0 5-4 10-11 19z" fill="#E61B54" stroke="#FFFFFF" stroke-width="2" transform="translate(0 -6)"/>
+<circle cx="150" cy="57" r="4" fill="#FFFFFF"/>
+<text x="196" y="50" font-family="Poppins, sans-serif" font-size="8" fill="#5D7A45">Jardin</text>
+<text x="8" y="56" font-family="Poppins, sans-serif" font-size="7" fill="#7A6A52">Bd Gassendi</text>
+</svg>
+<div style="position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 8px; box-shadow: 0 2px 6px rgba(31,34,64,0.2); overflow: hidden">
+<button type="button" aria-label="Zoomer" style="width: 30px; height: 30px; border: 0; background: #FFFFFF; color: #3A4276; font-size: 16px; cursor: pointer">+</button>
+<button type="button" aria-label="Dézoomer" style="width: 30px; height: 30px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; font-size: 16px; cursor: pointer">−</button>
+<button type="button" aria-label="Recentrer sur la position" style="width: 30px; height: 30px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+</div>
+<span style="position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); font-size: 10px; color: #545873"><span style="width: 8px; height: 8px; border-radius: 999px; background: #E61B54"></span>Proposée · ± 35 m</span>
+<span style="position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.85); font-size: 9px; color: #545873">© IGN · Plan IGN</span>
+</div>
+</div>
+<p style="margin: 0; font-size: 13px; color: #545873">La mini-carte garde ses tuiles Plan IGN, son repère framboise (choisi : navy) et son halo orange de précision. Elle prend un cadre arrondi 12 px, des contrôles regroupés en haut à droite et une légende en pastille. Clic : agrandir et ajuster le point.</p>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">07</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Pastilles</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Ligne d'import</h3>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Prête à valider</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>2 à vérifier</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDEAF0; color: #B3123F; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>3 à corriger</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>Validée</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #0B7A34; color: #FFFFFF; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Importée</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #EEEFF4; color: #545873; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>Écartée</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #B3123F; color: #FFFFFF; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>Échec import</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Lot d'import</h3>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #F8AA36"></span>En relecture</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #3A4276"></span>Import en cours</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #14B946"></span>Importé</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #EEEFF4; color: #545873; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #8288BC"></span>Abandonné</span>
+<h3 style="margin: 12px 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Compteurs</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 2px 8px; border-radius: 6px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">0 validées</span>
+<span style="padding: 2px 8px; border-radius: 6px; background: #FDEAF0; color: #B3123F; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">18 anomalies</span>
+<span style="padding: 2px 8px; border-radius: 6px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">24 à relire</span>
+</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Commandes · paiement</h3>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #14B946"></span>Payée</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FDEAF0; color: #B3123F; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #E61B54"></span>Non payée</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 600"><span style="width: 7px; height: 7px; border-radius: 999px; background: #F8AA36"></span>Écart · +25,00 €</span>
+<h3 style="margin: 12px 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Compte payeur</h3>
+<span style="align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: #3A4276; color: #FFFFFF; font-size: 12px; font-weight: 600">Principal</span>
+<span style="align-self: flex-start; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; border: 1.5px solid #8288BC; color: #3A4276; font-size: 12px; font-weight: 600">Secondaire</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+<h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Partenaires</h3>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M10 17h4"/></svg>Dématérialisé</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #EEEFF4; color: #545873; font-size: 12px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/></svg>Papier seul</span>
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 600">Aucun compte utilisateur</span>
+<h3 style="margin: 12px 0 4px; font-size: 14px; font-weight: 600; color: #1F2240">Secteur</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 4px 10px; border-radius: 8px; background: #F5F5FA; border: 1px solid #D9DBEE; color: #31376A; font-size: 12px">Beauté et Bien-être</span>
+<span style="padding: 4px 10px; border-radius: 8px; background: #F5F5FA; border: 1px solid #D9DBEE; color: #31376A; font-size: 12px">Boulangerie</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">08</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Champs et contrôles</h2>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 20px; padding: 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="f-sector" style="font-size: 13px; font-weight: 500; color: #31376A">Nouveau secteur d'activité</label>
+<input id="f-sector" type="text" placeholder="Ex. Fromagerie" style="height: 44px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #CDCFDD; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 14px; color: #1B1D30; background: #FFFFFF">
+<span style="font-size: 12px; color: #63677F">Visible par les clients dans l'application.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="f-siret" style="font-size: 13px; font-weight: 500; color: #31376A">SIRET</label>
+<input id="f-siret" type="text" value="4497608590002" style="height: 44px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #E61B54; border-radius: 10px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 14px; color: #1B1D30; background: #FFFFFF">
+<span style="font-size: 12px; color: #B3123F">Le SIRET compte 14 chiffres (13 saisis).</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="f-search" style="font-size: 13px; font-weight: 500; color: #31376A">Recherche</label>
+<div style="display: flex; align-items: center; gap: 10px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #63677F">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+<input id="f-search" type="search" placeholder="Nom, email, SIRET…" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: Poppins, sans-serif; font-size: 14px; background: transparent">
+<span style="padding: 2px 6px; border-radius: 6px; background: #F5F5FA; border: 1px solid #E4E5EE; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #545873">/</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="f-account" style="font-size: 13px; font-weight: 500; color: #31376A">Compte payeur</label>
+<select id="f-account" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 14px; color: #1B1D30; background: #FFFFFF">
+<option>Compte principal — FR76 … 3016 646</option>
+<option>Compte secondaire</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; font-weight: 500; color: #31376A">Période</span>
+<div style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #1B1D30">01/10/2026 → 31/10/2026</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 500; color: #31376A">Sélection</span>
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center">
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #1B1D30"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #3A4276">Relue</label>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #1B1D30"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #3A4276">Non relue</label>
+<span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #1B1D30"><span style="width: 36px; height: 20px; border-radius: 999px; background: #3A4276; position: relative; display: inline-block"><span style="position: absolute; right: 2px; top: 2px; width: 16px; height: 16px; border-radius: 999px; background: #F8AA36"></span></span>Dématérialisation</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; grid-column: span 2">
+<span style="font-size: 13px; font-weight: 500; color: #31376A">Onglets segmentés</span>
+<div role="tablist" style="align-self: flex-start; display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: #ECEDF6">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" role="tab" onClick="{{t.pick}}" style="height: 36px; padding: 0 18px; border: 0; border-radius: 9px; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 13px; font-weight: 500; color: #31376A">Index alphabétique</span>
+<div style="display: flex; flex-wrap: wrap; gap: 4px">
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E4E5EE; color: #545873; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">#</span>
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #3A4276; color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">A</span>
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E4E5EE; color: #545873; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">B</span>
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E4E5EE; color: #545873; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">C</span>
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E4E5EE; color: #545873; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">D</span>
+<span style="width: 28px; height: 28px; border-radius: 8px; background: #F5F5FA; color: #B3B8DE; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">Q</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">09</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Tableaux</h2>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(31,34,64,0.06)">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #ECEDF6">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="font-weight: 600; color: #1F2240">Ordres de virement</span>
+<span style="padding: 1px 8px; border-radius: 999px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">187</span>
+</div>
+<div style="display: flex; gap: 8px">
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 500; font-size: 13px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Compte : tous</button>
+</div>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead>
+<tr style="background: #F9F9FC">
+<th style="text-align: left; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Fichier</th>
+<th style="text-align: right; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Frais de gestion</th>
+<th style="text-align: right; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Montant remboursé</th>
+<th style="text-align: left; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Compte</th>
+<th style="text-align: left; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Créé le</th>
+<th style="text-align: right; padding: 12px 20px; font-size: 12px; font-weight: 600; color: #545873; border-bottom: 1px solid #ECEDF6">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #1B1D30">BTO_2026-10-13_2026-10-13_151929.zip</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; color: #545873">6,00 €</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500; color: #1B1D30">94,00 €</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6"><span style="padding: 3px 10px; border-radius: 999px; background: #3A4276; color: #FFFFFF; font-size: 12px; font-weight: 600">Principal</span></td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; color: #545873">16 oct. 2026</td>
+<td style="padding: 8px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; white-space: nowrap"><button type="button" aria-label="Télécharger" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button></td>
+</tr>
+<tr style="background: #F5F5FA">
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #1B1D30">BTO_2026-10-14_2026-10-15_150501.zip</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; color: #545873">6,00 €</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500; color: #1B1D30">94,00 €</td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6"><span style="padding: 3px 10px; border-radius: 999px; background: #FFFFFF; border: 1.5px solid #8288BC; color: #3A4276; font-size: 12px; font-weight: 600">Secondaire</span></td>
+<td style="padding: 12px 20px; border-bottom: 1px solid #ECEDF6; color: #545873">16 oct. 2026</td>
+<td style="padding: 8px 20px; border-bottom: 1px solid #ECEDF6; text-align: right; white-space: nowrap"><button type="button" aria-label="Télécharger" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: #ECEDF6; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; font-size: 12px; color: #545873">
+<span>Ligne survolée : fond Navy 50 · actions révélées</span>
+<div style="display: flex; align-items: center; gap: 6px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–10 sur 187</span>
+<button type="button" aria-label="Page précédente" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">‹</button>
+<button type="button" aria-label="Page suivante" style="width: 32px; height: 32px; border: 1px solid #CDCFDD; border-radius: 8px; background: #FFFFFF; color: #3A4276; cursor: pointer">›</button>
+</div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; font-size: 13px; color: #545873">
+<span>En-tête clair (Navy 25), libellés 12 px 600 : on abandonne la grosse bande navy.</span>
+<span>Montants et fichiers en Martian Mono, alignés à droite ; dates en clair (16 oct. 2026).</span>
+<span>Lignes de 52 px, séparateurs 1 px, pagination compacte en bas à droite.</span>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">10</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Dialogues et notifications</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; padding: 32px; border-radius: 20px; background: rgba(31,34,64,0.55)">
+<div role="dialog" aria-labelledby="dlg1" style="background: #FFFFFF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: #FDEAF0; color: #B3123F; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 id="dlg1" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; color: #1F2240">Supprimer « Animalerie » ?</h3>
+<p style="margin: 0; font-size: 14px; color: #545873">Les partenaires rattachés à ce secteur le perdront. Cette action est définitive.</p>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Annuler</button>
+<button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #E61B54; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Supprimer</button>
+</div>
+</div>
+<div role="dialog" aria-labelledby="dlg2" style="background: #FFFFFF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: #E7F7EC; color: #0B7A34; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 id="dlg2" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; color: #1F2240">Ordre de virement généré</h3>
+<p style="margin: 0; font-size: 14px; color: #545873">Transmettez le fichier .SCT à votre banque.</p>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #F5F5FA; border: 1px solid #E4E5EE">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3A4276" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #1B1D30; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">BTO_2026-11-04_[HEURE].zip</span>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Fermer</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div role="status" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #1F2240; color: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.4)">
+<span style="width: 24px; height: 24px; border-radius: 999px; background: #14B946; color: #1F2240; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span>
+<span style="font-size: 13px; flex: 1">Demande libérée.</span>
+<button type="button" style="border: 0; background: transparent; color: #FBC060; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Annuler</button>
+</div>
+<div role="alert" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #FFFFFF; border: 1px solid #F7B9CB; color: #1B1D30; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.25)">
+<span style="width: 24px; height: 24px; border-radius: 999px; background: #FDEAF0; color: #B3123F; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"/></svg></span>
+<span style="font-size: 13px; flex: 1">Erreur lors du téléchargement des documents du virement.</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #FFF7EB; border: 1px solid #FDD594; color: #1B1D30">
+<span style="width: 24px; height: 24px; border-radius: 999px; background: #F8AA36; color: #1F2240; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; font-weight: 700; font-size: 13px">!</span>
+<span style="font-size: 13px; flex: 1">Lot en lecture seule : il a été abandonné.</span>
+</div>
+</div>
+</div>
+</section>
+
+<section style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; gap: 16px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #9A5B00">11</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 700; font-size: 36px; letter-spacing: -0.01em; color: #1F2240">Indicateurs et assistant</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 140px; gap: 16px; align-items: stretch">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">DEMANDES À PAYER</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; color: #1F2240">1</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">COMMERÇANTS</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; color: #1F2240">1</span>
+</div>
+<div style="background: #1F2240; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #B3B8DE">MONTANT À VIRER</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; color: #F8AA36">23,50 €</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">DEMANDES ÉCARTÉES</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.1; color: #1F2240">0</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px">
+<button type="button" aria-label="Ouvrir Néo" style="position: relative; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg>
+<span style="position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; border-radius: 999px; background: #F8AA36; border: 2px solid #FFFFFF"></span>
+</button>
+<span style="font-size: 12px; color: #545873; text-align: center">Néo flottant</span>
+</div>
+</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'factures' };
+  }
+  renderVals() {
+    const tabs = [
+      { id: 'factures', label: 'Factures' },
+      { id: 'frais', label: 'Frais de gestion' }
+    ].map((t) => {
+      const on = this.state.tab === t.id;
+      return {
+        ...t,
+        bg: on ? '#FFFFFF' : 'transparent',
+        fg: on ? '#1F2240' : '#545873',
+        shadow: on ? '0 1px 3px rgba(31,34,64,0.15)' : 'none',
+        pick: () => this.setState({ tab: t.id })
+      };
+    });
+    return { tabs };
+  }
+}
+</script>
+</body>
+</html>

@@ -4,10 +4,19 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../utils/common.dart';
+import '../../arc/arc.dart';
 import 'enrichment_dialog.dart';
 
 /// Point géographique.
 typedef GeoPoint = ({double lat, double lng});
+
+/// Fond affiché sous les tuiles (chargement, hors ligne).
+const Color _mapPaper = Color(0xffF3F0E8);
+
+/// Ombre des contrôles et pastilles posés sur la carte.
+const List<BoxShadow> _mapShadow = [
+  BoxShadow(color: Color(0x331F2240), blurRadius: 6, offset: Offset(0, 2)),
+];
 
 /// Tuiles « Plan IGN » de la Géoplateforme (service public, sans clé) et
 /// projection Web Mercator.
@@ -58,8 +67,14 @@ class _TileLayer extends StatelessWidget {
   final int zoom;
   final Offset center;
   final List<({GeoPoint at, Widget child, Offset anchor})> overlays;
+
+  /// Retrait de l'attribution IGN par rapport aux bords.
+  final double attributionInset;
   const _TileLayer(
-      {required this.zoom, required this.center, this.overlays = const []});
+      {required this.zoom,
+      required this.center,
+      this.overlays = const [],
+      this.attributionInset = 8});
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, size) {
@@ -70,7 +85,7 @@ class _TileLayer extends StatelessWidget {
         final int x0 = (left / t).floor(), x1 = ((left + width) / t).floor();
         final int y0 = (top / t).floor(), y1 = ((top + height) / t).floor();
         return Stack(clipBehavior: Clip.hardEdge, children: [
-          const Positioned.fill(child: ColoredBox(color: kLGrey)),
+          const Positioned.fill(child: ColoredBox(color: _mapPaper)),
           for (var tx = x0; tx <= x1; tx++)
             for (var ty = y0; ty <= y1; ty++)
               if (tx >= 0 && ty >= 0 && tx <= maxIndex && ty <= maxIndex)
@@ -86,7 +101,7 @@ class _TileLayer extends StatelessWidget {
                     gaplessPlayback: true,
                     // Hors ligne ou service indisponible : fond neutre.
                     errorBuilder: (_, __, ___) =>
-                        const ColoredBox(color: kLGrey),
+                        const ColoredBox(color: _mapPaper),
                   ),
                 ),
           for (final o in overlays)
@@ -95,13 +110,15 @@ class _TileLayer extends StatelessWidget {
                 top: IgnTiles.project(o.at, zoom).dy - top - o.anchor.dy,
                 child: IgnorePointer(child: o.child)),
           Positioned(
-            right: 0,
-            bottom: 0,
+            right: attributionInset,
+            bottom: attributionInset,
             child: Container(
-              color: Colors.white.withValues(alpha: 0.8),
+              decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(4)),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               child: const Text('© IGN – Plan IGN',
-                  style: TextStyle(fontSize: 10, color: kGrey)),
+                  style: TextStyle(fontSize: 10, color: kText2)),
             ),
           ),
         ]);
@@ -203,7 +220,7 @@ List<({GeoPoint at, Widget child, Offset anchor})> _markers(
       anchor: MapPin.anchor(chosen == null ? 36 : 28),
       child: MapPin(
           key: const ValueKey('mini-map-marker'),
-          color: chosen == null ? kRed : kBlue.withValues(alpha: 0.7),
+          color: chosen == null ? kRed : kRed.withValues(alpha: 0.7),
           size: chosen == null ? 36 : 28),
     ),
     if (chosen != null)
@@ -211,7 +228,7 @@ List<({GeoPoint at, Widget child, Offset anchor})> _markers(
         at: chosen,
         anchor: MapPin.anchor(40),
         child: const MapPin(
-            key: ValueKey('map-chosen-marker'), color: kRed, size: 40),
+            key: ValueKey('map-chosen-marker'), color: kNavy600, size: 40),
       ),
   ];
 }
@@ -257,34 +274,61 @@ class EnrichmentMiniMap extends StatelessWidget {
     final GeoPoint proposed = (lat: lat, lng: lng);
     final int zoom = _zoomFor(precision);
     final double? tolerance = _toleranceMeters(precision);
-    Widget map = ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(border: Border.all(color: kLBlue)),
-        child: Stack(children: [
-          Positioned.fill(
-            child: _TileLayer(
-              zoom: zoom,
-              center: IgnTiles.project(chosen ?? proposed, zoom),
-              overlays: _markers(
-                  proposed: proposed,
-                  precision: precision,
-                  zoom: zoom,
-                  maxRadius: height * 0.45,
-                  chosen: chosen),
-            ),
-          ),
-          if (onOpen != null)
-            Positioned(
-              left: 8,
-              top: 8,
-              child: _MapHint(canPlace
-                  ? 'Cliquer pour agrandir et ajuster le point'
-                  : 'Cliquer pour agrandir'),
-            ),
-        ]),
+    final String? hint = onOpen == null
+        ? null
+        : canPlace
+            ? 'Cliquer pour agrandir et ajuster le point'
+            : 'Cliquer pour agrandir';
+    Widget map = Container(
+      height: height,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorderStrong),
       ),
+      child: Stack(children: [
+        Positioned.fill(
+          child: _TileLayer(
+            zoom: zoom,
+            center: IgnTiles.project(chosen ?? proposed, zoom),
+            overlays: _markers(
+                proposed: proposed,
+                precision: precision,
+                zoom: zoom,
+                maxRadius: height * 0.45,
+                chosen: chosen),
+          ),
+        ),
+        if (hint != null)
+          Positioned(left: 8, top: 8, right: 52, child: _MapHint(hint)),
+        // Contrôles regroupés en haut à droite : agrandir (et ajuster).
+        if (hint != null)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: _ControlGroup(buttonSize: 30, children: [
+              _ControlButton(
+                  tooltip: hint,
+                  icon: Icons.open_in_full_rounded,
+                  size: 30,
+                  onPressed: onOpen!),
+            ]),
+          ),
+        // Légende en pastille, en bas à gauche.
+        Positioned(
+          left: 8,
+          bottom: 8,
+          child: _LegendPill(entries: [
+            (
+              chosen == null ? kRed : kRed.withValues(alpha: 0.7),
+              tolerance == null
+                  ? 'Proposée'
+                  : 'Proposée · ± ${tolerance.round()} m'
+            ),
+            if (chosen != null) (kNavy600, 'Choisie'),
+          ]),
+        ),
+      ]),
     );
     if (onOpen != null) {
       map = MouseRegion(
@@ -297,6 +341,7 @@ class EnrichmentMiniMap extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         map,
+        const SizedBox(height: 4),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8,
@@ -304,7 +349,7 @@ class EnrichmentMiniMap extends StatelessWidget {
             if (tolerance != null)
               Text(
                   'Cercle : zone probable (environ ${tolerance.round()} m), pas l’emplacement exact.',
-                  style: const TextStyle(fontSize: 12, color: kGrey)),
+                  style: const TextStyle(fontSize: 12, color: kText3)),
             EnrichmentSourceLink(IgnTiles.geoportail(chosen ?? proposed)),
           ],
         ),
@@ -313,21 +358,114 @@ class EnrichmentMiniMap extends StatelessWidget {
   }
 }
 
+/// Invite « Cliquer pour agrandir… », en pastille blanche.
 class _MapHint extends StatelessWidget {
   final String text;
   const _MapHint(this.text);
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: _mapShadow,
+          ),
+          child: Text(text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 11, color: kNavy800, fontWeight: FontWeight.w600)),
         ),
-        child: Text(text,
-            style: const TextStyle(
-                fontSize: 12, color: kBlueEnd, fontWeight: FontWeight.w600)),
+      );
+}
+
+/// Légende de la carte en pastille : un point coloré par repère.
+class _LegendPill extends StatelessWidget {
+  final List<(Color, String)> entries;
+  const _LegendPill({required this.entries});
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            for (var i = 0; i < entries.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                      color: entries[i].$1, shape: BoxShape.circle)),
+              const SizedBox(width: 5),
+              Text(entries[i].$2,
+                  style: const TextStyle(fontSize: 10, color: kText2)),
+            ],
+          ]),
+        ),
+      );
+}
+
+/// Groupe vertical de contrôles (fond blanc, coins arrondis, séparateurs).
+class _ControlGroup extends StatelessWidget {
+  final List<Widget> children;
+  final double buttonSize;
+  const _ControlGroup({required this.children, required this.buttonSize});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(buttonSize > 32 ? 10 : 8),
+          boxShadow: _mapShadow,
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0)
+              SizedBox(
+                  width: buttonSize,
+                  child: const Divider(height: 1, color: kNavy100)),
+            children[i],
+          ],
+        ]),
+      );
+}
+
+/// Bouton carré d'un [_ControlGroup].
+class _ControlButton extends StatelessWidget {
+  final String tooltip;
+  final IconData icon;
+  final double size;
+  final VoidCallback onPressed;
+  const _ControlButton(
+      {super.key,
+      required this.tooltip,
+      required this.icon,
+      required this.size,
+      required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+        dimension: size,
+        child: IconButton(
+          tooltip: tooltip,
+          onPressed: onPressed,
+          padding: EdgeInsets.zero,
+          iconSize: size > 32 ? 20 : 16,
+          style: IconButton.styleFrom(
+            foregroundColor: kNavy600,
+            minimumSize: Size.square(size),
+            shape: const RoundedRectangleBorder(),
+          ),
+          icon: Icon(icon),
+        ),
       );
 }
 
@@ -399,21 +537,34 @@ class _EnrichmentMapDialogState extends State<EnrichmentMapDialog> {
       onClose: () => Navigator.pop(context),
       title:
           Text(widget.editable ? 'Ajuster la position' : 'Position proposée'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-              widget.editable
-                  ? 'Glissez pour vous déplacer, molette ou +/− pour zoomer. '
-                      'Cliquez sur la carte pour poser le point à l’emplacement exact du commerce.'
-                  : 'Glissez pour vous déplacer, molette ou +/− pour zoomer.',
-              style: const TextStyle(fontSize: 13, color: kGrey)),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
+      content: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+                widget.editable
+                    ? 'Glissez pour vous déplacer, molette ou +/− pour zoomer. '
+                        'Cliquez sur la carte pour poser le point à l’emplacement exact du commerce.'
+                    : 'Glissez pour vous déplacer, molette ou +/− pour zoomer.',
+                style: const TextStyle(fontSize: 13, color: kText2)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 16, runSpacing: 4, children: [
+              _Legend(
+                  color: chosen == null ? kRed : kRed.withValues(alpha: 0.7),
+                  text: 'Proposée'),
+              if (chosen != null)
+                const _Legend(color: kNavy600, text: 'Choisie'),
+            ]),
+            const SizedBox(height: 10),
+            Container(
               height: height,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: kBorderStrong),
+              ),
               child: LayoutBuilder(builder: (context, size) {
                 _size = size.biggest;
                 return Stack(children: [
@@ -442,6 +593,7 @@ class _EnrichmentMapDialogState extends State<EnrichmentMapDialog> {
                           child: _TileLayer(
                             zoom: _zoom,
                             center: _center,
+                            attributionInset: 12,
                             overlays: _markers(
                                 proposed: widget.proposed,
                                 precision: widget.precision,
@@ -454,35 +606,51 @@ class _EnrichmentMapDialogState extends State<EnrichmentMapDialog> {
                     ),
                   ),
                   Positioned(
-                    right: 10,
-                    top: 10,
+                    right: 12,
+                    top: 12,
                     child: _MapControls(
                       onZoomIn: () => _zoomBy(1),
                       onZoomOut: () => _zoomBy(-1),
                       onRecenter: _recenter,
                     ),
                   ),
+                  // Coordonnées du point posé, en pastille.
+                  if (chosen != null)
+                    Positioned(
+                      left: 12,
+                      bottom: 12,
+                      right: 150,
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: IgnorePointer(
+                          child: Container(
+                            key: const ValueKey('map-chosen-text'),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.94),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: _mapShadow,
+                            ),
+                            child: Text('Choisie : ${IgnTiles.format(chosen)}',
+                                style: ArcText.dataSmall(color: kInk)
+                                    .copyWith(fontSize: 12)),
+                          ),
+                        ),
+                      ),
+                    ),
                 ]);
               }),
             ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(spacing: 16, runSpacing: 4, children: [
-            _Legend(color: chosen == null ? kRed : kBlue, text: 'Proposée'),
-            if (chosen != null)
-              _Legend(
-                  color: kRed,
-                  text: 'Choisie : ${IgnTiles.format(chosen)}',
-                  key: const ValueKey('map-chosen-text')),
-          ]),
-        ],
+          ],
+        ),
       ),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Annuler')),
         if (widget.editable && chosen != null)
-          TextButton(
+          OutlinedButton(
               onPressed: () => Navigator.pop(context, const MapPick(null)),
               child: const Text('Garder la position proposée')),
         if (widget.editable)
@@ -507,50 +675,47 @@ class _MapControls extends StatelessWidget {
   Widget build(BuildContext context) {
     // Icônes déjà présentes ailleurs dans l'application : elles figurent dans
     // la police d'icônes en cache des navigateurs.
-    Widget button(String tooltip, IconData icon, VoidCallback onPressed,
-            {Key? key}) =>
-        IconButton(
-            key: key,
-            tooltip: tooltip,
-            onPressed: onPressed,
-            color: kBlueEnd,
-            iconSize: 20,
-            visualDensity: VisualDensity.compact,
-            icon: Icon(icon));
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-      ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        button('Zoomer', Icons.add, onZoomIn,
-            key: const ValueKey('map-zoom-in')),
-        const SizedBox(width: 32, child: Divider(height: 1)),
-        button('Dézoomer', Icons.remove, onZoomOut,
-            key: const ValueKey('map-zoom-out')),
-        const SizedBox(width: 32, child: Divider(height: 1)),
-        button('Recentrer sur la position', Icons.my_location, onRecenter,
-            key: const ValueKey('map-recenter')),
-      ]),
-    );
+    return _ControlGroup(buttonSize: 40, children: [
+      _ControlButton(
+          key: const ValueKey('map-zoom-in'),
+          tooltip: 'Zoomer',
+          icon: Icons.add,
+          size: 40,
+          onPressed: onZoomIn),
+      _ControlButton(
+          key: const ValueKey('map-zoom-out'),
+          tooltip: 'Dézoomer',
+          icon: Icons.remove,
+          size: 40,
+          onPressed: onZoomOut),
+      _ControlButton(
+          key: const ValueKey('map-recenter'),
+          tooltip: 'Recentrer sur la position',
+          icon: Icons.my_location,
+          size: 40,
+          onPressed: onRecenter),
+    ]);
   }
 }
 
+/// Point coloré et libellé de la légende de la grande carte.
 class _Legend extends StatelessWidget {
   final Color color;
   final String text;
-  const _Legend({super.key, required this.color, required this.text});
+  const _Legend({required this.color, required this.text});
 
   @override
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          MapPin(color: color, size: 18),
+          Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 6),
           Flexible(
               child: Text(text,
-                  style: const TextStyle(fontSize: 13, color: kBlueEnd))),
+                  style: const TextStyle(fontSize: 12, color: kText2))),
         ],
       );
 }

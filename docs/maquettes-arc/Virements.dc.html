@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Virements</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="virements" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 24px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #63677F">Finance</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; color: #1F2240">Ordres de virement</h1>
+</div>
+<a href="ProchainVirement.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid #CDCFDD; background: #FFFFFF; color: #3A4276; font-weight: 600; font-size: 14px; text-decoration: none">Prochain virement<span style="padding: 0 7px; border-radius: 999px; background: #F8AA36; color: #1F2240; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px">23,50 €</span></a>
+</header>
+
+<div style="padding: 0 40px 48px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #ECEDF6">
+<div role="tablist" aria-label="Compte payeur" style="display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: #ECEDF6">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" role="tab" onClick="{{t.pick}}" style="height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #545873">
+<span>Sur cette page : <span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500; color: #1F2240">{{sumPaid}}</span> remboursés</span>
+<span><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500; color: #1F2240">{{sumFees}}</span> de frais</span>
+</div>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="text-align: left; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">Période</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Compte</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Frais de gestion</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Montant remboursé</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Créé le</th>
+<th style="text-align: right; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">Fichiers</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<tr>
+<td style="padding: 11px 20px; border-top: 1px solid #ECEDF6"><div style="display: flex; flex-direction: column"><span style="font-weight: 500; color: #1F2240; white-space: nowrap">{{r.period}}</span><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 10.5px; color: #63677F">{{r.file}}</span></div></td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6"><span style="padding: 3px 10px; border-radius: 999px; background: {{r.accBg}}; border: 1.5px solid {{r.accBorder}}; color: {{r.accFg}}; font-size: 12px; font-weight: 600; white-space: nowrap">{{r.account}}</span></td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; color: #545873">{{r.fees}}</td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500">{{r.paid}}</td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; color: #545873; white-space: nowrap">{{r.created}}</td>
+<td style="padding: 6px 20px; border-top: 1px solid #ECEDF6; text-align: right; white-space: nowrap">
+<button type="button" aria-label="Télécharger l'ordre de virement" style="width: 34px; height: 34px; border: 0; border-radius: 9px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+<button type="button" aria-label="Documents (justificatifs et factures)" style="width: 34px; height: 34px; border: 0; border-radius: 9px; background: #F5F5FA; color: #3A4276; cursor: pointer; margin-left: 4px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg></button>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; padding: 12px 20px; font-size: 12px; color: #545873; border-top: 1px solid #ECEDF6">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–10 sur 187</span>
+<button type="button" aria-label="Page précédente" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">‹</button>
+<button type="button" aria-label="Page suivante" style="width: 32px; height: 32px; border: 1px solid #CDCFDD; border-radius: 8px; background: #FFFFFF; color: #3A4276; cursor: pointer">›</button>
+</div>
+</div>
+</div>
+</main>
+<button type="button" aria-label="Ouvrir Néo" style="position: absolute; right: 28px; bottom: 28px; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { account: 'all' };
+  }
+  renderVals() {
+    const raw = [
+      ['BTO_2026-10-13_2026-10-13_151929.zip', 6.00, 94.00, 'main', '16/10/2026'],
+      ['BTO_2026-10-14_2026-10-15_150501.zip', 6.00, 94.00, 'second', '16/10/2026'],
+      ['BTO_2026-10-05_2026-10-11.zip', 1.20, 18.80, 'second', '12/10/2026'],
+      ['BTO_2026-04-14_2026-10-06.zip', 4.80, 75.20, 'second', '05/10/2026'],
+      ['BTO_2026-04-10_2026-04-15.zip', 1.20, 18.80, 'main', '14/04/2026'],
+      ['BTO_2026-03-30_2026-04-09.zip', 22.56, 353.43, 'main', '10/04/2026'],
+      ['BTO_2026-03-23_2026-03-29.zip', 19.12, 299.50, 'main', '30/03/2026'],
+      ['BTO_2026-03-20_2026-03-22.zip', 1.20, 18.80, 'main', '23/03/2026'],
+      ['BTO_2026-03-11_2026-03-19.zip', 6.00, 93.98, 'main', '20/03/2026'],
+      ['BTO_2026-03-02_2026-03-10.zip', 7.73, 120.98, 'main', '11/03/2026']
+    ];
+    const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    const d = (iso) => { const [y, m, dd] = iso.split('-').map(Number); return dd + ' ' + months[m - 1]; };
+    const eur = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+    const list = raw.filter((r) => this.state.account === 'all' || r[3] === this.state.account);
+    const rows = list.map(([file, fees, paid, acc, created]) => {
+      const p = file.split('_');
+      const main = acc === 'main';
+      return {
+        file,
+        period: p[1] === p[2] ? d(p[1]) + ' ' + p[1].slice(0, 4) : d(p[1]) + ' → ' + d(p[2]) + ' ' + p[2].slice(0, 4),
+        fees: eur(fees),
+        paid: eur(paid),
+        created,
+        account: main ? 'Principal' : 'Secondaire',
+        accBg: main ? '#3A4276' : '#FFFFFF',
+        accFg: main ? '#FFFFFF' : '#3A4276',
+        accBorder: main ? '#3A4276' : '#8288BC'
+      };
+    });
+    const tabs = [
+      { id: 'all', label: 'Tous les comptes' },
+      { id: 'main', label: 'Compte principal' },
+      { id: 'second', label: 'Compte secondaire' }
+    ].map((t) => {
+      const on = this.state.account === t.id;
+      return { ...t, bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#1F2240' : '#545873', shadow: on ? '0 1px 3px rgba(31,34,64,0.15)' : 'none', pick: () => this.setState({ account: t.id }) };
+    });
+    return {
+      rows, tabs,
+      sumPaid: eur(list.reduce((s, r) => s + r[2], 0)),
+      sumFees: eur(list.reduce((s, r) => s + r[1], 0))
+    };
+  }
+}
+</script>
+</body>
+</html>

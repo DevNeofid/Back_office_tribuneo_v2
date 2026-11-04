@@ -11,8 +11,11 @@ import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/date_formater.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
+
+enum _VoucherAction { resendMail, updateExpiry, disable }
 
 class ShowVouchers extends StatefulWidget {
   final OrderModel order;
@@ -56,26 +59,16 @@ class ShowVouchersState extends State<ShowVouchers> {
   }
 
   Future<void> _disableVoucher(OrderVoucherModel voucher) async {
-    final bool? confirmed = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Désactiver un bon'),
-            content: Text(
-                'Êtes-vous sûr de vouloir désactiver le bon n°${voucher.id} de ${(voucher.amount ?? 0).toStringAsFixed(2)} € ?'),
-            actions: <Widget>[
-              TextButton(
-                  child: const Text('Annuler'),
-                  onPressed: () => Navigator.of(context).pop(false)),
-              TextButton(
-                  child: const Text(
-                    'Désactiver',
-                    style: TextStyle(color: kRed, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(true)),
-            ],
-          );
-        });
+    final bool confirmed = await showArcConfirm(
+      context,
+      title: 'Désactiver un bon',
+      message: 'Êtes-vous sûr de vouloir désactiver le bon n°${voucher.id} de '
+          '${(voucher.amount ?? 0).toStringAsFixed(2)} € ? Il ne pourra plus '
+          'être utilisé.',
+      confirmLabel: 'Désactiver',
+      danger: true,
+      icon: Icons.block_rounded,
+    );
 
     if (confirmed != true) return;
 
@@ -154,171 +147,280 @@ class ShowVouchersState extends State<ShowVouchers> {
     return "$day/$month/${date.year}";
   }
 
-  String _formatDate(String? date) {
-    if (date == null || date.trim().isEmpty) return '-';
-    return DateFormater().modifyDate(date);
+  // ---------------------------------------------------------------------------
+  // Affichage
+  // ---------------------------------------------------------------------------
+
+  /// Identifiant du bon tel qu'imprimé : réseau-bon-commande.
+  String _voucherCode(OrderVoucherModel voucher) =>
+      '$networkId-${voucher.id}-${widget.order.id}';
+
+  /// « C202610121 · test multi-compte · Fête des mères », sans les parties
+  /// absentes.
+  String get _eyebrow => [
+        widget.order.orderNumber,
+        widget.order.giftFrom,
+        widget.order.giftReason,
+      ]
+          .map((part) => part?.trim() ?? '')
+          .where((part) => part.isNotEmpty)
+          .join(' · ');
+
+  void _close() => Navigator.of(context).pop(_hasModifiedData);
+
+  Widget _status(OrderVoucherModel voucher) {
+    if (voucher.isDeleted) {
+      final String deleted = formatFrenchDate(voucher.deletedDate);
+      final Widget pill = const ArcPill('Désactivé', tone: ArcTone.neutral);
+      return deleted.isEmpty
+          ? pill
+          : Tooltip(message: 'Désactivé le $deleted', child: pill);
+    }
+    if (voucher.hasUser) {
+      return const ArcPill('Associé à un utilisateur', tone: ArcTone.info);
+    }
+    return const ArcPill('Actif', tone: ArcTone.success);
   }
 
-  DataCell _centeredCell(String text) {
-    return DataCell(
-        Center(child: SelectableText(text, textAlign: TextAlign.center)));
-  }
-
-  DataRow _buildRow(OrderVoucherModel voucher, int rowIndex) {
-    final bool isEvenRow = rowIndex % 2 == 0;
+  DataRow _buildRow(OrderVoucherModel voucher) {
     final bool canDisable = !voucher.hasUser && !voucher.isDeleted;
     final bool canUpdateExpiry = !voucher.isDeleted;
     final bool canResendMail = !voucher.isDeleted &&
         voucher.isDonation != 1 &&
         (voucher.email?.trim().isNotEmpty ?? false);
 
+    final String name = voucher.name?.trim() ?? '';
+    final String email = voucher.email?.trim() ?? '';
+    final String mobile = voucher.mobile?.trim() ?? '';
+
     return DataRow(
-      color: isEvenRow
-          ? WidgetStateProperty.all(kWhite)
-          : WidgetStateProperty.all(kLBlue.withValues(alpha: 0.10)),
       cells: [
-        _centeredCell('${networkId}' +
-            '-' +
-            '${voucher.id?.toString()}' +
-            '-' +
-            '${widget.order.id?.toString()}'),
-        _centeredCell('${(voucher.amount ?? 0).toStringAsFixed(2)} €'),
-        _centeredCell('${(voucher.remainingAmount ?? 0).toStringAsFixed(2)} €'),
-        _centeredCell(voucher.isDonation == 1 ? 'Oui' : 'Non'),
-        _centeredCell(voucher.name?.trim() ?? ''),
-        _centeredCell(voucher.email?.trim() ?? ''),
-        _centeredCell(voucher.mobile?.trim() ?? ''),
-        _centeredCell(_formatDate(voucher.expiryDate)),
-        _centeredCell(_formatDate(voucher.deletedDate)),
-        DataCell(
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+        DataCell(SelectableText(_voucherCode(voucher),
+            style: ArcText.dataSmall(color: kNavy900))),
+        DataCell(Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (name.isNotEmpty)
+              SelectableText(name,
+                  maxLines: 1,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, fontWeight: FontWeight.w500, color: kInk)),
+            SelectableText(
+                email.isNotEmpty ? email : 'Aucune adresse e-mail pour ce bon',
+                maxLines: 1,
+                style: ArcText.small(color: kText3)),
+          ],
+        )),
+        DataCell(SelectableText(mobile,
+            style: ArcText.data(color: kText2).copyWith(fontSize: 12))),
+        DataCell(Text(formatEuro(voucher.amount),
+            style: ArcText.data(fontWeight: FontWeight.w500))),
+        DataCell(Text(formatEuro(voucher.remainingAmount),
+            style: ArcText.data(color: kText2))),
+        DataCell(Text(formatFrenchDate(voucher.expiryDate),
+            style: ArcText.body(color: kText2).copyWith(fontSize: 13))),
+        DataCell(Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: [
+            _status(voucher),
+            if (voucher.isDonation == 1)
+              const ArcPill('Don', tone: ArcTone.warning, square: true),
+          ],
+        )),
+        DataCell(Align(
+          alignment: Alignment.centerRight,
+          child: _resendingVoucher == voucher.id
+              ? const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+                )
+              : _actionsMenu(voucher,
+                  canDisable: canDisable,
+                  canUpdateExpiry: canUpdateExpiry,
+                  canResendMail: canResendMail),
+        )),
+      ],
+    );
+  }
+
+  PopupMenuItem<_VoucherAction> _menuItem(
+    _VoucherAction value, {
+    required IconData icon,
+    required String label,
+    required bool enabled,
+    String? disabledReason,
+    bool danger = false,
+  }) {
+    final Color color = !enabled
+        ? kNavy300
+        : danger
+            ? kDangerText
+            : kInk;
+    return PopupMenuItem<_VoucherAction>(
+      value: value,
+      enabled: enabled,
+      child: Row(
+        children: [
+          Icon(icon,
+              size: 16,
+              color: !enabled
+                  ? kNavy300
+                  : danger
+                      ? kDangerText
+                      : kNavy600),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Tooltip(
-                  message: canDisable
-                      ? 'Désactiver le bon'
-                      : voucher.isDeleted
-                          ? 'Bon déjà désactivé'
-                          : 'Bon associé à un utilisateur, désactivation impossible',
-                  child: IconButton(
-                    icon: Icon(Icons.block,
-                        color: canDisable ? kRed : Colors.grey),
-                    onPressed:
-                        canDisable ? () => _disableVoucher(voucher) : null,
-                  ),
-                ),
-                Tooltip(
-                  message: canUpdateExpiry
-                      ? 'Modifier la date d\'expiration'
-                      : 'Bon déjà désactivé',
-                  child: IconButton(
-                    icon: Icon(Icons.edit_calendar,
-                        color: canUpdateExpiry ? kBlue : Colors.grey),
-                    onPressed: canUpdateExpiry
-                        ? () => _updateExpiryDate(voucher)
-                        : null,
-                  ),
-                ),
-                if (_resendingVoucher == voucher.id)
-                  const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: kBlue)),
-                  )
-                else
-                  Tooltip(
-                    message: canResendMail
-                        ? "Renvoyer l'e-mail"
-                        : 'Aucune adresse e-mail pour ce bon',
-                    child: IconButton(
-                      icon: Icon(Icons.forward_to_inbox,
-                          color: canResendMail ? kBlue : Colors.grey),
-                      onPressed: canResendMail && _resendingVoucher == null
-                          ? () => _resendGiftMail(voucher)
-                          : null,
-                    ),
-                  ),
+                Text(label,
+                    style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: danger ? FontWeight.w600 : FontWeight.w400,
+                        color: color)),
+                if (!enabled && disabledReason != null)
+                  Text(disabledReason, style: ArcText.small(color: kText3)),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionsMenu(OrderVoucherModel voucher,
+      {required bool canDisable,
+      required bool canUpdateExpiry,
+      required bool canResendMail}) {
+    return PopupMenuButton<_VoucherAction>(
+      tooltip: 'Actions du bon',
+      icon: const Icon(Icons.more_horiz_rounded, size: 18),
+      constraints: const BoxConstraints(minWidth: 250, maxWidth: 300),
+      onSelected: (action) {
+        switch (action) {
+          case _VoucherAction.resendMail:
+            _resendGiftMail(voucher);
+          case _VoucherAction.updateExpiry:
+            _updateExpiryDate(voucher);
+          case _VoucherAction.disable:
+            _disableVoucher(voucher);
+        }
+      },
+      itemBuilder: (context) => [
+        _menuItem(
+          _VoucherAction.resendMail,
+          icon: Icons.mail_outline_rounded,
+          label: "Renvoyer l'e-mail",
+          enabled: canResendMail && _resendingVoucher == null,
+          disabledReason: canResendMail ? null : 'Aucune adresse e-mail pour ce bon',
+        ),
+        _menuItem(
+          _VoucherAction.updateExpiry,
+          icon: Icons.calendar_month_outlined,
+          label: 'Modifier la date d\'expiration',
+          enabled: canUpdateExpiry,
+          disabledReason: 'Bon déjà désactivé',
+        ),
+        const PopupMenuDivider(),
+        _menuItem(
+          _VoucherAction.disable,
+          icon: Icons.block_rounded,
+          label: 'Désactiver le bon',
+          enabled: canDisable,
+          danger: true,
+          disabledReason: voucher.isDeleted
+              ? 'Bon déjà désactivé'
+              : 'Bon associé à un utilisateur, désactivation impossible',
         ),
       ],
     );
   }
 
-  DataColumn2 _column(String label, ColumnSize size) {
+  DataColumn2 _column(String label,
+      {ColumnSize size = ColumnSize.M,
+      double? fixedWidth,
+      bool numeric = false}) {
     return DataColumn2(
       size: size,
-      label: Expanded(
-          child: Center(child: Text(label, textAlign: TextAlign.center))),
+      fixedWidth: fixedWidth,
+      numeric: numeric,
+      label: Text(label),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_vouchers.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(28),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ArcEmptyState(
+            icon: Icons.confirmation_number_outlined,
+            title: 'Aucun bon associé à cette commande.',
+          ),
+        ),
+      );
+    }
+    return DataTable2(
+      columnSpacing: 16,
+      horizontalMargin: 28,
+      minWidth: 980,
+      headingRowHeight: 44,
+      dataRowHeight: 60,
+      showCheckboxColumn: false,
+      columns: [
+        _column('Bon', fixedWidth: 120),
+        _column('Bénéficiaire', size: ColumnSize.L),
+        _column('Téléphone', fixedWidth: 120),
+        _column('Montant', fixedWidth: 96, numeric: true),
+        _column('Restant', fixedWidth: 96, numeric: true),
+        _column('Expiration', fixedWidth: 100),
+        _column('État', fixedWidth: 190),
+        _column('Action', fixedWidth: 64, numeric: true),
+      ],
+      rows: [for (final voucher in _vouchers) _buildRow(voucher)],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: SelectableText(
-          'Gestion des bons - Commande ${widget.order.orderNumber ?? ''}'),
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.85,
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: kBlue))
-            : _vouchers.isEmpty
-                ? const Center(
-                    child: Text('Aucun bon associé à cette commande.'))
-                : Theme(
-                    data: Theme.of(context).copyWith(
-                      dataTableTheme: DataTableThemeData(
-                        headingRowColor: WidgetStateProperty.all(kBlue),
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kWhite,
-                        ),
-                        dataTextStyle: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: kBlueEnd,
-                        ),
-                        dividerThickness: 0.6,
-                        dataRowMinHeight: 50,
-                        dataRowMaxHeight: 56,
-                        headingRowHeight: 54,
-                      ),
-                    ),
-                    child: DataTable2(
-                      columnSpacing: 16,
-                      horizontalMargin: 10,
-                      minWidth: 1200,
-                      showCheckboxColumn: false,
-                      columns: [
-                        _column('ID', ColumnSize.S),
-                        _column('Montant', ColumnSize.S),
-                        _column('Montant restant', ColumnSize.S),
-                        _column('Donation', ColumnSize.S),
-                        _column('Nom', ColumnSize.M),
-                        _column('Email', ColumnSize.L),
-                        _column('Téléphone', ColumnSize.M),
-                        _column('Expiration', ColumnSize.M),
-                        _column('Suppression', ColumnSize.M),
-                        _column('Action', ColumnSize.M),
-                      ],
-                      rows: [
-                        for (int i = 0; i < _vouchers.length; i++)
-                          _buildRow(_vouchers[i], i),
-                      ],
-                    ),
-                  ),
+    final String eyebrow = _eyebrow;
+    final num total =
+        _vouchers.fold<num>(0, (sum, voucher) => sum + (voucher.amount ?? 0));
+    // Sans bouton « Fermer » en pied : un clic hors du panneau rend aussi
+    // l'information « bons modifiés » pour recharger la liste.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _close();
+      },
+      child: OrderSheet(
+        semanticLabel: 'Bons de la commande',
+        width: 900,
+        scrollBody: false,
+        header: OrderSheetHeader(
+          eyebrow:
+              eyebrow.isEmpty ? null : OrderSheetEyebrow(eyebrow, data: true),
+          title: 'Bons de la commande',
+          trailing: [
+            if (!_isLoading && _vouchers.isNotEmpty)
+              ArcPill(
+                  '${plural(_vouchers.length, 'bon')} · ${formatEuro(total)}',
+                  tone: ArcTone.info),
+            OrderSheetCloseButton(onPressed: _close),
+          ],
+        ),
+        body: _buildBody(),
       ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.of(context).pop(_hasModifiedData),
-            child: const Text('Fermer')),
-      ],
     );
   }
 }

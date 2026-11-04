@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Documents</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="documents" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 24px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #63677F">Finance</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; color: #1F2240">Documents</h1>
+</div>
+<div role="tablist" style="display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px; background: #E4E5EE">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+<button type="button" role="tab" onClick="{{t.pick}}" style="display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 9px; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+</header>
+
+<div style="padding: 0 40px 48px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #ECEDF6">
+<div style="flex: 0 1 340px; display: flex; align-items: center; gap: 10px; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #E4E5EE; border-radius: 10px; color: #63677F">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+<label for="doc-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rechercher un document</label>
+<input id="doc-search" type="search" placeholder="N° de facture, nom…" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: Poppins, sans-serif; font-size: 14px; background: transparent">
+</div>
+<button type="button" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Télécharger la sélection</button>
+</div>
+<sc-if value="{{isInvoices}}" hint-placeholder-val="{{true}}">
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="width: 40px; padding: 10px 6px 10px 20px; text-align: left"><input type="checkbox" aria-label="Tout sélectionner" style="width: 18px; height: 18px; accent-color: #3A4276; margin: 0"></th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">N° de facture</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Client</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Montant TTC</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Émise le</th>
+<th style="text-align: right; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">PDF</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{invoices}}" as="r" hint-placeholder-count="10">
+<tr>
+<td style="padding: 11px 6px 11px 20px; border-top: 1px solid #ECEDF6"><input type="checkbox" aria-label="Sélectionner {{r.num}}" style="width: 18px; height: 18px; accent-color: #3A4276; margin: 0"></td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; font-weight: 500; color: #1F2240">{{r.num}}</td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6"><div style="display: flex; align-items: center; gap: 10px"><span style="width: 30px; height: 30px; flex: 0 0 auto; border-radius: 9px; background: #ECEDF6; color: #3A4276; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 11px">{{r.ini}}</span><span style="font-weight: 500">{{r.name}}</span></div></td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500">{{r.amount}}</td>
+<td style="padding: 11px 12px; border-top: 1px solid #ECEDF6; color: #545873; white-space: nowrap">{{r.date}}</td>
+<td style="padding: 6px 20px; border-top: 1px solid #ECEDF6; text-align: right"><button type="button" aria-label="Télécharger {{r.num}}" style="width: 34px; height: 34px; border: 0; border-radius: 9px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 6px; padding: 12px 20px; font-size: 12px; color: #545873; border-top: 1px solid #ECEDF6">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–10 sur [total]</span>
+<button type="button" aria-label="Page précédente" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">‹</button>
+<button type="button" aria-label="Page suivante" style="width: 32px; height: 32px; border: 1px solid #CDCFDD; border-radius: 8px; background: #FFFFFF; color: #3A4276; cursor: pointer">›</button>
+</div>
+</sc-if>
+<sc-if value="{{isFees}}" hint-placeholder-val="{{false}}">
+<div style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<span style="width: 48px; height: 48px; border-radius: 14px; background: #ECEDF6; color: #3A4276; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span>
+<span style="font-weight: 600; color: #1F2240">[Factures de frais de gestion]</span>
+<span style="font-size: 13px; color: #63677F; max-width: 420px">Même tableau que les factures : n°, commerçant, montant des frais, date d'émission, PDF.</span>
+</div>
+</sc-if>
+</div>
+</div>
+</main>
+<button type="button" aria-label="Ouvrir Néo" style="position: absolute; right: 28px; bottom: 28px; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'invoices' };
+  }
+  renderVals() {
+    const raw = [
+      ['FATN00393', '3 P CONSTRUCTION', 200, '11/10/2026'],
+      ['FATN00391', 'AMICALE DES SAPEURS-POMPIERS', 250, '05/10/2026'],
+      ['FATN00390', "ABATTOIRS DU PAYS D'APT", 250, '05/10/2026'],
+      ['FATN00389', 'AGENCE MYLENE MURANO', 150, '04/10/2026'],
+      ['FATN00388', 'ADIT', 250, '04/10/2026'],
+      ['FATN00386', 'NEOFID TECHNOLOGY', 100, '20/08/2026'],
+      ['FATN00373', 'OYOPI', 10, '13/02/2026'],
+      ['FATN00347', 'NEOFID TECHNOLOGY', 500, '18/12/2025'],
+      ['FATN00343', 'LA CAVE DE REGUSSE ROMYLEO', 100, '16/12/2025'],
+      ['FATN00339', 'GIRAUD FRANCOIS', 10, '11/12/2025']
+    ];
+    const ini = (n) => n.replace(/[^A-Z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('');
+    const invoices = raw.map(([num, name, amount, date]) => ({
+      num, name, date, ini: ini(name),
+      amount: amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €'
+    }));
+    const tabs = [
+      { id: 'invoices', label: 'Factures' },
+      { id: 'fees', label: 'Frais de gestion' }
+    ].map((t) => {
+      const on = this.state.tab === t.id;
+      return { ...t, bg: on ? '#3A4276' : 'transparent', fg: on ? '#FFFFFF' : '#545873', shadow: on ? '0 2px 6px rgba(31,34,64,0.25)' : 'none', pick: () => this.setState({ tab: t.id }) };
+    });
+    return { invoices, tabs, isInvoices: this.state.tab === 'invoices', isFees: this.state.tab === 'fees' };
+  }
+}
+</script>
+</body>
+</html>

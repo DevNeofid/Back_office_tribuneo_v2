@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Commande · modifier</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="commandes" hint-size="248px,1040px"></dc-import></div>
+<main aria-hidden="true" style="flex: 999 1 560px; min-width: 0; padding: 36px 40px; display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 13px; color: #63677F">Réseau</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; color: #1F2240">Commandes</span>
+<div style="height: 620px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div>
+</main>
+
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.55); display: flex; justify-content: flex-end">
+<aside role="dialog" aria-modal="true" aria-labelledby="eo-title" style="width: 620px; max-width: 100%; background: #FFFFFF; display: flex; flex-direction: column; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<div style="padding: 24px 28px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #ECEDF6">
+<div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #9A5B00">C202610161 · créée le 16/10/2026</span>
+<h2 id="eo-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 26px; color: #1F2240">Modifier la commande</h2>
+</div>
+<button type="button" aria-label="Fermer" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+<div role="group" aria-label="Type de commande (maquette)" style="align-self: flex-start; display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: #ECEDF6">
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="3">
+<button type="button" onClick="{{k.pick}}" style="height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: {{k.bg}}; color: {{k.fg}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 11px; cursor: pointer">{{k.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="flex: 1; overflow-y: auto; padding: 22px 28px; display: flex; flex-direction: column; gap: 18px">
+<sc-if value="{{isImported}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #ECEDF6">
+<span style="flex: 1 1 260px; font-size: 13px; color: #31376A">Commande importée par fichier : les montants et les quantités se modifient depuis l'écran Bénéficiaires.</span>
+<a href="Beneficiaires.dc.html" style="display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-weight: 600; font-size: 13px; text-decoration: none">Bénéficiaires</a>
+</div>
+</sc-if>
+<sc-if value="{{isInvoiced}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #FFF7EB; border: 1px solid #FDD594">
+<span style="flex: 1 1 260px; font-size: 13px; color: #1B1D30">Commande facturée : lecture seule. Seule la date de validité reste modifiable, pour toute la commande.</span>
+<button type="button" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 13px; cursor: pointer">Changer la date de validité</button>
+</div>
+</sc-if>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="eo-by" style="font-size: 13px; font-weight: 500; color: #31376A">Offert par</label><input id="eo-by" type="text" value="Jey" readonly="{{readOnly}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid {{fieldBorder}}; border-radius: 10px; background: {{fieldBg}}; font-family: Poppins, sans-serif; font-size: 14px; color: #1B1D30"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="eo-event" style="font-size: 13px; font-weight: 500; color: #31376A">Pour l'occasion de</label><input id="eo-event" type="text" value="Hors évènement Urssaf" readonly="{{readOnly}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid {{fieldBorder}}; border-radius: 10px; background: {{fieldBg}}; font-family: Poppins, sans-serif; font-size: 14px; color: #1B1D30"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="eo-exp" style="font-size: 13px; font-weight: 500; color: #31376A">Date d'expiration</label><input id="eo-exp" type="text" value="17/10/2027" readonly="{{readOnly}}" style="height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid {{fieldBorder}}; border-radius: 10px; background: {{fieldBg}}; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px; color: #1B1D30"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 500; color: #31376A">Paiement</span><span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: #FFF2DC; color: #9A5B00; font-size: 12px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 999px; background: #F8AA36"></span>Écart · payé 150,00 € pour 125,00 €</span></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 15px; font-weight: 600; color: #1F2240">Bons</h3>
+<div style="display: grid; grid-template-columns: 140px 130px minmax(0, 1fr); gap: 10px; align-items: end; padding: 12px; border-radius: 14px; background: #F5F5FA; border: 1px solid #E4E5EE">
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="eo-amount" style="font-size: 12px; font-weight: 500; color: #31376A">Montant par chèque</label><input id="eo-amount" type="text" value="25,00 €" readonly style="height: 40px; box-sizing: border-box; padding: 0 10px; border: 1.5px solid #E4E5EE; border-radius: 10px; background: #FFFFFF; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="eo-qty" style="font-size: 12px; font-weight: 500; color: #31376A">Nombre de chèques</label><input id="eo-qty" type="text" inputmode="numeric" value="{{qty}}" onChange="{{onQty}}" readonly="{{linesLocked}}" style="height: 40px; box-sizing: border-box; padding: 0 10px; border: 1.5px solid {{qtyBorder}}; border-radius: 10px; background: #FFFFFF; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 13px"></div>
+<span style="font-size: 12px; color: #545873; padding-bottom: 10px">{{qtyHint}}</span>
+</div>
+</div>
+</div>
+
+<div style="padding: 16px 28px; border-top: 1px solid #ECEDF6; display: flex; justify-content: flex-end; gap: 10px; background: #F9F9FC">
+<button type="button" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Fermer</button>
+<sc-if value="{{canSave}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{save}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Enregistrer</button>
+</sc-if>
+</div>
+</aside>
+</div>
+
+<sc-if value="{{confirming}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.35); display: flex; align-items: center; justify-content: center; padding: 24px">
+<div role="alertdialog" aria-modal="true" aria-labelledby="eo-dlg" style="width: 460px; max-width: 100%; background: #FFFFFF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: #FFF2DC; color: #9A5B00; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 id="eo-dlg" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; color: #1F2240">Retrait de {{removed}} bon(s)</h3>
+<p style="margin: 0; font-size: 14px; color: #545873">Les bons retirés seront les derniers créés parmi ceux qui ne sont pas encore attribués. Si leurs QR ont déjà été imprimés et distribués, ils ne seront plus valables. Continuer ?</p>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{cancel}}" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Annuler</button>
+<button type="button" onClick="{{cancel}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Continuer</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kind: 'standard', qty: '3', confirming: false };
+  }
+  renderVals() {
+    const k = this.state.kind;
+    const q = parseInt(this.state.qty, 10);
+    const removed = isNaN(q) ? 0 : Math.max(0, 5 - q);
+    const kinds = [{ id: 'standard', label: 'Saisie manuelle' }, { id: 'imported', label: 'Importée' }, { id: 'invoiced', label: 'Facturée' }].map((x) => {
+      const on = k === x.id;
+      return { ...x, bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#1F2240' : '#545873', pick: () => this.setState({ kind: x.id, confirming: false }) };
+    });
+    const ro = k === 'invoiced';
+    const linesLocked = k !== 'standard';
+    return {
+      kinds,
+      isImported: k === 'imported', isInvoiced: ro,
+      readOnly: ro,
+      fieldBg: ro ? '#F5F5FA' : '#FFFFFF', fieldBorder: ro ? '#E4E5EE' : '#CDCFDD',
+      linesLocked,
+      qty: this.state.qty,
+      onQty: (e) => this.setState({ qty: e.target.value }),
+      qtyBorder: !linesLocked && removed > 0 ? '#F8AA36' : '#E4E5EE',
+      qtyHint: linesLocked ? 'Lignes non modifiables ici.' : (removed > 0 ? 'Actuellement 5 bons : ' + removed + ' seront retirés.' : 'Actuellement 5 bons.'),
+      canSave: !ro,
+      save: () => { if (!linesLocked && removed > 0) this.setState({ confirming: true }); },
+      confirming: this.state.confirming,
+      removed: String(removed),
+      cancel: () => this.setState({ confirming: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

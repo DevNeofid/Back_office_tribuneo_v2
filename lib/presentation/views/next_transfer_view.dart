@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bto_preview_model.dart';
@@ -12,6 +11,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/update_address_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/bank_information_form.dart';
@@ -48,6 +48,9 @@ class _NextTransferViewState extends State<NextTransferView> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _isGenerating = false;
+
+  /// Cartes commerçant dépliées (clé de [_merchantKey]).
+  final Set<String> _expandedMerchants = {};
 
   @override
   void initState() {
@@ -129,14 +132,15 @@ class _NextTransferViewState extends State<NextTransferView> {
       code == 'UNKNOWN_BANK_ACCOUNT' || code == 'BANK_ACCOUNT_LOCKED';
 
   void _showError(String message) {
-    snackbarKey.currentState?.showSnackBar(SnackBar(
-        content: Text(message),
-        backgroundColor: kRed,
-        duration: const Duration(seconds: 8)));
+    snackbarKey.currentState
+        ?.showSnackBar(arcStatusSnackBar(message, error: true));
   }
 
   String _merchantLabel(String? code, String name) =>
       code == null || code.isEmpty ? name : '$code — $name';
+
+  String _merchantKey(BtoMerchantToPay merchant) =>
+      'merchant-${merchant.idEntity}-${merchant.entityCode}-${merchant.entityName}';
 
   /// « libellé — IBAN » du compte payeur de l'aperçu.
   String _payingAccountLabel(BtoPreviewModel preview) {
@@ -216,22 +220,33 @@ class _NextTransferViewState extends State<NextTransferView> {
     final int paid = result.requestsPaid ?? preview.totals.requestsToPay;
     final int excluded =
         result.requestsExcluded ?? preview.totals.requestsExcluded;
+    final String? filename = result.filename;
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Ordre de virement généré'),
-        content: SizedBox(
-          width: 480,
-          child: SelectableText(
-            'Ordre de virement généré : '
-            '${plural(paid, 'demande payée', 'demandes payées')}. '
-            'Transmettez le fichier .SCT à votre banque.'
-            '${excluded > 0 ? '\n\nLa liste des demandes écartées est dans le fichier '
-                'REMBOURSEMENTS_ECARTES.csv du zip.' : ''}',
-          ),
+      builder: (context) => ArcDialog(
+        icon: Icons.check_rounded,
+        tone: ArcTone.success,
+        title: 'Ordre de virement généré',
+        maxWidth: 520,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SelectableText(
+              'Ordre de virement généré : '
+              '${plural(paid, 'demande payée', 'demandes payées')}. '
+              'Transmettez le fichier .SCT à votre banque.'
+              '${excluded > 0 ? '\n\nLa liste des demandes écartées est dans le fichier '
+                  'REMBOURSEMENTS_ECARTES.csv du zip.' : ''}',
+            ),
+            if (filename != null && filename.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _FileChip(filename),
+            ],
+          ],
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Fermer')),
         ],
@@ -245,6 +260,8 @@ class _NextTransferViewState extends State<NextTransferView> {
       builder: (context) => HoldRefundDialog(
         transactionNumber: request.transactionNumber,
         merchantLabel: _merchantLabel(merchant.entityCode, merchant.entityName),
+        requestDate: formatFrenchDate(request.createdDate),
+        amount: formatEuro(request.amount),
       ),
     );
     if (done == true && mounted) _loadPreview();
@@ -253,19 +270,32 @@ class _NextTransferViewState extends State<NextTransferView> {
   Future<void> _release(BtoExcludedRequest request) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Libérer la demande ${request.transactionNumber}'),
-        content: const Text(
-            'Cette demande sera incluse dans le prochain virement.'),
+      builder: (context) => ArcDialog(
+        icon: Icons.play_arrow_rounded,
+        tone: ArcTone.success,
+        title: 'Libérer la demande ${request.transactionNumber}',
+        maxWidth: 480,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Cette demande sera incluse dans le prochain virement.'),
+            const SizedBox(height: 16),
+            RefundRequestSummary(
+              title: _merchantLabel(request.entityCode, request.entityName),
+              transactionNumber: request.transactionNumber,
+              date: formatFrenchDate(request.createdDate),
+              amount: formatEuro(request.amount),
+            ),
+          ],
+        ),
         actions: [
-          TextButton(
+          OutlinedButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Annuler')),
-          TextButton(
+          FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Libérer',
-                  style: TextStyle(
-                      color: kBlue, fontWeight: FontWeight.bold))),
+              child: const Text('Libérer')),
         ],
       ),
     );
@@ -273,9 +303,8 @@ class _NextTransferViewState extends State<NextTransferView> {
 
     try {
       await _transferOrderUseCase.releaseRefund(request.transactionNumber);
-      snackbarKey.currentState?.showSnackBar(SnackBar(
-          content: Text('Demande ${request.transactionNumber} libérée.'),
-          backgroundColor: kGreen));
+      snackbarKey.currentState?.showSnackBar(arcStatusSnackBar(
+          'Demande ${request.transactionNumber} libérée.'));
     } on ApiException catch (e) {
       _showError(e.message);
     } catch (_) {
@@ -347,221 +376,207 @@ class _NextTransferViewState extends State<NextTransferView> {
   @override
   Widget build(BuildContext context) {
     final BtoPreviewModel? preview = _preview;
+    final bool canGenerate = preview != null &&
+        preview.totals.requestsToPay > 0 &&
+        !_isGenerating &&
+        !_isLoading;
 
-    Widget body;
+    final List<Widget> body;
     if (preview == null && _isLoading) {
-      body = const Padding(
-        padding: EdgeInsets.symmetric(vertical: 80),
-        child: Center(child: CircularProgressIndicator(color: kOrange)),
-      );
+      body = const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 80),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
     } else if (_errorMessage != null || preview == null) {
-      body = _buildError();
+      body = [_buildError()];
     } else {
-      body = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_isLoading)
-            const LinearProgressIndicator(color: kOrange, minHeight: 3)
-          else
-            const SizedBox(height: 3),
-          const SizedBox(height: 12),
-          _buildHeader(preview),
-          const SizedBox(height: 30),
-          if (preview.isEmpty)
-            _buildEmptyMessage('Aucune demande de remboursement en attente.')
-          else ...[
-            _buildToPaySection(preview),
-            if (preview.excluded.isNotEmpty) ...[
-              const SizedBox(height: 30),
-              _buildExcludedSection(preview),
-            ],
-          ],
-          const SizedBox(height: 50),
+      body = [
+        if (_isLoading)
+          const LinearProgressIndicator(minHeight: 3)
+        else
+          const SizedBox(height: 3),
+        const SizedBox(height: 8),
+        _buildSummary(preview),
+        const SizedBox(height: 24),
+        if (preview.isEmpty)
+          const ArcEmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'Aucune demande de remboursement en attente.',
+          )
+        else ...[
+          _buildToPaySection(preview),
+          const SizedBox(height: 24),
+          _buildExcludedSection(preview),
         ],
-      );
+      ];
     }
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1400),
-        child: body,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ArcPageHeader(
+          eyebrow: 'Finance',
+          title: 'Prochain virement',
+          actions: [
+            FilledButton.icon(
+              onPressed: canGenerate ? _generate : null,
+              icon: const Icon(Icons.send_rounded, size: 18),
+              label: const Text("Générer l'ordre de virement"),
+            ),
+          ],
+        ),
+        ...body,
+      ],
     );
   }
 
   Widget _buildError() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: kRed, size: 40),
-            const SizedBox(height: 12),
-            SelectableText(
-              _errorMessage ??
-                  "Impossible de charger l'aperçu du prochain virement.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 15, color: kBlueEnd),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: kOrange, foregroundColor: kPWhite),
-              onPressed: _isLoading ? null : _initialize,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
-            ),
-          ],
-        ),
+    return ArcEmptyState(
+      icon: Icons.error_outline_rounded,
+      tone: ArcTone.danger,
+      title: _errorMessage ??
+          "Impossible de charger l'aperçu du prochain virement.",
+      action: OutlinedButton.icon(
+        onPressed: _isLoading ? null : _initialize,
+        icon: const Icon(Icons.refresh_rounded, size: 18),
+        label: const Text('Réessayer'),
       ),
     );
   }
 
-  Widget _buildEmptyMessage(String message) {
-    return _Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        child: Center(
-          child: Text(message,
-              style: GoogleFonts.poppins(fontSize: 15, color: kBlueEnd)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BtoPreviewModel preview) {
+  /// Périmètre, compte payeur et les quatre indicateurs de l'aperçu.
+  Widget _buildSummary(BtoPreviewModel preview) {
     final BtoPreviewTotals totals = preview.totals;
     final String periodTo = formatFrenchDate(preview.periodTo);
-    final bool canGenerate =
-        totals.requestsToPay > 0 && !_isGenerating && !_isLoading;
 
-    return _Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (periodTo.isNotEmpty)
-              Text("Demandes faites jusqu'au $periodTo inclus",
-                  style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: kBlueEnd)),
-            const SizedBox(height: 12),
-            _buildPayingAccount(preview),
-            const SizedBox(height: 20),
-            Wrap(
+    final List<Widget> tiles = [
+      ArcKpiTile(
+          label: 'Demandes à payer', value: '${totals.requestsToPay}', flat: true),
+      ArcKpiTile(
+          label: 'Commerçants', value: '${totals.merchantsToPay}', flat: true),
+      ArcKpiTile(
+          label: 'Montant à virer',
+          value: formatEuro(totals.amountToTransfer),
+          dark: true),
+      ArcKpiTile(
+          label: 'Demandes écartées',
+          value: '${totals.requestsExcluded}',
+          flat: true),
+    ];
+
+    return ArcCard(
+      radius: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LayoutBuilder(builder: (context, constraints) {
+            final double accountWidth =
+                constraints.maxWidth < 460 ? constraints.maxWidth : 460;
+            return Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.end,
               spacing: 16,
               runSpacing: 16,
               children: [
-                _StatTile(
-                    label: 'Demandes à payer',
-                    value: '${totals.requestsToPay}'),
-                _StatTile(
-                    label: 'Commerçants', value: '${totals.merchantsToPay}'),
-                _StatTile(
-                    label: 'Montant à virer',
-                    value: formatEuro(totals.amountToTransfer)),
-                _StatTile(
-                  label: 'Demandes écartées',
-                  value: '${totals.requestsExcluded}',
-                  highlighted: totals.requestsExcluded > 0,
-                ),
+                if (periodTo.isNotEmpty)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('PÉRIMÈTRE', style: ArcText.label()),
+                      const SizedBox(height: 2),
+                      Text("Demandes faites jusqu'au $periodTo inclus",
+                          style: ArcText.cardTitle().copyWith(fontSize: 16)),
+                    ],
+                  ),
+                SizedBox(
+                    width: accountWidth, child: _buildPayingAccount(preview)),
               ],
-            ),
-            const SizedBox(height: 24),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kOrange,
-                  foregroundColor: kPWhite,
-                  disabledBackgroundColor: Colors.grey.shade400,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                ),
-                onPressed: canGenerate ? _generate : null,
-                icon: const Icon(Icons.send),
-                label: const Text("Générer l'ordre de virement"),
-              ),
-            ),
-          ],
-        ),
+            );
+          }),
+          const SizedBox(height: 20),
+          LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth >= 720) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (int i = 0; i < tiles.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 14),
+                    Expanded(child: tiles[i]),
+                  ],
+                ],
+              );
+            }
+            final double width = (constraints.maxWidth - 14) / 2;
+            return Wrap(
+              spacing: 14,
+              runSpacing: 14,
+              children: [
+                for (final tile in tiles) SizedBox(width: width, child: tile),
+              ],
+            );
+          }),
+        ],
       ),
     );
   }
 
   Widget _buildPayingAccount(BtoPreviewModel preview) {
-    final TextStyle labelStyle =
-        GoogleFonts.poppins(fontSize: 14, color: kGrey);
+    final Widget label = Text('COMPTE PAYEUR', style: ArcText.label());
 
     if (!_bankAccountSelectable) {
-      return SelectableText.rich(TextSpan(children: [
-        TextSpan(text: 'Compte payeur : ', style: labelStyle),
-        TextSpan(
-            text: _payingAccountLabel(preview),
-            style: labelStyle.copyWith(
-                color: kBlueEnd, fontWeight: FontWeight.w600)),
-      ]));
-    }
-
-    return Row(
-      children: [
-        Text('Compte payeur : ', style: labelStyle),
-        const SizedBox(width: 8),
-        Flexible(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
-            child: DropdownButton<BankAccountModel>(
-              isExpanded: true,
-              value: _selectedBankAccount,
-              // Changer de compte recharge l'aperçu avec ce compte.
-              onChanged: _isLoading || _isGenerating
-                  ? null
-                  : (BankAccountModel? account) {
-                      if (account == null ||
-                          account.code == _selectedBankAccount?.code) {
-                        return;
-                      }
-                      setState(() => _selectedBankAccount = account);
-                      _loadPreview();
-                    },
-              items: _bankAccounts!.accounts
-                  .map((account) => DropdownMenuItem<BankAccountModel>(
-                        value: account,
-                        child: Text(account.selectLabel,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                                fontSize: 13, color: kBlueEnd)),
-                      ))
-                  .toList(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String title, {String? help}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
+      return Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: kBlueEnd)),
-          if (help != null) ...[
-            const SizedBox(height: 4),
-            Text(help,
-                style: GoogleFonts.poppins(fontSize: 13, color: kGrey)),
-          ],
+          label,
+          const SizedBox(height: 6),
+          SelectableText(_payingAccountLabel(preview),
+              style: ArcText.data(color: kNavy900, fontWeight: FontWeight.w500)),
         ],
-      ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        label,
+        const SizedBox(height: 6),
+        DropdownButtonFormField<BankAccountModel>(
+          // Recréé quand la sélection ou la liste des comptes change.
+          key: ObjectKey(_selectedBankAccount),
+          isExpanded: true,
+          initialValue: _selectedBankAccount,
+          borderRadius: BorderRadius.circular(12),
+          icon: const Icon(Icons.expand_more_rounded),
+          decoration: const InputDecoration(
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 11)),
+          // Changer de compte recharge l'aperçu avec ce compte.
+          onChanged: _isLoading || _isGenerating
+              ? null
+              : (BankAccountModel? account) {
+                  if (account == null ||
+                      account.code == _selectedBankAccount?.code) {
+                    return;
+                  }
+                  setState(() => _selectedBankAccount = account);
+                  _loadPreview();
+                },
+          items: _bankAccounts!.accounts
+              .map((account) => DropdownMenuItem<BankAccountModel>(
+                    value: account,
+                    child: Text(account.selectLabel,
+                        overflow: TextOverflow.ellipsis,
+                        style: ArcText.data()),
+                  ))
+              .toList(),
+        ),
+      ],
     );
   }
 
@@ -569,249 +584,376 @@ class _NextTransferViewState extends State<NextTransferView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _sectionTitle('À payer'),
+        ArcSectionTitle('À payer', count: '${preview.totals.requestsToPay}'),
+        const SizedBox(height: 12),
         if (preview.toPay.isEmpty)
-          _buildEmptyMessage('Aucune demande prête à être payée')
+          const ArcEmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'Aucune demande prête à être payée',
+          )
         else
-          ...preview.toPay.map(_buildMerchant),
+          for (int i = 0; i < preview.toPay.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _buildMerchant(preview.toPay[i]),
+          ],
       ],
     );
   }
 
   Widget _buildMerchant(BtoMerchantToPay merchant) {
-    final TextStyle titleStyle = GoogleFonts.poppins(
-        fontSize: 14, fontWeight: FontWeight.w600, color: kBlueEnd);
+    final String key = _merchantKey(merchant);
+    final bool open = _expandedMerchants.contains(key);
+    final String? code =
+        (merchant.entityCode?.isEmpty ?? true) ? null : merchant.entityCode;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: _Card(
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: kTransparent),
-          child: ExpansionTile(
-            key: ValueKey(
-                'merchant-${merchant.idEntity}-${merchant.entityCode}-${merchant.entityName}'),
-            iconColor: kBlue,
-            collapsedIconColor: kBlue,
-            title: Row(
-              children: [
-                Expanded(
-                    child: Text(
-                        _merchantLabel(merchant.entityCode, merchant.entityName),
-                        style: titleStyle)),
-                Text(plural(merchant.requests.length, 'demande'),
-                    style: GoogleFonts.poppins(fontSize: 13, color: kGrey)),
-                const SizedBox(width: 24),
-                SizedBox(
-                  width: 130,
-                  child: Text(formatEuro(merchant.totalPayable),
-                      textAlign: TextAlign.right, style: titleStyle),
+    return Container(
+      key: ValueKey(key),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(kRadiusMd),
+        border: Border.all(color: open ? kNavy300 : kBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            button: true,
+            expanded: open,
+            child: Material(
+              color: kSurface,
+              child: InkWell(
+                onTap: () => setState(() {
+                  if (!_expandedMerchants.remove(key)) {
+                    _expandedMerchants.add(key);
+                  }
+                }),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      ArcAvatar(merchant.entityName, size: 40),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(merchant.entityName,
+                                overflow: TextOverflow.ellipsis,
+                                style: ArcText.cardTitle()),
+                            if (code != null)
+                              Text(code,
+                                  style: ArcText.dataSmall(color: kText3)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Text(plural(merchant.requests.length, 'demande'),
+                          style: ArcText.small().copyWith(fontSize: 13)),
+                      const SizedBox(width: 14),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 90),
+                        child: Text(formatEuro(merchant.totalPayable),
+                            textAlign: TextAlign.right,
+                            style: ArcText.data(
+                                    color: kNavy900,
+                                    fontWeight: FontWeight.w500)
+                                .copyWith(fontSize: 15)),
+                      ),
+                      const SizedBox(width: 14),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: open ? kNavy600 : kNavy50,
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: Icon(
+                          open
+                              ? Icons.expand_less_rounded
+                              : Icons.expand_more_rounded,
+                          size: 18,
+                          color: open ? Colors.white : kNavy600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-            childrenPadding:
-                const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-            children: [
-              Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(1.2),
-                  1: FlexColumnWidth(1.4),
-                  2: FlexColumnWidth(1.2),
-                  3: FlexColumnWidth(1.2),
-                  4: FlexColumnWidth(1.2),
-                  5: FixedColumnWidth(40),
-                  6: FlexColumnWidth(1.6),
-                },
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                border: TableBorder(
-                    horizontalInside:
-                        BorderSide(color: kLBlue.withValues(alpha: 0.5))),
-                children: [
-                  _headerRow(const [
-                    'Date',
-                    'Numéro',
-                    'Montant',
-                    'Frais',
-                    'Net',
-                    '',
-                    '',
-                  ]),
-                  ...merchant.requests
-                      .map((request) => _requestRow(merchant, request)),
-                ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (open) ...[
+            const Divider(color: kNavy100),
+            _ArcTable(
+              DataTable(
+                columns: [
+                  const DataColumn(label: Text('Date')),
+                  const DataColumn(
+                      label: Text('Numéro'),
+                      columnWidth: IntrinsicColumnWidth(flex: 1)),
+                  const DataColumn(label: Text('Montant'), numeric: true),
+                  const DataColumn(label: Text('Frais'), numeric: true),
+                  const DataColumn(label: Text('Net'), numeric: true),
+                  const DataColumn(label: Text('Justificatifs')),
+                  DataColumn(
+                      label: const Text('Action'),
+                      headingRowAlignment: MainAxisAlignment.end),
+                ],
+                rows: merchant.requests
+                    .map((request) => _requestRow(merchant, request))
+                    .toList(),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  TableRow _headerRow(List<String> labels) {
-    return TableRow(
-      decoration: BoxDecoration(color: kLBlue.withValues(alpha: 0.18)),
-      children: labels
-          .map((label) => Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                child: Text(label,
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: kBlue)),
-              ))
-          .toList(),
-    );
-  }
-
-  Widget _cell(String text, {TextAlign align = TextAlign.left}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: SelectableText(text,
-          textAlign: align,
-          style: GoogleFonts.poppins(fontSize: 13, color: kBlueEnd)),
-    );
-  }
-
-  TableRow _requestRow(BtoMerchantToPay merchant, BtoRequestToPay request) {
-    return TableRow(
-      children: [
-        _cell(formatFrenchDate(request.createdDate)),
-        _cell(request.transactionNumber),
-        _cell(formatEuro(request.amount)),
-        _cell(formatEuro(request.feesInclVat)),
-        _cell(formatEuro(request.totalPayable)),
-        request.hasDocuments
+  DataRow _requestRow(BtoMerchantToPay merchant, BtoRequestToPay request) {
+    return DataRow(
+      cells: [
+        DataCell(SelectableText(formatFrenchDate(request.createdDate),
+            style: ArcText.body(color: kText2).copyWith(fontSize: 13))),
+        DataCell(SelectableText(request.transactionNumber,
+            style: ArcText.data())),
+        DataCell(Text(formatEuro(request.amount),
+            style: ArcText.data(fontWeight: FontWeight.w500))),
+        DataCell(Text(formatEuro(request.feesInclVat),
+            style: ArcText.data(color: kText2))),
+        DataCell(Text(formatEuro(request.totalPayable),
+            style: ArcText.data(color: kNavy900, fontWeight: FontWeight.w500))),
+        DataCell(request.hasDocuments
             ? Tooltip(
                 message: request.proofOfReceiptNumber == null
                     ? 'Documents déjà émis'
                     : 'Documents déjà émis (${request.proofOfReceiptNumber})',
-                child: const Icon(Icons.description_outlined,
-                    size: 18, color: kLBlue),
+                child: const ArcPill('Déjà émis',
+                    tone: ArcTone.success, icon: Icons.description_outlined),
               )
-            : const SizedBox.shrink(),
-        Align(
+            : const ArcPill('À émettre')),
+        DataCell(Align(
           alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            style: TextButton.styleFrom(foregroundColor: kBlue),
+          child: OutlinedButton.icon(
+            style: _compactButtonStyle,
             onPressed: _isGenerating ? null : () => _hold(merchant, request),
-            icon: const Icon(Icons.pause_circle_outline, size: 18),
+            icon: const Icon(Icons.pause_rounded, size: 16),
             label: const Text('Mettre en attente'),
           ),
-        ),
+        )),
       ],
     );
   }
 
   Widget _buildExcludedSection(BtoPreviewModel preview) {
+    final int count = preview.excluded.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _sectionTitle(
-          'Écartées',
-          help: 'Ces demandes ne seront pas payées dans ce virement. Elles seront '
-              'reprises automatiquement dès que le problème sera résolu.',
-        ),
-        _Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Table(
-              columnWidths: const {
-                0: FlexColumnWidth(1),
-                1: FlexColumnWidth(1.2),
-                2: FlexColumnWidth(2),
-                3: FlexColumnWidth(1),
-                4: FlexColumnWidth(2.4),
-                5: FlexColumnWidth(1.6),
-              },
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: TableBorder(
-                  horizontalInside:
-                      BorderSide(color: kLBlue.withValues(alpha: 0.5))),
-              children: [
-                _headerRow(const [
-                  'Date',
-                  'Numéro',
-                  'Commerçant',
-                  'Montant',
-                  'Motifs',
-                  '',
-                ]),
-                ...preview.excluded.map(_excludedRow),
-              ],
+        ArcSectionTitle('Écartées',
+            count: '$count',
+            tone: count > 0 ? ArcTone.warning : ArcTone.neutral),
+        const SizedBox(height: 4),
+        Text(
+            'Ces demandes ne seront pas payées dans ce virement. Elles seront '
+            'reprises automatiquement dès que le problème sera résolu.',
+            style: ArcText.small(color: kText3).copyWith(fontSize: 13)),
+        const SizedBox(height: 12),
+        if (preview.excluded.isEmpty)
+          const _InlineEmptyState(
+            icon: Icons.check_rounded,
+            tone: ArcTone.success,
+            title: 'Aucune demande écartée',
+          )
+        else
+          ArcTableCard(
+            child: _ArcTable(
+              DataTable(
+                dataRowMaxHeight: double.infinity,
+                columns: [
+                  const DataColumn(label: Text('Date')),
+                  const DataColumn(label: Text('Numéro')),
+                  const DataColumn(
+                      label: Text('Commerçant'),
+                      columnWidth: IntrinsicColumnWidth(flex: 1)),
+                  const DataColumn(label: Text('Montant'), numeric: true),
+                  const DataColumn(label: Text('Motifs')),
+                  DataColumn(
+                      label: const Text('Actions'),
+                      headingRowAlignment: MainAxisAlignment.end),
+                ],
+                rows: preview.excluded.map(_excludedRow).toList(),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 
-  TableRow _excludedRow(BtoExcludedRequest request) {
+  DataRow _excludedRow(BtoExcludedRequest request) {
     final String? holdReason = request.holdReason?.trim();
 
-    return TableRow(
-      children: [
-        _cell(formatFrenchDate(request.createdDate)),
-        _cell(request.transactionNumber),
-        _cell(_merchantLabel(request.entityCode, request.entityName)),
-        _cell(formatEuro(request.amount)),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+    return DataRow(
+      cells: [
+        DataCell(SelectableText(formatFrenchDate(request.createdDate),
+            style: ArcText.body(color: kText2).copyWith(fontSize: 13))),
+        DataCell(SelectableText(request.transactionNumber,
+            style: ArcText.data())),
+        DataCell(SelectableText(
+            _merchantLabel(request.entityCode, request.entityName),
+            style: ArcText.body(color: kNavy900)
+                .copyWith(fontSize: 13, fontWeight: FontWeight.w500))),
+        DataCell(Text(formatEuro(request.amount),
+            style: ArcText.data(fontWeight: FontWeight.w500))),
+        DataCell(Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ...request.reasonLabels.map((label) => Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 2, right: 6),
-                          child: Icon(Icons.error_outline,
-                              size: 15, color: kOrange),
-                        ),
-                        Expanded(
-                          child: SelectableText(label,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: kBlueEnd)),
-                        ),
-                      ],
-                    ),
-                  )),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (int i = 0; i < request.reasons.length; i++)
+                    request.reasons[i] == BtoExcludedRequest.onHold
+                        ? ArcPill(request.reasonLabels[i],
+                            tone: ArcTone.warning, icon: Icons.pause_rounded)
+                        : ArcPill(request.reasonLabels[i],
+                            tone: ArcTone.danger,
+                            icon: Icons.error_outline_rounded),
+                ],
+              ),
               if (request.isOnHold &&
                   holdReason != null &&
                   holdReason.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(left: 21, top: 2),
+                  padding: const EdgeInsets.only(left: 4, top: 6),
                   child: SelectableText('« $holdReason »',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: kGrey)),
+                      style: ArcText.small(color: kText3)
+                          .copyWith(fontStyle: FontStyle.italic)),
                 ),
             ],
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (request.needsEntityCompletion && request.idEntity != null)
-              TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: kBlue),
-                onPressed:
-                    _isGenerating ? null : () => _completeEntity(request),
-                icon: const Icon(Icons.edit_note, size: 18),
-                label: const Text('Compléter la fiche'),
-              ),
-            if (request.isOnHold)
-              TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: kBlue),
-                onPressed: _isGenerating ? null : () => _release(request),
-                icon: const Icon(Icons.play_circle_outline, size: 18),
-                label: const Text('Libérer'),
-              ),
-          ],
-        ),
+        )),
+        DataCell(Align(
+          alignment: Alignment.centerRight,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (request.needsEntityCompletion && request.idEntity != null)
+                  OutlinedButton.icon(
+                    style: _compactButtonStyle,
+                    onPressed:
+                        _isGenerating ? null : () => _completeEntity(request),
+                    icon: const Icon(Icons.edit_note_rounded, size: 18),
+                    label: const Text('Compléter la fiche'),
+                  ),
+                if (request.isOnHold)
+                  OutlinedButton.icon(
+                    style: _compactButtonStyle,
+                    onPressed: _isGenerating ? null : () => _release(request),
+                    icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                    label: const Text('Libérer'),
+                  ),
+              ],
+            ),
+          ),
+        )),
       ],
+    );
+  }
+}
+
+/// Boutons des lignes de tableau : hauteur compacte (36 px), texte 13 px.
+final ButtonStyle _compactButtonStyle = OutlinedButton.styleFrom(
+  minimumSize: const Size(0, kControlHeightCompact),
+  padding: const EdgeInsets.symmetric(horizontal: 12),
+  textStyle: ArcText.body().copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+);
+
+/// Tableau pleine largeur, défilant horizontalement s'il ne tient pas.
+class _ArcTable extends StatelessWidget {
+  final DataTable table;
+  const _ArcTable(this.table);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          child: table,
+        ),
+      ),
+    );
+  }
+}
+
+/// État vide compact, sur une ligne (section « Écartées »).
+class _InlineEmptyState extends StatelessWidget {
+  final IconData icon;
+  final ArcTone tone;
+  final String title;
+  const _InlineEmptyState(
+      {required this.icon, required this.tone, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(kRadiusMd),
+        border: Border.all(color: kBorderStrong),
+      ),
+      child: Row(children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+              color: tone.background, borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, size: 18, color: tone.text),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(title,
+              style: ArcText.body(color: kNavy900)
+                  .copyWith(fontWeight: FontWeight.w600)),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Nom du fichier produit, dans un cartouche (dialogue de fin de génération).
+class _FileChip extends StatelessWidget {
+  final String filename;
+  const _FileChip(this.filename);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: kNavy50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorder),
+      ),
+      child: Row(children: [
+        const Icon(Icons.insert_drive_file_outlined, size: 20, color: kNavy600),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SelectableText(filename,
+              maxLines: 1, style: ArcText.data(color: kInk)),
+        ),
+      ]),
     );
   }
 }
@@ -826,131 +968,70 @@ class _GenerationConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle style = GoogleFonts.poppins(fontSize: 14, color: kBlack);
-    final TextStyle strong = style.copyWith(fontWeight: FontWeight.w600);
     final int excluded = totals.requestsExcluded;
 
-    return AlertDialog(
-      title: const Text("Générer l'ordre de virement"),
-      content: SizedBox(
-        width: 520,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                '${plural(totals.requestsToPay, 'demande')} pour '
-                '${plural(totals.merchantsToPay, 'commerçant')}.',
-                style: style),
-            const SizedBox(height: 8),
-            Text.rich(TextSpan(children: [
-              TextSpan(text: 'Montant à virer : ', style: style),
-              TextSpan(
-                  text: formatEuro(totals.amountToTransfer), style: strong),
-            ])),
-            const SizedBox(height: 8),
-            Text.rich(TextSpan(children: [
-              TextSpan(text: 'Compte payeur : ', style: style),
-              TextSpan(text: payingAccount, style: strong),
-            ])),
-            if (excluded > 0) ...[
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2, right: 8),
-                    child: Icon(Icons.warning_amber_rounded,
-                        size: 18, color: kOrange),
-                  ),
-                  Expanded(
-                    child: Text(
-                        excluded > 1
-                            ? '$excluded demandes écartées ne seront pas payées.'
-                            : '1 demande écartée ne sera pas payée.',
-                        style: style),
-                  ),
-                ],
+    return ArcDialog(
+      icon: Icons.send_rounded,
+      title: "Générer l'ordre de virement",
+      maxWidth: 520,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('${plural(totals.requestsToPay, 'demande')} pour '
+              '${plural(totals.merchantsToPay, 'commerçant')}.'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: kNavy50,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: kBorder),
+            ),
+            child: ArcDefinitionList([
+              (
+                'Montant à virer',
+                Text(formatEuro(totals.amountToTransfer),
+                    style: ArcText.data(
+                            color: kNavy900, fontWeight: FontWeight.w500)
+                        .copyWith(fontSize: 15)),
               ),
-            ],
+              (
+                'Compte payeur',
+                SelectableText(payingAccount,
+                    style: ArcText.data(color: kNavy900)),
+              ),
+            ], labelWidth: 120),
+          ),
+          if (excluded > 0) ...[
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2, right: 8),
+                  child: Icon(Icons.warning_amber_rounded,
+                      size: 18, color: kWarningText),
+                ),
+                Expanded(
+                  child: Text(excluded > 1
+                      ? '$excluded demandes écartées ne seront pas payées.'
+                      : '1 demande écartée ne sera pas payée.'),
+                ),
+              ],
+            ),
           ],
-        ),
+        ],
       ),
       actions: [
-        TextButton(
+        OutlinedButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Annuler')),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: kOrange, foregroundColor: kPWhite),
+        FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Générer'),
         ),
       ],
-    );
-  }
-}
-
-class _StatTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool highlighted;
-
-  const _StatTile(
-      {required this.label, required this.value, this.highlighted = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 220,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: highlighted
-            ? kOrange.withValues(alpha: 0.12)
-            : kLBlue.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: highlighted ? kOrange : kTransparent, width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: GoogleFonts.poppins(fontSize: 13, color: kGrey)),
-          const SizedBox(height: 6),
-          Text(value,
-              style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: highlighted ? kOrange : kBlueEnd)),
-        ],
-      ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: kWhite,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: kBlue.withValues(alpha: 0.07),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Material(color: kTransparent, child: child),
-      ),
     );
   }
 }

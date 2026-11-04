@@ -124,7 +124,7 @@ class _AssistantMarkdownState extends State<AssistantMarkdown> {
           spans.add(TextSpan(
             text: linkText,
             style: const TextStyle(
-                color: kBlue, decoration: TextDecoration.underline),
+                color: kNavy600, decoration: TextDecoration.underline),
             recognizer: recognizer,
             mouseCursor: SystemMouseCursors.click,
           ));
@@ -135,7 +135,7 @@ class _AssistantMarkdownState extends State<AssistantMarkdown> {
         spans.add(TextSpan(
           text: code,
           style: const TextStyle(
-              fontFamily: 'monospace', backgroundColor: kPLGrey2),
+              fontFamily: 'monospace', backgroundColor: kNavy100),
         ));
       } else if (italic != null) {
         spans.add(TextSpan(

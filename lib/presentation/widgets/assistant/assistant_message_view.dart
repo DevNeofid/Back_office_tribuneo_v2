@@ -12,7 +12,18 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/tribuneo_mascot.dart';
 
 const TextStyle _messageStyle =
-    TextStyle(fontSize: 14, height: 1.4, color: kBlack);
+    TextStyle(fontSize: 13.5, height: 1.45, color: kInk);
+
+/// Bouton secondaire des blocs (liens, recherche).
+final ButtonStyle _blockButtonStyle = OutlinedButton.styleFrom(
+  foregroundColor: kNavy600,
+  backgroundColor: kSurface,
+  side: const BorderSide(color: kBorderStrong, width: 1.5),
+  minimumSize: const Size(0, 36),
+  padding: const EdgeInsets.symmetric(horizontal: 12),
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+);
 const double _avatarSize = 24;
 const double _avatarGap = 8;
 
@@ -41,13 +52,13 @@ class AssistantMessageView extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxBubbleWidth),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: const BoxDecoration(
-                color: kBlue,
+                color: kNavy900,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(4),
                 ),
               ),
@@ -114,15 +125,15 @@ class _AssistantReplyView extends StatelessWidget {
       children: [
         if (message.text.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: kPLGrey2),
+              color: kSurface,
+              border: Border.all(color: kBorder),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
-                topRight: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-                bottomRight: Radius.circular(12),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
             ),
             child: AssistantMarkdown(
@@ -158,27 +169,39 @@ class AssistantBlockView extends StatelessWidget {
         final actions = ResearchActions.of(context);
         if (actions == null || controller.contextInvalid) return const SizedBox.shrink();
         return OutlinedButton(
+          style: _blockButtonStyle,
           onPressed: controller.pending ? null : () => actions.open(block),
           child: const Text('Préciser la recherche'));
       case AssistantEnrichmentCandidatesBlock():
         if (controller.onReviewCandidate == null || controller.contextInvalid) return const SizedBox.shrink();
         return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Candidats sourcés à comparer (sans classement)'),
+          const Text('Candidats sourcés à comparer (sans classement)',
+              style: TextStyle(fontSize: 12, color: kText3)),
           for (final candidate in block.candidates)
-            OutlinedButton(
-              onPressed: controller.pending ? null : () => controller.onReviewCandidate?.call(block, candidate.id),
-              child: Text('Revoir ce candidat : ${candidate.label}')),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kNavy800,
+                  backgroundColor: kNavy50,
+                  side: const BorderSide(color: kNavy200),
+                  alignment: Alignment.centerLeft,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  textStyle: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+                onPressed: controller.pending ? null : () => controller.onReviewCandidate?.call(block, candidate.id),
+                child: Text('Revoir ce candidat : ${candidate.label}')),
+            ),
         ]);
       case AssistantLinkBlock():
         return OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: kBlue,
-            side: const BorderSide(color: kLBlue),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(kButtonRadius)),
-          ),
+          style: _blockButtonStyle,
           onPressed: () => controller.navigate(block),
-          icon: const Icon(Icons.open_in_new, size: 16),
+          icon: const Icon(Icons.open_in_new_rounded, size: 16),
           label: Text(block.buttonLabel),
         );
       case AssistantChoicesBlock():
@@ -200,10 +223,13 @@ class AssistantBlockView extends StatelessWidget {
                 for (final AssistantChoice choice in block.options)
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: kBlue,
-                      side: const BorderSide(color: kLBlue),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(kButtonRadius)),
+                      foregroundColor: kNavy700,
+                      backgroundColor: kSurface,
+                      side: const BorderSide(color: kNavy200, width: 1.5),
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(fontSize: 13),
                     ),
                     onPressed: enabled
                         ? () => controller.answerChoice(message, choice)
@@ -216,16 +242,23 @@ class AssistantBlockView extends StatelessWidget {
         );
       case AssistantDocumentBlock():
         return Container(
-          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: kPLGrey2),
-            borderRadius: BorderRadius.circular(kButtonRadius),
+            color: kSurface,
+            border: Border.all(color: kBorder),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.picture_as_pdf_outlined, color: kBlue),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                    color: kNavy100, borderRadius: BorderRadius.circular(9)),
+                child: const Icon(Icons.picture_as_pdf_outlined,
+                    color: kNavy600, size: 18),
+              ),
               const SizedBox(width: 10),
               Flexible(
                 child: Column(
@@ -238,13 +271,16 @@ class AssistantBlockView extends StatelessWidget {
                     if (block.label != null)
                       Text(block.label!,
                           style: _messageStyle.copyWith(
-                              fontSize: 12, color: kGrey)),
+                              fontSize: 12, color: kText3)),
                   ],
                 ),
               ),
               const SizedBox(width: 10),
               TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: kBlue),
+                style: TextButton.styleFrom(
+                    foregroundColor: kNavy600,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10)),
                 onPressed: () => controller.downloadDocument(block),
                 icon: const Icon(Icons.download, size: 18),
                 label: const Text('Télécharger'),
@@ -266,9 +302,10 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AssistantController controller = context.watch<AssistantController>();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: kRed.withValues(alpha: 0.10),
+        color: kDangerBg,
+        border: Border.all(color: kDanger.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -280,7 +317,10 @@ class _ErrorView extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: kBlue),
+                style: TextButton.styleFrom(
+                    foregroundColor: kNavy600,
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 10)),
                 onPressed: controller.pending ? null : controller.retry,
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Réessayer'),
@@ -343,9 +383,9 @@ class _AssistantTypingIndicatorState extends State<AssistantTypingIndicator>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: kPLGrey2),
-                borderRadius: BorderRadius.circular(12),
+                color: kSurface,
+                border: Border.all(color: kBorder),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: AnimatedBuilder(
                 animation: _controller,
@@ -361,7 +401,7 @@ class _AssistantTypingIndicatorState extends State<AssistantTypingIndicator>
                             width: 7,
                             height: 7,
                             decoration: const BoxDecoration(
-                                color: kBlue, shape: BoxShape.circle),
+                                color: kNavy600, shape: BoxShape.circle),
                           ),
                         ),
                       ),

@@ -462,7 +462,7 @@ void main() {
 
       await tester.tap(find.text('Importer les lignes validées (1)'));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Importer'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Importer'));
       await tester.pumpAndSettle();
       expect(find.text("Résultat de l'import"), findsOneWidget);
       expect(shows(tester, 'Commerce 3 : ${M.importFailure(null)}'), isTrue);

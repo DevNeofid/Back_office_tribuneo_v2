@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/domain/models/sector_model.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 
 class SectorActivityView extends StatefulWidget {
   const SectorActivityView({Key? key}) : super(key: key);
@@ -19,17 +18,38 @@ class SectorActivityViewState extends State<SectorActivityView> {
   late List<Sector> _sectors = [];
   bool _isLoading = false;
 
+  /// Premier chargement de la liste (affichage seulement).
+  bool _loadingList = true;
+  bool _loadFailed = false;
+
   @override
   void initState() {
     refreshSector();
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _newSectorController.dispose();
+    super.dispose();
+  }
+
   Future<void> refreshSector() async {
-    dynamic data = await _partnerUseCase.getSectors();
-    setState(() {
-      _sectors = data;
-    });
+    try {
+      dynamic data = await _partnerUseCase.getSectors();
+      if (!mounted) return;
+      setState(() {
+        _sectors = data;
+        _loadingList = false;
+        _loadFailed = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadingList = false;
+        _loadFailed = true;
+      });
+    }
   }
 
   Future<void> _addNewSector() async {
@@ -43,12 +63,11 @@ class SectorActivityViewState extends State<SectorActivityView> {
 
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text("Le secteur d’activité a été ajouté"),
-          backgroundColor: Colors.green,
         ));
       } catch (e) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text("Erreur lors de l’ajout du secteur d’activité"),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ));
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -56,238 +75,266 @@ class SectorActivityViewState extends State<SectorActivityView> {
     }
   }
 
-  Future<void> _deleteSector(int id) async {
-    if (await _showComfirmDialog()) {
+  Future<void> _deleteSector(Sector sector) async {
+    if (await _showComfirmDialog(sector)) {
       try {
-        await _partnerUseCase.deleteSector(id);
+        await _partnerUseCase.deleteSector(sector.id!);
         await refreshSector();
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Le secteur d’activité a été supprimé avec succès'),
-          backgroundColor: Colors.green,
         ));
       } catch (e) {
         snackbarKey.currentState?.showSnackBar(const SnackBar(
           content: Text('Erreur lors de la suppression du secteur d’activité'),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ));
       }
     }
   }
 
-  Future<bool> _showComfirmDialog() async {
-    bool? confirm = false;
-
-    confirm = await showDialog<bool>(
-      context: navigatorKey.currentState!.context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14.0),
-          ),
-          title: Text(
-            "Attention, il est possible que ce secteur d'activité soit associé à des partenaires. Voulez-vous vraiment le supprimer ?",
-            style: GoogleFonts.poppins(fontSize: 16),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Annuler',
-                style: GoogleFonts.poppins(
-                    color: kRed, fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: Text(
-                'Confirmer',
-                style: GoogleFonts.poppins(
-                    color: kBlue, fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              onPressed: () {
-                confirm = true;
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
+  Future<bool> _showComfirmDialog(Sector sector) {
+    final String name = sector.name ?? '';
+    return showArcConfirm(
+      navigatorKey.currentState?.context ?? context,
+      title: name.isEmpty ? 'Supprimer ce secteur ?' : 'Supprimer « $name » ?',
+      message: "Attention, il est possible que ce secteur d'activité soit "
+          'associé à des partenaires. Voulez-vous vraiment le supprimer ?',
+      confirmLabel: 'Supprimer',
+      danger: true,
     );
+  }
 
-    return confirm!;
+  /// Clé de tri alphabétique insensible à la casse et aux accents.
+  static String _sortKey(String value) {
+    const Map<String, String> accents = {
+      'à': 'a',
+      'â': 'a',
+      'ä': 'a',
+      'á': 'a',
+      'ç': 'c',
+      'é': 'e',
+      'è': 'e',
+      'ê': 'e',
+      'ë': 'e',
+      'î': 'i',
+      'ï': 'i',
+      'í': 'i',
+      'ô': 'o',
+      'ö': 'o',
+      'ó': 'o',
+      'ù': 'u',
+      'û': 'u',
+      'ü': 'u',
+      'ú': 'u',
+      'ÿ': 'y',
+      'œ': 'oe',
+      'æ': 'ae',
+    };
+    return value
+        .toLowerCase()
+        .split('')
+        .map((char) => accents[char] ?? char)
+        .join();
   }
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    final bool isCompact = MediaQuery.of(context).size.width < 1000;
+    final List<Sector> sorted = [
+      ..._sectors
+    ]..sort((a, b) => _sortKey(a.name ?? '').compareTo(_sortKey(b.name ?? '')));
 
     return Form(
       key: _formKey,
-      child: SizedBox(
-        height: SizeConfig.screenHeight * 0.9,
-        width: double.infinity,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 50),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: isCompact ? 600 : 800),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _newSectorController,
-                        style: GoogleFonts.poppins(fontSize: 14),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: kWhite,
-                          labelText: "Nouveau secteur d'activité",
-                          labelStyle: GoogleFonts.poppins(color: kBlue),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: kBlue, width: 2),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Colors.grey.shade300, width: 1),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 16),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16.0),
-                    SizedBox(
-                      height: 52,
-                      child: _isLoading
-                          ? const AspectRatio(
-                              aspectRatio: 1,
-                              child: Center(
-                                child: SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2.5, color: kOrange),
-                                ),
-                              ),
-                            )
-                          : ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: kOrange,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
-                              ),
-                              onPressed: _addNewSector,
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              label: Text(
-                                'Ajouter',
-                                style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: isCompact ? 600 : 800),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: kWhite,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: kBlue.withValues(alpha: 0.07),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          color: kBlue,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 24),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Nom du secteur',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: kWhite,
-                                ),
-                              ),
-                              Text(
-                                'Actions',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: kWhite,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ..._sectors.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final sector = entry.value;
-                          final isEvenRow = index % 2 == 0;
-
-                          return Container(
-                            color: isEvenRow
-                                ? kWhite
-                                : kLBlue.withValues(alpha: 0.10),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 24),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: SelectableText(
-                                    sector.name ?? '',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      color: kBlueEnd,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: Colors.redAccent),
-                                  tooltip: 'Supprimer',
-                                  onPressed: () {
-                                    _deleteSector(sector.id!);
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50),
+              const ArcPageHeader(
+                  eyebrow: 'Réseau', title: "Secteurs d'activité"),
+              _buildAddForm(),
+              const SizedBox(height: 16),
+              _buildList(sorted),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAddForm() {
+    final Widget field = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text("Nouveau secteur d'activité",
+            style: ArcText.body(color: kNavy700)
+                .copyWith(fontSize: 13, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: _newSectorController,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) {
+            if (!_isLoading) _addNewSector();
+          },
+          decoration: const InputDecoration(hintText: 'Ex. Fromagerie'),
+        ),
+      ],
+    );
+    final Widget button = FilledButton.icon(
+      onPressed: _isLoading ? null : _addNewSector,
+      icon: _isLoading
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2, color: kNavy600))
+          : const Icon(Icons.add_rounded, size: 18),
+      label: const Text('Ajouter'),
+    );
+    return ArcCard(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth < 420) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [field, const SizedBox(height: 12), button],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [Expanded(child: field), const SizedBox(width: 12), button],
+        );
+      }),
+    );
+  }
+
+  Widget _buildList(List<Sector> sectors) {
+    final Widget body;
+    if (_loadingList) {
+      body = const SizedBox(
+          height: 160, child: Center(child: CircularProgressIndicator()));
+    } else if (_loadFailed) {
+      body = Padding(
+        padding: const EdgeInsets.all(20),
+        child: Wrap(
+          spacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text("Impossible de charger les secteurs d'activité.",
+                style: ArcText.small(color: kDangerText)),
+            TextButton.icon(
+              onPressed: () {
+                setState(() => _loadingList = true);
+                refreshSector();
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      );
+    } else if (sectors.isEmpty) {
+      body = const Padding(
+        padding: EdgeInsets.all(20),
+        child: ArcEmptyState(
+          icon: Icons.sell_outlined,
+          title: "Aucun secteur d'activité",
+          message: 'Ajoutez le premier secteur avec le champ ci-dessus.',
+        ),
+      );
+    } else {
+      body = LayoutBuilder(builder: (context, constraints) {
+        final int columns = constraints.maxWidth < 560 ? 1 : 2;
+        final int rows = (sectors.length / columns).ceil();
+        return Column(
+          children: [
+            for (int r = 0; r < rows; r++)
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (int c = 0; c < columns; c++)
+                      Expanded(
+                        child: r * columns + c < sectors.length
+                            ? _SectorTile(
+                                sector: sectors[r * columns + c],
+                                lastColumn: c == columns - 1,
+                                onDelete: () =>
+                                    _deleteSector(sectors[r * columns + c]),
+                              )
+                            : _SectorTile.filler(lastColumn: c == columns - 1),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      });
+    }
+
+    return ArcTableCard(
+      toolbar: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 8,
+        children: [
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('Secteurs', style: ArcText.cardTitle().copyWith(fontSize: 16)),
+            if (!_loadingList && !_loadFailed) ...[
+              const SizedBox(width: 10),
+              ArcCount('${sectors.length}'),
+            ],
+          ]),
+          Text('Ordre alphabétique', style: ArcText.small(color: kText3)),
+        ],
+      ),
+      child: body,
+    );
+  }
+}
+
+/// Case de la grille des secteurs : nom et bouton de suppression.
+class _SectorTile extends StatelessWidget {
+  final Sector? sector;
+  final bool lastColumn;
+  final VoidCallback? onDelete;
+  const _SectorTile(
+      {required Sector this.sector, required this.lastColumn, this.onDelete});
+  const _SectorTile.filler({required this.lastColumn})
+      : sector = null,
+        onDelete = null;
+
+  @override
+  Widget build(BuildContext context) {
+    final String name = sector?.name ?? '';
+    return Container(
+      constraints: const BoxConstraints(minHeight: 52),
+      padding: const EdgeInsets.fromLTRB(20, 6, 12, 6),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: const BorderSide(color: kNavy100),
+          right:
+              lastColumn ? BorderSide.none : const BorderSide(color: kNavy100),
+        ),
+      ),
+      child: sector == null
+          ? null
+          : Row(children: [
+              Expanded(
+                child: SelectableText(name,
+                    style: ArcText.body(color: kNavy900)
+                        .copyWith(fontWeight: FontWeight.w500)),
+              ),
+              IconButton(
+                tooltip: 'Supprimer $name',
+                onPressed: onDelete,
+                color: kDangerText,
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+              ),
+            ]),
     );
   }
 }

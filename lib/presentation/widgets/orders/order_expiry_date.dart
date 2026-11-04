@@ -15,15 +15,8 @@ Future<DateTime?> pickExpiryDate(BuildContext context,
   DateTime initialDate = current ?? minDate;
   if (initialDate.isBefore(minDate)) initialDate = minDate;
 
+  // Couleurs du sélecteur : thème « Arc » global.
   return showDatePicker(
-    builder: (context, child) {
-      return Theme(
-        data: ThemeData.light().copyWith(
-          colorScheme: const ColorScheme.light(primary: kBlue),
-        ),
-        child: child!,
-      );
-    },
     helpText: helpText,
     fieldHintText: 'Jour/Mois/Année',
     locale: const Locale('fr', 'FR'),

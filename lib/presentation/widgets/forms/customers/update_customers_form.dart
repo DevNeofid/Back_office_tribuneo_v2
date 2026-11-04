@@ -2,16 +2,13 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class UpdateCustomerForm extends StatefulWidget {
   final EntityModel? entity;
@@ -73,7 +70,7 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
       Navigator.pop(context, true);
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Modification du client réussie'),
-        backgroundColor: Colors.green,
+        backgroundColor: kSuccessText,
       ));
     } catch (e) {
       if (mounted) {
@@ -83,7 +80,7 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
       }
       snackbarKey.currentState?.showSnackBar(const SnackBar(
         content: Text('Erreur lors de la modification du client.'),
-        backgroundColor: Colors.red,
+        backgroundColor: kDangerText,
       ));
     }
     return;
@@ -102,137 +99,97 @@ class UpdateCustomerFormState extends State<UpdateCustomerForm> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
+    final String name = widget.entity?.name ?? '';
 
-    double formWidth = Responsive.isMobile(context)
-        ? SizeConfig.screenWidth * 0.9
-        : SizeConfig.screenWidth * 0.4;
-
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: SizedBox(
-          width: formWidth,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              color: kPLGrey2,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Center(
-                    child: SelectableText(
-                      "Modifier le client",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                          fontSize: Responsive.isMobile(context) ? 22 : 28,
-                          letterSpacing: 0.3,
-                          fontWeight: FontWeight.w600,
-                          color: kOrange),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: 'Modifier le client',
+        title: name.trim().isEmpty ? 'Modifier le client' : name,
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ArcSubmitButton(
+            label: 'Enregistrer',
+            busy: _isSaving,
+            onPressed: addCustomer,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            number: '1',
+            title: 'Identité',
+            children: [
+              ArcFormGrid([
+                ArcGridItem(
                   NeoInput(
                     controller: customerNameController,
                     hintText: 'Nom du client',
-                    fillColor: kPWhite,
+                    fillColor: kSurface,
                     validator: (value) {
                       return FormValidator.validateText(value ?? '');
                     },
                   ),
-                  const SizedBox(height: 16),
+                  span: true,
+                ),
+                // Le code n'est pas saisissable ici : aucun validateur, pour
+                // qu'une fiche sans code n'empêche pas d'enregistrer le reste.
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: customerCodeController,
+                      hintText: 'Code du client',
+                      fillColor: kNavy50,
+                      readOnly: true,
+                    ),
+                  ),
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: customerSiretController,
+                      hintText: 'Siret du client',
+                      keyboardType: TextInputType.number,
+                      fillColor: kSurface,
+                      formatter: FilteringTextInputFormatter.digitsOnly,
+                      maxLength: 14,
+                    ),
+                  ),
+                ),
+                ArcGridItem(
                   NeoInput(
                     controller: customerMailController,
                     hintText: 'Email du client',
                     keyboardType: TextInputType.emailAddress,
-                    fillColor: kPWhite,
+                    fillColor: kSurface,
                     validator: (value) {
                       return FormValidator.validateMail(value ?? '');
                     },
                   ),
-                  const SizedBox(height: 16),
-                  NeoInput(
-                    controller: customerSiretController,
-                    hintText: 'Siret du client',
-                    keyboardType: TextInputType.number,
-                    fillColor: kPWhite,
-                    formatter: FilteringTextInputFormatter.digitsOnly,
-                    maxLength: 14,
-                  ),
-                  const SizedBox(height: 16),
-                  NeoInput(
-                    controller: customerPhoneController,
-                    hintText: 'Téléphone du client',
-                    keyboardType: TextInputType.phone,
-                    fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validatePhoneNumber(value ?? '');
-                    },
-                    formatter: FilteringTextInputFormatter.digitsOnly,
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 4,
-                      right: 4,
-                      bottom: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.grey[600],
-                          size: SizeConfig.screenWidth > 600 ? 18 : 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            "Le code du client est attribué à la création et n'est pas modifiable depuis cet écran.",
-                            style: GoogleFonts.poppins(
-                              fontSize: SizeConfig.screenWidth > 600 ? 13 : 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ],
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: customerPhoneController,
+                      hintText: 'Téléphone du client',
+                      keyboardType: TextInputType.phone,
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validatePhoneNumber(value ?? '');
+                      },
+                      formatter: FilteringTextInputFormatter.digitsOnly,
                     ),
                   ),
-                  NeoInput(
-                    controller: customerCodeController,
-                    hintText: 'Code du client',
-                    fillColor: kPWhite,
-                    readOnly: true,
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _isSaving
-                          ? const SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(
-                                color: kOrange,
-                              ),
-                            )
-                          : NeoButton(
-                              text: "Enregistrer",
-                              onPressed: addCustomer,
-                            ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
+              ]),
+              const ArcFormNote(
+                  "Le code du client est attribué à la création et n'est pas modifiable depuis cet écran."),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

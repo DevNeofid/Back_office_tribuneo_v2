@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_informations_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/bank_informations_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class UpadateBankInformationsForm extends StatefulWidget {
   final EntityModel entity;
@@ -99,7 +96,7 @@ class _UpadateBankInformationsFormState
       snackbarKey.currentState?.showSnackBar(
         const SnackBar(
           content: Text('Modification des informations bancaires réussie'),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ),
       );
     } catch (e) {
@@ -111,7 +108,7 @@ class _UpadateBankInformationsFormState
         const SnackBar(
           content:
               Text('Erreur lors de la modification des informations bancaires'),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ),
       );
     }
@@ -187,160 +184,144 @@ class _UpadateBankInformationsFormState
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    double inputWidth = Responsive.isDesktop(context) ? 400 : double.infinity;
+    final String name = widget.entity.name ?? '';
+    final bool isPartner = entityType == 'partner';
 
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.4,
-            height: SizeConfig.screenHeight * 0.9,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.4,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Center(
-                        child: SelectableText(
-                          "Informations bancaires",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                              fontSize: 32,
-                              letterSpacing: 0.3,
-                              fontWeight: FontWeight.w600,
-                              color: kOrange),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      if (entityType == 'partner') ...[
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            maxLength: 34,
-                            controller: iban,
-                            hintText: 'Iban',
-                            errorText: _ibanError,
-                            fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateIban(value ?? '');
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            maxLength: 11,
-                            controller: bic,
-                            hintText: 'BIC',
-                            fillColor: kPWhite,
-                            validator: (value) {
-                              return FormValidator.validateText(value ?? '');
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: key,
-                            hintText: 'Clé RIB',
-                            fillColor: kPWhite,
-                            validator: (value) => null,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: bankCode,
-                            hintText: 'Code établissement',
-                            fillColor: kPWhite,
-                            validator: (value) => null,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: officeCode,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            hintText: 'Code guichet',
-                            fillColor: kPWhite,
-                            validator: (value) => null,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: inputWidth,
-                          child: NeoInput(
-                            controller: accountNumber,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            hintText: 'Numéro de compte',
-                            fillColor: kPWhite,
-                            validator: (value) => null,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                      ],
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          controller: accountingNumber,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Numéro de comptabilité',
-                          fillColor: kPWhite,
-                          validator: (value) => null,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      SizedBox(
-                        width: inputWidth,
-                        child: NeoInput(
-                          maxLength: 13,
-                          controller: intraComNumber,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          hintText: 'Numéro intra communautaire',
-                          fillColor: kPWhite,
-                          validator: (value) => null,
-                        ),
-                      ),
-                      SizedBox(height: SizeConfig.screenHeight * 0.04),
-                      _isSaving
-                          ? const SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(
-                                color: kOrange,
-                              ),
-                            )
-                          : NeoButton(
-                              text: "Enregistrer",
-                              onPressed: addBankInformations,
-                            ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+    final Widget accounting = ArcFormGrid([
+      ArcGridItem(
+        ArcMonoField(
+          child: NeoInput(
+            controller: accountingNumber,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            hintText: 'Numéro de comptabilité',
+            fillColor: kSurface,
+            validator: (value) => null,
           ),
-        ]),
+        ),
+      ),
+      ArcGridItem(
+        ArcMonoField(
+          child: NeoInput(
+            maxLength: 13,
+            controller: intraComNumber,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            hintText: 'Numéro intra communautaire',
+            fillColor: kSurface,
+            validator: (value) => null,
+          ),
+        ),
+      ),
+    ]);
+
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: 'Modifier les informations bancaires',
+        title: name.trim().isEmpty ? 'Informations bancaires' : name,
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ArcSubmitButton(
+            label: 'Enregistrer',
+            busy: _isSaving,
+            onPressed: addBankInformations,
+          ),
+        ],
+        children: [
+          if (isPartner)
+            ArcFormSection(
+              number: '1',
+              title: 'Coordonnées bancaires',
+              children: [
+                ArcFormGrid([
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        maxLength: 34,
+                        controller: iban,
+                        hintText: 'Iban',
+                        errorText: _ibanError,
+                        fillColor: kSurface,
+                        validator: (value) {
+                          return FormValidator.validateIban(value ?? '');
+                        },
+                      ),
+                    ),
+                    span: true,
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        maxLength: 11,
+                        controller: bic,
+                        hintText: 'BIC',
+                        fillColor: kSurface,
+                        validator: (value) {
+                          return FormValidator.validateText(value ?? '');
+                        },
+                      ),
+                    ),
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: key,
+                        hintText: 'Clé RIB',
+                        fillColor: kSurface,
+                        validator: (value) => null,
+                      ),
+                    ),
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: bankCode,
+                        hintText: 'Code établissement',
+                        fillColor: kSurface,
+                        validator: (value) => null,
+                      ),
+                    ),
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: officeCode,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        hintText: 'Code guichet',
+                        fillColor: kSurface,
+                        validator: (value) => null,
+                      ),
+                    ),
+                  ),
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: accountNumber,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        hintText: 'Numéro de compte',
+                        fillColor: kSurface,
+                        validator: (value) => null,
+                      ),
+                    ),
+                    span: true,
+                  ),
+                ]),
+                const ArcFormNote(
+                    "Un IBAN français complet remplit automatiquement le code établissement, le code guichet, le numéro de compte et la clé RIB."),
+              ],
+            ),
+          ArcFormSection(
+            number: isPartner ? '2' : null,
+            icon: Icons.account_balance_outlined,
+            title: 'Comptabilité',
+            children: [accounting],
+          ),
+        ],
       ),
     );
   }

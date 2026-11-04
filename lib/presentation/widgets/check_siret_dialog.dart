@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class CheckSiretDialog extends StatefulWidget {
   final Function(EntityModel partner) onPartnerAccepted;
@@ -62,7 +62,7 @@ class _CheckSiretDialogState extends State<CheckSiretDialog> {
             'Erreur lors de la recherche : $error',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ),
       );
       setState(() {
@@ -79,148 +79,137 @@ class _CheckSiretDialogState extends State<CheckSiretDialog> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-
-    return AlertDialog(
-      backgroundColor: Colors.transparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Container(
-        width: SizeConfig.screenWidth * 0.3,
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-          color: kPLGrey2,
-        ),
-        child: _foundPartner != null
-            ? _buildFoundPartnerView()
-            : _buildInputView(),
-      ),
-    );
+    return _foundPartner != null
+        ? _buildFoundPartnerView()
+        : _buildInputView();
   }
 
   Widget _buildInputView() {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
+    return ArcDialog(
+      icon: Icons.search_rounded,
+      title: 'Rechercher un SIRET',
+      maxWidth: 500,
+      content: Form(
+        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Center(
-              child: SelectableText(
-                "Rechercher un SIRET",
-                style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    letterSpacing: 0.3,
-                    fontWeight: FontWeight.w600,
-                    color: kOrange),
+            const Text(
+                "Avant de créer une fiche, on vérifie qu'elle n'existe pas déjà."),
+            const SizedBox(height: 18),
+            ArcMonoField(
+              child: NeoInput(
+                controller: siretController,
+                hintText: 'Entrer le SIRET',
+                keyboardType: TextInputType.number,
+                fillColor: kSurface,
+                maxLength: 14,
+                formatter: FilteringTextInputFormatter.digitsOnly,
+                validator: (value) {
+                  return FormValidator.validateSiret(value ?? '');
+                },
               ),
             ),
-            const SizedBox(height: 30),
-            NeoInput(
-              controller: siretController,
-              hintText: 'Entrer le SIRET',
-              keyboardType: TextInputType.number,
-              fillColor: kPWhite,
-              maxLength: 14,
-              formatter: FilteringTextInputFormatter.digitsOnly,
-              validator: (value) {
-                return FormValidator.validateSiret(value ?? '');
-              },
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton(
-                  onPressed: _isLoading ? null : () => Navigator.pop(context),
-                  child: Text(
-                    'Annuler',
-                    style: GoogleFonts.poppins(
-                      color: _isLoading ? Colors.grey : kRed,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                _isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.only(right: 40.0),
-                        child: CircularProgressIndicator(
-                          color: kOrange,
-                        ),
-                      )
-                    : NeoButton(
-                        text: "Suivant",
-                        onPressed: _checkSiret,
-                      ),
-              ],
-            ),
+            const SizedBox(height: 6),
+            Text('14 chiffres, sans espace.',
+                style: ArcText.small(color: kText3)),
           ],
         ),
       ),
+      actions: [
+        OutlinedButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        ArcSubmitButton(
+          label: 'Suivant',
+          busy: _isLoading,
+          onPressed: _checkSiret,
+        ),
+      ],
     );
   }
 
   Widget _buildFoundPartnerView() {
-    return SingleChildScrollView(
-      child: Column(
+    final EntityModel found = _foundPartner!;
+    return ArcDialog(
+      icon: Icons.task_outlined,
+      tone: ArcTone.warning,
+      title: 'Fiche existante',
+      maxWidth: 520,
+      content: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: SelectableText(
-              "Fiche existante",
-              style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  letterSpacing: 0.3,
-                  fontWeight: FontWeight.w600,
-                  color: kOrange),
+          const Text(
+              "Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?"),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: kNavy50,
+              borderRadius: BorderRadius.circular(kRadiusMd),
+              border: Border.all(color: kBorder),
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            "Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?",
-            style: GoogleFonts.poppins(fontSize: 16, color: kBlack),
-          ),
-          const SizedBox(height: 20),
-          Text('Nom : ${_foundPartner!.name ?? 'Non renseigné'}',
-              style: GoogleFonts.poppins(fontSize: 14, color: kBlack)),
-          Text('Email : ${_foundPartner!.email ?? 'Non renseigné'}',
-              style: GoogleFonts.poppins(fontSize: 14, color: kBlack)),
-          Text('Téléphone : ${_foundPartner!.phone ?? 'Non renseigné'}',
-              style: GoogleFonts.poppins(fontSize: 14, color: kBlack)),
-          Text('SIRET : ${_foundPartner!.siret ?? 'Non renseigné'}',
-              style: GoogleFonts.poppins(fontSize: 14, color: kBlack)),
-          const SizedBox(height: 40),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  widget.onPartnerRejected();
-                },
-                child: Text(
-                  'Non',
-                  style: GoogleFonts.poppins(
-                    color: kRed,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ArcAvatar(found.name ?? '', size: 44, dark: true),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: ArcDefinitionList(
+                    [
+                      (
+                        'Nom',
+                        Text(found.name ?? 'Non renseigné',
+                            style: ArcText.body(color: kNavy900).copyWith(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                      ),
+                      ('Email', Text(found.email ?? 'Non renseigné')),
+                      (
+                        'Téléphone',
+                        Text(found.phone ?? 'Non renseigné',
+                            style: ArcText.data()),
+                      ),
+                      (
+                        'SIRET',
+                        Text(found.siret ?? 'Non renseigné',
+                            style: ArcText.data()),
+                      ),
+                    ],
+                    labelWidth: 82,
                   ),
                 ),
-              ),
-              NeoButton(
-                text: "Oui",
-                onPressed: () {
-                  Navigator.pop(context);
-                  widget.onPartnerAccepted(_foundPartner!);
-                },
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _foundPartner = null;
+            });
+          },
+          child: const Text('Modifier le SIRET'),
+        ),
+        OutlinedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onPartnerRejected();
+          },
+          child: const Text('Non'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onPartnerAccepted(_foundPartner!);
+          },
+          child: const Text('Oui, utiliser cette fiche'),
+        ),
+      ],
     );
   }
 }

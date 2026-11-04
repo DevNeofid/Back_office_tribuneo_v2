@@ -17,23 +17,12 @@ class AddOrImportButtons extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ElevatedButton(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(kOrange),
-              iconColor: WidgetStateProperty.all(kWhite),
-            ),
-            onPressed: onAdd,
-            child: const Icon(Icons.add)),
+        FilledButton(onPressed: onAdd, child: const Icon(Icons.add)),
         const SizedBox(
           width: 140,
           child: Divider(height: 24, thickness: 1, color: kLBlue),
         ),
         ElevatedButton.icon(
-            style: ButtonStyle(
-              backgroundColor: WidgetStateProperty.all(kBlue),
-              foregroundColor: WidgetStateProperty.all(kWhite),
-              iconColor: WidgetStateProperty.all(kWhite),
-            ),
             onPressed: () =>
                 MySinglePage.maybeOf(context)?.openMenu('merchantImport'),
             icon: const Icon(Icons.upload_file),

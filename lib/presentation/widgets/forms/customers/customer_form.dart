@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
@@ -10,7 +9,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class CustomerForm extends StatefulWidget {
   final String? initialSiret;
@@ -84,7 +83,7 @@ class _CustomerFormState extends State<CustomerForm> {
           'Ajout du client réussi.',
           style: GoogleFonts.poppins(color: Colors.white),
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: kSuccessText,
       ));
     } catch (e) {
       if (mounted) {
@@ -97,7 +96,7 @@ class _CustomerFormState extends State<CustomerForm> {
           'Erreur lors de l’ajout du client',
           style: GoogleFonts.poppins(color: Colors.white),
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: kDangerText,
       ));
     }
   }
@@ -115,159 +114,98 @@ class _CustomerFormState extends State<CustomerForm> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
     bool isIndividual = widget.isIndividual ?? false;
 
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Container(
-          width: SizeConfig.screenWidth * 0.3,
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-            color: kPLGrey2,
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: 'Nouveau client',
+        title: 'Ajouter un client',
+        subtitle: Text(isIndividual ? 'Particulier' : 'Professionnel'),
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Center(
-                  child: SelectableText(
-                    "Ajouter un client",
-                    style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        letterSpacing: 0.3,
-                        fontWeight: FontWeight.w600,
-                        color: kOrange),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                NeoInput(
-                  controller: customerNameController,
-                  hintText: 'Nom du client',
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateText(value ?? '');
-                  },
-                ),
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: customerMailController,
-                  hintText: 'Email du client',
-                  keyboardType: TextInputType.emailAddress,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateMail(value ?? '');
-                  },
-                ),
-                if (!isIndividual) ...[
-                  const SizedBox(height: 20),
+          ArcSubmitButton(
+            label: 'Ajouter le client',
+            busy: _isSaving,
+            onPressed: addCustomer,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            number: '1',
+            title: 'Identité',
+            children: [
+              ArcFormGrid([
+                ArcGridItem(
                   NeoInput(
-                    controller: customerSiretController,
-                    hintText: 'Siret du client',
-                    fillColor: kPWhite,
+                    controller: customerNameController,
+                    hintText: 'Nom du client',
+                    fillColor: kSurface,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return null;
-                      }
-                      return FormValidator.validateSiret(value);
+                      return FormValidator.validateText(value ?? '');
                     },
                   ),
-                ],
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: customerPhoneController,
-                  hintText: 'Téléphone du client',
-                  keyboardType: TextInputType.phone,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validatePhoneNumber(value ?? '');
-                  },
-                  formatter: FilteringTextInputFormatter.digitsOnly,
+                  span: true,
                 ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.screenHeight * 0.025,
-                  ),
-                  child: Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: kGrey.withValues(alpha: 0.2),
+                ArcGridItem(
+                  NeoInput(
+                    controller: customerCodeController,
+                    hintText: 'Code du client',
+                    fillColor: kSurface,
+                    validator: (value) => null,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 4,
-                    right: 4,
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Colors.grey[600],
-                        size: SizeConfig.screenWidth > 600 ? 18 : 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          "Le code du client est optionnel. Il peut être utilisé pour identifier le client dans vos systèmes internes.",
-                          style: GoogleFonts.poppins(
-                            fontSize: SizeConfig.screenWidth > 600 ? 13 : 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                NeoInput(
-                  controller: customerCodeController,
-                  hintText: 'Code du client',
-                  fillColor: kPWhite,
-                  validator: (value) => null,
-                ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: _isSaving
-                          ? null
-                          : () => Navigator.pop(context, false),
-                      child: Text(
-                        'Annuler',
-                        style: GoogleFonts.poppins(
-                          color: kRed,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                if (!isIndividual)
+                  ArcGridItem(
+                    ArcMonoField(
+                      child: NeoInput(
+                        controller: customerSiretController,
+                        hintText: 'Siret du client',
+                        fillColor: kSurface,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return null;
+                          }
+                          return FormValidator.validateSiret(value);
+                        },
                       ),
                     ),
-                    _isSaving
-                        ? const SizedBox(
-                            height: 40,
-                            width: 40,
-                            child: CircularProgressIndicator(
-                              color: kOrange,
-                            ),
-                          )
-                        : NeoButton(
-                            text: "Enregistrer",
-                            onPressed: addCustomer,
-                          ),
-                  ],
+                  ),
+                ArcGridItem(
+                  NeoInput(
+                    controller: customerMailController,
+                    hintText: 'Email du client',
+                    keyboardType: TextInputType.emailAddress,
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateMail(value ?? '');
+                    },
+                  ),
                 ),
-              ],
-            ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: customerPhoneController,
+                      hintText: 'Téléphone du client',
+                      keyboardType: TextInputType.phone,
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validatePhoneNumber(value ?? '');
+                      },
+                      formatter: FilteringTextInputFormatter.digitsOnly,
+                    ),
+                  ),
+                ),
+              ]),
+              const ArcFormNote(
+                  "Le code du client est optionnel. Il peut être utilisé pour identifier le client dans vos systèmes internes."),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

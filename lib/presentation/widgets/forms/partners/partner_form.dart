@@ -2,14 +2,13 @@ import 'dart:developer';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class PartnerForm extends StatefulWidget {
   final String? initialSiret;
@@ -79,7 +78,7 @@ class _PartnerFormState extends State<PartnerForm> {
             'Inscription du partenaire réussie',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ),
       );
     } catch (error) {
@@ -89,7 +88,7 @@ class _PartnerFormState extends State<PartnerForm> {
             'Erreur lors de l’inscription : $error',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ),
       );
     } finally {
@@ -114,174 +113,107 @@ class _PartnerFormState extends State<PartnerForm> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
-
-    return AlertDialog(
-      backgroundColor: Colors.transparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Container(
-          width: SizeConfig.screenWidth * 0.3,
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(20)),
-            color: kPLGrey2,
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: 'Nouveau partenaire',
+        title: 'Ajouter un partenaire',
+        onClose: _isLoading ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isLoading ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Center(
-                  child: SelectableText(
-                    "Ajouter un partenaire",
-                    style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        letterSpacing: 0.3,
-                        fontWeight: FontWeight.w600,
-                        color: kOrange),
+          ArcSubmitButton(
+            label: 'Ajouter le partenaire',
+            busy: _isLoading,
+            onPressed: addPartner,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            number: '1',
+            title: 'Informations du partenaire',
+            children: [
+              ArcFormGrid([
+                ArcGridItem(
+                  NeoInput(
+                    controller: partnerNameController,
+                    hintText: 'Nom du partenaire',
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateText(value ?? '');
+                    },
                   ),
+                  span: true,
                 ),
-                const SizedBox(height: 30),
-                NeoInput(
-                  controller: partnerNameController,
-                  hintText: 'Nom du partenaire',
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateText(value ?? '');
-                  },
-                ),
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: partnerMailController,
-                  hintText: 'Email du partenaire',
-                  keyboardType: TextInputType.emailAddress,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validateMail(value ?? '');
-                  },
-                ),
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: partnerSiretController,
-                  hintText: 'Siret du partenaire',
-                  keyboardType: TextInputType.number,
-                  fillColor: kPWhite,
-                  maxLength: 14,
-                  formatter: FilteringTextInputFormatter.digitsOnly,
-                  validator: (value) {
-                    return FormValidator.validateSiret(value ?? '');
-                  },
-                ),
-                const SizedBox(height: 20),
-                NeoInput(
-                  controller: partnerPhoneController,
-                  hintText: 'Téléphone du partenaire',
-                  keyboardType: TextInputType.phone,
-                  fillColor: kPWhite,
-                  validator: (value) {
-                    return FormValidator.validatePhoneNumber(value ?? '');
-                  },
-                  formatter: FilteringTextInputFormatter.digitsOnly,
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.screenHeight * 0.025,
-                  ),
-                  child: Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: kGrey.withValues(alpha: 0.2),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 4,
-                    right: 4,
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Colors.grey[600],
-                        size: SizeConfig.screenWidth > 600 ? 18 : 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          "Le code du partenaire est optionnel. Il peut être utilisé pour identifier le partenaire dans vos systèmes internes.",
-                          style: GoogleFonts.poppins(
-                            fontSize: SizeConfig.screenWidth > 600 ? 13 : 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                NeoInput(
-                  controller: partnerCodeController,
-                  hintText: 'Code du partenaire',
-                  fillColor: kPWhite,
-                  validator: (value) => null,
-                ),
-                const SizedBox(height: 20),
-                CheckboxListTile(
-                  title: Text(
-                    'Accepte la dématérialisation',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: kBlack,
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerCodeController,
+                      hintText: 'Code du partenaire',
+                      fillColor: kSurface,
+                      validator: (value) => null,
                     ),
                   ),
-                  value: _checked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _checked = value!;
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  activeColor: kBlue,
                 ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => Navigator.pop(context, false),
-                      child: Text(
-                        'Annuler',
-                        style: GoogleFonts.poppins(
-                          color: _isLoading ? Colors.grey : kRed,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerSiretController,
+                      hintText: 'Siret du partenaire',
+                      keyboardType: TextInputType.number,
+                      fillColor: kSurface,
+                      maxLength: 14,
+                      formatter: FilteringTextInputFormatter.digitsOnly,
+                      validator: (value) {
+                        return FormValidator.validateSiret(value ?? '');
+                      },
                     ),
-                    _isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.only(right: 40.0),
-                            child: CircularProgressIndicator(
-                              color: kOrange,
-                            ),
-                          )
-                        : NeoButton(
-                            text: "Enregistrer",
-                            onPressed: addPartner,
-                          ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
+                ArcGridItem(
+                  NeoInput(
+                    controller: partnerMailController,
+                    hintText: 'Email du partenaire',
+                    keyboardType: TextInputType.emailAddress,
+                    fillColor: kSurface,
+                    validator: (value) {
+                      return FormValidator.validateMail(value ?? '');
+                    },
+                  ),
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerPhoneController,
+                      hintText: 'Téléphone du partenaire',
+                      keyboardType: TextInputType.phone,
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validatePhoneNumber(value ?? '');
+                      },
+                      formatter: FilteringTextInputFormatter.digitsOnly,
+                    ),
+                  ),
+                ),
+              ]),
+              const ArcFormNote(
+                  "Le code du partenaire est optionnel. Il peut être utilisé pour identifier le partenaire dans vos systèmes internes."),
+              ArcToggleCard(
+                value: _checked,
+                onChanged: (bool value) {
+                  setState(() {
+                    _checked = value;
+                  });
+                },
+                title: 'Accepte la dématérialisation',
+                subtitle:
+                    'Le magasin accepte les bons sur mobile, pas seulement le papier.',
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

@@ -72,8 +72,8 @@ class _NeoAiButtonState extends State<NeoAiButton>
           key: const ValueKey('neo-ai-ring'),
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26),
-            color: _enabled ? null : kLBlue,
+            borderRadius: BorderRadius.circular(999),
+            color: _enabled ? null : kNavy200,
             gradient: _enabled
                 ? SweepGradient(
                     colors: NeoAiButton.rainbow,
@@ -91,13 +91,15 @@ class _NeoAiButtonState extends State<NeoAiButton>
           child: child,
         ),
         child: OutlinedButton.icon(
+          // Fond blanc pur et texte Navy 800 (design system « Arc »).
           style: OutlinedButton.styleFrom(
-            backgroundColor: kPWhite,
-            foregroundColor: kBlueEnd,
-            disabledForegroundColor: kGrey.withValues(alpha: 0.45),
+            backgroundColor: kSurface,
+            foregroundColor: kNavy800,
+            disabledBackgroundColor: kNavy50,
+            disabledForegroundColor: kNavy400,
             side: BorderSide.none,
             shape: const StadiumBorder(),
-            minimumSize: const Size(48, 44),
+            minimumSize: const Size(48, 40),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           onPressed: widget.onPressed,
@@ -111,7 +113,8 @@ class _NeoAiButtonState extends State<NeoAiButton>
                 )
               : const Icon(Icons.auto_awesome, size: 18),
           label: Text(widget.label,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         ),
       ),
     );

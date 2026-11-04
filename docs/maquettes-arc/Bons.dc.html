@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Commande · bons</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="commandes" hint-size="248px,1040px"></dc-import></div>
+<main aria-hidden="true" style="flex: 999 1 560px; min-width: 0; padding: 36px 40px; display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 13px; color: #63677F">Réseau</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; color: #1F2240">Commandes</span>
+<div style="height: 620px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div>
+</main>
+
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.55); display: flex; justify-content: flex-end">
+<aside role="dialog" aria-modal="true" aria-labelledby="bo-title" style="width: 900px; max-width: 100%; background: #FFFFFF; display: flex; flex-direction: column; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<div style="padding: 24px 28px 16px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; border-bottom: 1px solid #ECEDF6">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #9A5B00">C202610121 · test multi-compte · Fête des mères</span>
+<h2 id="bo-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 26px; color: #1F2240">Bons de la commande</h2>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<span style="padding: 4px 10px; border-radius: 999px; background: #ECEDF6; color: #3A4276; font-size: 12px; font-weight: 600">10 bons · 200,00 €</span>
+<button type="button" aria-label="Fermer" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+</div>
+
+<div style="flex: 1; overflow: auto; padding-bottom: 120px">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="text-align: left; padding: 10px 12px 10px 28px; font-size: 12px; font-weight: 600; color: #545873">Bénéficiaire</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Téléphone</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Montant</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Restant</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Expiration</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">État</th>
+<th style="text-align: right; padding: 10px 28px 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Action</th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<tr>
+<td style="padding: 10px 12px 10px 28px; border-top: 1px solid #ECEDF6"><div style="display: flex; flex-direction: column"><span style="font-weight: 500">[Prénom]</span><span style="font-size: 12px; color: #63677F">{{r.mail}}</span></div></td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #545873">[téléphone]</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500">20,00 €</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; text-align: right; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; color: #545873">[restant]</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6; color: #545873; white-space: nowrap">28/11/2027</td>
+<td style="padding: 10px 12px; border-top: 1px solid #ECEDF6"><span style="padding: 3px 9px; border-radius: 999px; background: {{r.sBg}}; color: {{r.sFg}}; font-size: 12px; font-weight: 600; white-space: nowrap">{{r.status}}</span></td>
+<td style="padding: 6px 28px 6px 12px; border-top: 1px solid #ECEDF6; text-align: right; position: relative">
+<button type="button" onClick="{{r.openMenu}}" aria-label="Actions du bon" aria-expanded="{{r.menuOpen}}" style="width: 34px; height: 34px; border: 0; border-radius: 9px; background: {{r.menuBg}}; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+<sc-if value="{{r.menuOpen}}" hint-placeholder-val="{{false}}">
+<div role="menu" style="position: absolute; right: 28px; top: 44px; z-index: 2; width: 250px; background: #FFFFFF; border-radius: 14px; padding: 6px; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.25), 0 0 0 1px #E4E5EE; display: flex; flex-direction: column; text-align: left">
+<button type="button" role="menuitem" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: #1B1D30; font-family: Poppins, sans-serif; font-size: 13px; cursor: pointer; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A4276" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Renvoyer l'e-mail</button>
+<button type="button" role="menuitem" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: #1B1D30; font-family: Poppins, sans-serif; font-size: 13px; cursor: pointer; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3A4276" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Modifier la date d'expiration</button>
+<span style="height: 1px; background: #ECEDF6; margin: 4px 6px"></span>
+<button type="button" role="menuitem" onClick="{{r.askDisable}}" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: #B3123F; font-family: Poppins, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Désactiver le bon</button>
+</div>
+</sc-if>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</aside>
+</div>
+
+<sc-if value="{{confirming}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.35); display: flex; align-items: center; justify-content: center; padding: 24px">
+<div role="alertdialog" aria-modal="true" aria-labelledby="bo-dlg" style="width: 440px; max-width: 100%; background: #FFFFFF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<span style="width: 44px; height: 44px; border-radius: 12px; background: #FDEAF0; color: #B3123F; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h3 id="bo-dlg" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; color: #1F2240">Désactiver un bon</h3>
+<p style="margin: 0; font-size: 14px; color: #545873">Le bon ne pourra plus être utilisé. Un bon déjà associé à un utilisateur ne peut pas être désactivé.</p>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" onClick="{{cancel}}" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Annuler</button>
+<button type="button" onClick="{{confirm}}" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #E61B54; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Désactiver</button>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { menu: 1, ask: null, disabled: {} };
+  }
+  renderVals() {
+    const kinds = ['active', 'active', 'linked', 'active', 'noMail', 'active'];
+    const rows = kinds.map((k, i) => {
+      const off = !!this.state.disabled[i];
+      const st = off ? { status: 'Désactivé', sBg: '#EEEFF4', sFg: '#545873' }
+        : k === 'linked' ? { status: 'Associé à un utilisateur', sBg: '#ECEDF6', sFg: '#3A4276' }
+        : { status: 'Actif', sBg: '#E7F7EC', sFg: '#0B7A34' };
+      const open = this.state.menu === i;
+      return {
+        ...st,
+        mail: k === 'noMail' ? 'Aucune adresse e-mail pour ce bon' : '[e-mail]',
+        menuOpen: open,
+        menuBg: open ? '#ECEDF6' : 'transparent',
+        openMenu: () => this.setState({ menu: open ? null : i }),
+        askDisable: () => this.setState({ ask: i, menu: null })
+      };
+    });
+    return {
+      rows,
+      confirming: this.state.ask !== null,
+      cancel: () => this.setState({ ask: null }),
+      confirm: () => this.setState({ disabled: { ...this.state.disabled, [this.state.ask]: true }, ask: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

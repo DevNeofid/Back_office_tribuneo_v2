@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/voucher_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 
 class VoucherView extends StatefulWidget {
   const VoucherView({super.key});
@@ -32,12 +33,16 @@ class VoucherViewState extends State<VoucherView> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Center(
+        const ArcPageHeader(eyebrow: 'Réseau', title: 'Bons'),
+        ArcTableCard(
+            child: Center(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              headingRowColor: WidgetStateColor.resolveWith((states) => kLBlue),
+              dataRowMinHeight: 52,
+              dataRowMaxHeight: 52,
               columns: const [
                 DataColumn(
                     label: Center(child: Text('Identifiant du Qr_code'))),
@@ -58,8 +63,8 @@ class VoucherViewState extends State<VoucherView> {
                 final isEvenRow = index % 2 == 0;
                 return DataRow(
                   color: isEvenRow
-                      ? WidgetStateColor.resolveWith((states) => kPLGrey)
-                      : WidgetStateColor.resolveWith((states) => kLBlue),
+                      ? WidgetStateColor.resolveWith((states) => kSurface)
+                      : WidgetStateColor.resolveWith((states) => kSurface2),
                   cells: [
                     // DataCell(Center(child: Text(e.invoiceNumber ?? ''))),
                     // DataCell(Center(child: Text(e.entityName ?? ''))),
@@ -91,7 +96,7 @@ class VoucherViewState extends State<VoucherView> {
               }).toList(),
             ),
           ),
-        )
+        ))
       ],
     );
   }

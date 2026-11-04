@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../utils/common.dart';
 import '../../../utils/url_opener.dart';
+import '../../arc/arc.dart';
 
 /// Local presentation only. Callers retain ownership of every action and guard.
+///
+/// Dialogue « Arc » de l'import : fond blanc, titre en Bricolage Grotesque,
+/// bouton de fermeture en haut à droite, pied gris clair pour les actions.
 class EnrichmentDialog extends StatelessWidget {
   final Widget title, content;
   final List<Widget> actions;
   final double maxWidth;
   final bool scrollable;
   final VoidCallback? onClose;
+
+  /// Petit libellé au-dessus du titre (ligne concernée…), en chasse fixe.
+  final String? eyebrow;
+
+  /// Élément affiché à droite du titre (légende de la carte…).
+  final Widget? headerTrailing;
   const EnrichmentDialog({
     super.key,
     required this.title,
@@ -17,108 +27,90 @@ class EnrichmentDialog extends StatelessWidget {
     this.maxWidth = 1080,
     this.scrollable = true,
     this.onClose,
+    this.eyebrow,
+    this.headerTrailing,
   });
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context);
-    final border = OutlineInputBorder(borderRadius: BorderRadius.circular(12));
-    return Theme(
-      data: base.copyWith(
-        textTheme: base.textTheme
-            .apply(fontFamily: 'Poppins_regular', bodyColor: kBlack),
-        colorScheme: base.colorScheme.copyWith(
-          primary: kBlue,
-          secondary: kOrange,
-          surface: kPWhite,
-          error: kRed,
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-          backgroundColor: kBlue,
-          foregroundColor: kPWhite,
-          minimumSize: const Size(48, 48),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        )),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-          foregroundColor: kBlue,
-          minimumSize: const Size(48, 48),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        )),
-        textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(
-          foregroundColor: kBlue,
-          minimumSize: const Size(48, 48),
-        )),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: kPWhite,
-          border: border,
-          enabledBorder:
-              border.copyWith(borderSide: const BorderSide(color: kLBlue)),
-          contentPadding: const EdgeInsets.all(16),
-        ),
-        tabBarTheme: const TabBarThemeData(
-          labelColor: kBlueEnd,
-          unselectedLabelColor: kGrey,
-          indicatorColor: kOrange,
-        ),
-      ),
-      child: Dialog(
-        insetPadding: const EdgeInsets.all(12),
-        backgroundColor: kPWhite,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
+    return Dialog(
+      insetPadding: const EdgeInsets.all(12),
+      backgroundColor: kSurface,
+      surfaceTintColor: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: DefaultTextStyle.merge(
+          style: const TextStyle(color: kInk, fontSize: 14, height: 1.45),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              color: kBlueEnd,
-              padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
-              child: Row(children: [
-                Expanded(
-                    child: Semantics(
-                        header: true,
-                        child: DefaultTextStyle(
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontFamily: 'Poppins_regular',
-                              fontSize: 19,
-                              fontWeight: FontWeight.w600,
-                              color: kPWhite),
-                          child: title,
-                        ))),
-                if (onClose != null)
-                  IconButton(
-                    tooltip: 'Fermer',
-                    onPressed: onClose,
-                    color: kPWhite,
-                    icon: const Icon(Icons.close),
-                  ),
-              ]),
+            Padding(
+              padding:
+                  EdgeInsets.fromLTRB(28, 22, onClose != null ? 18 : 28, 14),
+              child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          if (eyebrow != null) ...[
+                            Text(eyebrow!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: ArcText.dataSmall(color: kOrange700)
+                                    .copyWith(fontSize: 12)),
+                            const SizedBox(height: 4),
+                          ],
+                          Semantics(
+                              header: true,
+                              child: DefaultTextStyle(
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: ArcText.dialogTitle()
+                                    .copyWith(fontSize: 24),
+                                child: title,
+                              )),
+                        ])),
+                    if (headerTrailing != null) ...[
+                      const SizedBox(width: 12),
+                      Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: headerTrailing!),
+                    ],
+                    if (onClose != null) ...[
+                      const SizedBox(width: 10),
+                      ArcIconAction(
+                        icon: Icons.close_rounded,
+                        tooltip: 'Fermer',
+                        onPressed: onClose,
+                        size: 34,
+                      ),
+                    ],
+                  ]),
             ),
             Flexible(
                 child: scrollable
                     ? SingleChildScrollView(
-                        padding: const EdgeInsets.all(20), child: content)
+                        padding: const EdgeInsets.fromLTRB(28, 4, 28, 20),
+                        child: content)
                     : Padding(
-                        padding: const EdgeInsets.all(12), child: content)),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                        child: content)),
             if (actions.isNotEmpty)
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                    color: kLGrey,
-                    border: Border(top: BorderSide(color: kLBlue))),
+                    color: kSurface2,
+                    border: Border(top: BorderSide(color: kNavy100))),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 child: Wrap(
                     alignment: WrapAlignment.end,
-                    spacing: 8,
-                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10,
+                    runSpacing: 8,
                     children: actions),
               ),
           ]),
@@ -128,28 +120,60 @@ class EnrichmentDialog extends StatelessWidget {
   }
 }
 
+/// Encadré d'information (navy), d'avertissement (orange) ou d'erreur
+/// (framboise).
 class EnrichmentNotice extends StatelessWidget {
   final Widget child;
   final bool error;
-  const EnrichmentNotice({super.key, required this.child, this.error = false});
+
+  /// Avertissement (orange) : ex. source indisponible lors de la recherche.
+  final bool warning;
+  const EnrichmentNotice(
+      {super.key, required this.child, this.error = false, this.warning = false});
   @override
-  Widget build(BuildContext context) => Semantics(
-        liveRegion: error,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-              color: kLGrey,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: error ? kRed : kLBlue)),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(error ? Icons.error_outline : Icons.info_outline,
-                color: error ? kRed : kBlue, size: 22),
-            const SizedBox(width: 12),
-            Expanded(child: child),
-          ]),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final Color background = error
+        ? kDangerBg
+        : warning
+            ? kOrange50
+            : kNavy50;
+    final Color border = error
+        ? kDanger.withValues(alpha: 0.45)
+        : warning
+            ? kOrange200
+            : kNavy200;
+    final Color ink = error
+        ? kDangerText
+        : warning
+            ? kOrange700
+            : kNavy600;
+    return Semantics(
+      liveRegion: error,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: border)),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(
+              error
+                  ? Icons.error_outline_rounded
+                  : warning
+                      ? Icons.warning_amber_rounded
+                      : Icons.info_outline_rounded,
+              color: ink,
+              size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+              child: DefaultTextStyle.merge(
+                  style: const TextStyle(color: kInk, fontSize: 13),
+                  child: child)),
+        ]),
+      ),
+    );
+  }
 }
 
 class EnrichmentBadge extends StatelessWidget {
@@ -157,12 +181,12 @@ class EnrichmentBadge extends StatelessWidget {
   const EnrichmentBadge(this.label, {super.key});
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-            color: kLGrey, borderRadius: BorderRadius.circular(12)),
+            color: kNavy100, borderRadius: BorderRadius.circular(8)),
         child: Text(label,
-            style:
-                const TextStyle(color: kBlueEnd, fontWeight: FontWeight.w600)),
+            style: const TextStyle(
+                fontSize: 12, color: kNavy600, fontWeight: FontWeight.w600)),
       );
 }
 
@@ -183,7 +207,7 @@ class EnrichmentComparison extends StatelessWidget {
 
   static const double _checkWidth = 96;
   static const _separator =
-      VerticalDivider(width: 1, thickness: 1, color: kLBlue);
+      VerticalDivider(width: 1, thickness: 1, color: kNavy100);
 
   /// Cellules d'une ligne large, séparées par un trait vertical.
   static Widget _wideRow(List<Widget> cells) => IntrinsicHeight(
@@ -211,51 +235,59 @@ class EnrichmentComparison extends StatelessWidget {
               if (wide)
                 Container(
                     margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                        color: kBlue.withValues(alpha: 0.08),
+                        color: kSurface2,
+                        border: Border.all(color: kNavy100),
                         borderRadius: BorderRadius.circular(12)),
                     child: DefaultTextStyle.merge(
                         style: const TextStyle(
-                            color: kBlueEnd, fontWeight: FontWeight.w600),
+                            fontSize: 12,
+                            color: kText2,
+                            fontWeight: FontWeight.w600),
                         child: _wideRow(
                             [for (final column in columns) column.label]))),
               for (var r = 0; r < rows.length; r++)
                 Opacity(
-                  opacity: muted.contains(r) ? 0.6 : 1,
+                  opacity: muted.contains(r) ? 0.55 : 1,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: EdgeInsets.all(wide ? 8 : 12),
                     decoration: BoxDecoration(
-                        color: kLGrey,
+                        color: kSurface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kLBlue.withValues(alpha: 0.6))),
-                    child: wide
-                        ? _wideRow(
-                            [for (final cell in rows[r].cells) cell.child])
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                                Row(children: [
-                                  rows[r].cells[0].child,
-                                  Expanded(child: rows[r].cells[1].child)
+                        border: Border.all(color: kBorder)),
+                    child: DefaultTextStyle.merge(
+                      style: const TextStyle(fontSize: 13, color: kInk),
+                      child: wide
+                          ? _wideRow(
+                              [for (final cell in rows[r].cells) cell.child])
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                  Row(children: [
+                                    rows[r].cells[0].child,
+                                    Expanded(child: rows[r].cells[1].child)
+                                  ]),
+                                  for (var i = 2; i < rows[r].cells.length; i++)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            DefaultTextStyle.merge(
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: kText2,
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                                child: columns[i].label),
+                                            rows[r].cells[i].child,
+                                          ]),
+                                    ),
                                 ]),
-                                for (var i = 2; i < rows[r].cells.length; i++)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          DefaultTextStyle.merge(
-                                              style: const TextStyle(
-                                                  color: kBlue,
-                                                  fontWeight: FontWeight.w600),
-                                              child: columns[i].label),
-                                          rows[r].cells[i].child,
-                                        ]),
-                                  ),
-                              ]),
+                    ),
                   ),
                 ),
             ]);
@@ -263,6 +295,9 @@ class EnrichmentComparison extends StatelessWidget {
 }
 
 /// Petite pastille d'information (SIRET, état, niveau de correspondance…).
+///
+/// [color] est la couleur du texte ; le fond teinté en découle (couleurs de
+/// statut « Arc » : succès, avertissement, danger, neutre, navy).
 class EnrichmentChip extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -270,28 +305,51 @@ class EnrichmentChip extends StatelessWidget {
 
   /// Détail affiché au survol.
   final String? tooltip;
+
+  /// Chiffres à chasse fixe (SIRET, SIREN).
+  final bool mono;
   const EnrichmentChip(this.label,
-      {super.key, this.icon, this.color = kBlueEnd, this.tooltip});
+      {super.key,
+      this.icon,
+      this.color = kNavy600,
+      this.tooltip,
+      this.mono = false});
+
+  /// Fond teinté associé à une couleur de texte de statut.
+  static Color backgroundFor(Color color) {
+    if (color == kSuccessText || color == kGreen) return kSuccessBg;
+    if (color == kWarningText || color == kOrange) return kWarningBg;
+    if (color == kDangerText || color == kRed) return kDangerBg;
+    if (color == kNeutralText || color == kGrey) return kNeutralBg;
+    if (color == kNavy600 || color == kBlue || color == kBlueEnd) {
+      return kNavy100;
+    }
+    return color.withValues(alpha: 0.1);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle style = mono
+        ? ArcText.dataSmall(color: color).copyWith(fontSize: 12, height: 1.35)
+        : TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: color,
+            height: 1.35);
     Widget chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.35))),
+          color: backgroundFor(color),
+          borderRadius: BorderRadius.circular(8)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
         ],
-        Flexible(
-            child: Text(label,
-                style: TextStyle(fontSize: 12, color: color, height: 1.3))),
+        Flexible(child: Text(label, style: style)),
         if (tooltip != null) ...[
           const SizedBox(width: 4),
-          Icon(Icons.info_outline, size: 13, color: color),
+          Icon(Icons.info_outline_rounded, size: 13, color: color),
         ],
       ]),
     );
@@ -330,14 +388,17 @@ class EnrichmentSourceLink extends StatelessWidget {
       waitDuration: const Duration(milliseconds: 300),
       child: TextButton.icon(
         style: TextButton.styleFrom(
+            foregroundColor: kNavy600,
             minimumSize: const Size(0, 32),
             padding: const EdgeInsets.symmetric(horizontal: 6),
             visualDensity: VisualDensity.compact),
         onPressed: () => openExternalUrl(url),
-        icon: const Icon(Icons.open_in_new, size: 15),
+        icon: const Icon(Icons.open_in_new_rounded, size: 15),
         label: Text(host,
             style: const TextStyle(
-                fontSize: 12, decoration: TextDecoration.underline)),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline)),
       ),
     );
   }

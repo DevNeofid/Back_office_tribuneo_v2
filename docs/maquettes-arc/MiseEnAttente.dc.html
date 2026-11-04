@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Prochain virement · mise en attente</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="prochain" hint-size="248px,1040px"></dc-import></div>
+<main aria-hidden="true" style="flex: 999 1 560px; min-width: 0; padding: 36px 40px; display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 13px; color: #63677F">Finance</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; color: #1F2240">Prochain virement</span>
+<div style="height: 240px; border-radius: 18px; background: #FFFFFF; border: 1px solid #E4E5EE"></div>
+<div style="height: 180px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div>
+</main>
+
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.55); display: flex; align-items: center; justify-content: center; padding: 32px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 480px; max-width: 100%">
+<div role="group" aria-label="Variante (maquette)" style="display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: rgba(255,255,255,0.15)">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="2">
+<button type="button" onClick="{{v.pick}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: {{v.bg}}; color: {{v.fg}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{v.label}}</button>
+</sc-for>
+</div>
+<div role="dialog" aria-modal="true" aria-labelledby="ma-title" style="width: 100%; background: #FFFFFF; border-radius: 24px; padding: 26px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<span style="width: 48px; height: 48px; border-radius: 14px; background: {{iconBg}}; color: {{iconFg}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{iconPath}}"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="ma-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 24px; color: #1F2240">{{title}}</h2>
+<span style="color: #545873">{{lead}}</span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #F5F5FA; border: 1px solid #E4E5EE">
+<div style="display: flex; flex-direction: column">
+<span style="font-weight: 600; color: #1F2240">DEC09 — DECATHLON DIGNE</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">Demande [n° de transaction] · [date]</span>
+</div>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 15px; font-weight: 500">23,50 €</span>
+</div>
+<sc-if value="{{isHold}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ma-reason" style="font-size: 13px; font-weight: 500; color: #31376A">Motif <span style="font-weight: 400; color: #63677F">(facultatif)</span></label>
+<textarea id="ma-reason" rows="3" placeholder="Ex. justificatif à vérifier" style="box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #CDCFDD; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 14px; resize: vertical"></textarea>
+</div>
+</sc-if>
+<div style="display: flex; justify-content: flex-end; gap: 10px">
+<button type="button" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Annuler</button>
+<button type="button" onClick="{{confirm}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">{{cta}}</button>
+</div>
+</div>
+<sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+<div role="status" style="align-self: stretch; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #1F2240; color: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.4)">
+<span style="width: 24px; height: 24px; border-radius: 999px; background: #14B946; color: #1F2240; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span>
+<span style="font-size: 13px; flex: 1">{{toast}}</span>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { v: 'hold', done: false };
+  }
+  renderVals() {
+    const hold = this.state.v === 'hold';
+    const variants = [{ id: 'hold', label: 'Mettre en attente' }, { id: 'release', label: 'Libérer' }].map((x) => {
+      const on = this.state.v === x.id;
+      return { ...x, bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#1F2240' : '#FFFFFF', pick: () => this.setState({ v: x.id, done: false }) };
+    });
+    return {
+      variants, isHold: hold, done: this.state.done,
+      title: hold ? 'Mettre en attente' : 'Libérer la demande',
+      lead: hold ? 'La demande sort de ce virement et passe dans « Écartées ». Elle pourra être libérée plus tard.' : 'Cette demande sera incluse dans le prochain virement.',
+      cta: hold ? 'Mettre en attente' : 'Libérer',
+      iconBg: hold ? '#FFF2DC' : '#E7F7EC', iconFg: hold ? '#9A5B00' : '#0B7A34',
+      iconPath: hold ? 'M9 5v14M15 5v14' : 'M8 5.5v13l10-6.5z',
+      toast: hold ? 'Demande [n°] mise en attente.' : 'Demande [n°] libérée.',
+      confirm: () => this.setState({ done: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Import · ajuster la position</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="import" hint-size="248px,1040px"></dc-import></div>
+<main aria-hidden="true" style="flex: 999 1 560px; min-width: 0; padding: 36px 40px; display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 13px; color: #63677F">Import de commerçants</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 34px; line-height: 1.1; color: #1F2240">Relecture du lot</span>
+<div style="display: flex; gap: 20px"><div style="flex: 3; height: 640px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div><div style="flex: 2; height: 640px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div></div>
+</main>
+
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.55); display: flex; align-items: center; justify-content: center; padding: 32px">
+<div role="dialog" aria-modal="true" aria-labelledby="ap-title" style="width: 1040px; max-width: 100%; background: #FFFFFF; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<div style="padding: 22px 26px 14px; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #9A5B00">LIGNE 5 · ATELIER VÉLO DURANCE · CANDIDAT 1</span>
+<h2 id="ap-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 26px; color: #1F2240">Ajuster la position</h2>
+<span style="font-size: 13px; color: #545873">Cliquez sur la carte pour poser le point à l'emplacement exact du commerce. Glissez pour vous déplacer, molette ou +/− pour zoomer.</span>
+</div>
+<div style="display: flex; gap: 14px; align-items: center; font-size: 12px; color: #545873">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 999px; background: {{proposedColor}}"></span>Proposée</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 999px; background: #E61B54"></span>Choisie</span>
+</div>
+</div>
+
+<div style="position: relative; margin: 0 26px; border-radius: 16px; overflow: hidden; border: 1px solid #CDCFDD; height: 540px">
+<button type="button" onClick="{{place}}" aria-label="Poser le point sur la carte" style="position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #F3F0E8; cursor: crosshair; display: block">
+<svg viewBox="0 0 1000 540" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<rect width="1000" height="540" fill="#F3F0E8"/>
+<path d="M0 420 C 160 395, 330 470, 520 430 S 820 360, 1000 380 L1000 430 C 820 410, 680 480, 520 490 S 160 460, 0 480Z" fill="#B9DAF2"/>
+<rect x="690" y="40" width="250" height="130" rx="10" fill="#D9E8C9"/>
+<rect x="60" y="50" width="140" height="80" rx="4" fill="#E4DDCF"/><rect x="220" y="50" width="120" height="80" rx="4" fill="#E4DDCF"/><rect x="380" y="50" width="160" height="60" rx="4" fill="#E4DDCF"/>
+<rect x="60" y="200" width="110" height="110" rx="4" fill="#E4DDCF"/><rect x="200" y="200" width="130" height="90" rx="4" fill="#E4DDCF"/><rect x="380" y="220" width="140" height="80" rx="4" fill="#E4DDCF"/><rect x="580" y="230" width="190" height="70" rx="4" fill="#E4DDCF"/><rect x="820" y="230" width="140" height="90" rx="4" fill="#E4DDCF"/>
+<path d="M0 160 H1000" stroke="#FFFFFF" stroke-width="22"/><path d="M0 160 H1000" stroke="#F6C76B" stroke-width="12"/>
+<path d="M360 0 V540" stroke="#FFFFFF" stroke-width="16"/>
+<path d="M0 190 L1000 190" stroke="#FFFFFF" stroke-width="9"/>
+<path d="M560 0 L560 360" stroke="#FFFFFF" stroke-width="12"/>
+<path d="M180 160 L180 380" stroke="#FFFFFF" stroke-width="9"/>
+<path d="M790 160 L790 360" stroke="#FFFFFF" stroke-width="9"/>
+<text x="20" y="150" font-family="Poppins, sans-serif" font-size="14" fill="#7A6A52">[voie principale]</text>
+<text x="720" y="110" font-family="Poppins, sans-serif" font-size="14" fill="#5D7A45">[parc]</text>
+<text x="600" y="455" font-family="Poppins, sans-serif" font-size="14" fill="#3F6E99">[cours d'eau]</text>
+</svg>
+</button>
+<div aria-hidden="true" style="position: absolute; left: 50%; top: 52%; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 999px; background: rgba(248,170,54,0.16); border: 2px solid rgba(248,170,54,0.8); pointer-events: none"></div>
+<svg aria-hidden="true" width="34" height="44" viewBox="0 0 34 44" style="position: absolute; left: 50%; top: 52%; margin: -44px 0 0 -17px; pointer-events: none"><path d="M17 42C9 31 3 24 3 16a14 14 0 0 1 28 0c0 8-6 15-14 26z" fill="{{proposedColor}}" stroke="#FFFFFF" stroke-width="2.5"/><circle cx="17" cy="16" r="5" fill="#FFFFFF"/></svg>
+<sc-if value="{{hasChosen}}" hint-placeholder-val="{{true}}">
+<svg aria-hidden="true" width="40" height="52" viewBox="0 0 34 44" style="position: absolute; left: {{chosenLeft}}; top: {{chosenTop}}; margin: -52px 0 0 -20px; pointer-events: none"><path d="M17 42C9 31 3 24 3 16a14 14 0 0 1 28 0c0 8-6 15-14 26z" fill="#E61B54" stroke="#FFFFFF" stroke-width="2.5"/><circle cx="17" cy="16" r="5" fill="#FFFFFF"/></svg>
+</sc-if>
+<div style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; background: #FFFFFF; border-radius: 10px; box-shadow: 0 2px 8px rgba(31,34,64,0.2); overflow: hidden">
+<button type="button" aria-label="Zoomer" style="width: 40px; height: 40px; border: 0; background: #FFFFFF; color: #3A4276; font-size: 20px; cursor: pointer">+</button>
+<button type="button" aria-label="Dézoomer" style="width: 40px; height: 40px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; font-size: 20px; cursor: pointer">−</button>
+<button type="button" onClick="{{recenter}}" aria-label="Recentrer sur la position" style="width: 40px; height: 40px; border: 0; border-top: 1px solid #ECEDF6; background: #FFFFFF; color: #3A4276; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+</div>
+<span style="position: absolute; left: 12px; bottom: 12px; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.94); font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px; color: #1B1D30">{{coordText}}</span>
+<span style="position: absolute; right: 12px; bottom: 12px; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.85); font-size: 11px; color: #545873">© IGN · Plan IGN · <a href="https://www.geoportail.gouv.fr/">Géoportail</a></span>
+</div>
+
+<div style="padding: 18px 26px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px">
+<button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: transparent; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Annuler</button>
+<button type="button" onClick="{{recenter}}" style="height: 44px; padding: 0 18px; border: 1.5px solid #CDCFDD; border-radius: 10px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Garder la position proposée</button>
+<button type="button" disabled="{{noChoice}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: {{useBg}}; color: {{useFg}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Utiliser ce point</button>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { chosen: { x: 0.62, y: 0.47 } };
+  }
+  renderVals() {
+    const c = this.state.chosen;
+    return {
+      hasChosen: !!c,
+      noChoice: !c,
+      chosenLeft: c ? (c.x * 100).toFixed(2) + '%' : '0%',
+      chosenTop: c ? (c.y * 100).toFixed(2) + '%' : '0%',
+      proposedColor: c ? 'rgba(58,66,118,0.7)' : '#E61B54',
+      coordText: c ? 'Choisie : [latitude], [longitude]' : 'Proposée : [latitude], [longitude]',
+      useBg: c ? '#F8AA36' : '#ECEDF6',
+      useFg: c ? '#1F2240' : '#8288BC',
+      place: (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        this.setState({ chosen: { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height } });
+      },
+      recenter: () => this.setState({ chosen: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

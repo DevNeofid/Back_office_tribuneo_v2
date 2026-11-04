@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/update_address_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/bank_informations/bank_information_form.dart';
@@ -14,12 +15,10 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/cus
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/update_customers_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/merchant_import/merchant_import_shortcut.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 
-enum SampleItem { itemOne, itemTwo }
-
-enum FirstBoxItem { itemOne, itemTwo, itemThree }
+/// Actions du menu « Plus d'actions » d'une ligne client.
+enum _CustomerAction { editGeneral, editAddress, editBank, toPartner, disable }
 
 class CustomersContentView extends StatefulWidget {
   const CustomersContentView({super.key});
@@ -28,11 +27,8 @@ class CustomersContentView extends StatefulWidget {
   State<CustomersContentView> createState() => CustomersContentViewState();
 }
 
-class CustomersContentViewState extends State<CustomersContentView>
-    with SingleTickerProviderStateMixin {
-  late final TabController tabController;
+class CustomersContentViewState extends State<CustomersContentView> {
   final CustomerUseCase _customerUseCase = CustomerUseCase();
-  final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
   TextEditingController searchController = TextEditingController();
   Timer? _searchDebounce;
   bool _isLoading = false;
@@ -40,28 +36,20 @@ class CustomersContentViewState extends State<CustomersContentView>
   late List<EntityModel> allCustomers;
   Map<String, List<EntityModel>> sortedEntities = {};
   List<String> availableFilters = [];
-  int neoInitialIndex = 0;
-  late int neoCurrentIndex;
+
+  /// Onglet de la fiche latérale : 0 Général, 1 Adresse, 2 Banque.
+  int neoCurrentIndex = 0;
+
+  /// Client affiché dans la fiche latérale (le premier de la liste par défaut).
+  int? _selectedId;
 
   String _filter = 'A';
   String _lastFilter = 'A';
   String _lastSearch = '';
-  SampleItem? selectedMenu;
-  FirstBoxItem? firstBoxSelectedMenu;
-
-  bool _button1Selected = false;
-  bool _button2Selected = false;
-  bool _button3Selected = false;
-
-  Color _buttonColor1 = kBlue;
-  Color _buttonColor2 = kBlue;
-  Color _buttonColor3 = kBlue;
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 3, vsync: this);
-    neoCurrentIndex = neoInitialIndex;
     _refreshCustomers();
   }
 
@@ -69,7 +57,6 @@ class CustomersContentViewState extends State<CustomersContentView>
   void dispose() {
     _searchDebounce?.cancel();
     searchController.dispose();
-    tabController.dispose();
     super.dispose();
   }
 
@@ -114,17 +101,18 @@ class CustomersContentViewState extends State<CustomersContentView>
     final bool? isIndividual = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Ajouter un client'),
-          content: const Text('Ce client est il un particulier ?'),
+        return ArcDialog(
+          icon: Icons.person_add_alt_1_outlined,
+          title: 'Ajouter un client',
+          content: const Text('Ce client est-il un particulier ?'),
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Non'),
+              child: const Text('Non, une entreprise'),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Oui'),
+              child: const Text('Oui, un particulier'),
             ),
           ],
         );
@@ -155,7 +143,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                   'Ajout annulé',
                   style: GoogleFonts.poppins(color: Colors.white),
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: kDangerText,
               ),
             );
           },
@@ -179,7 +167,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                     'Client ajouté avec succès !',
                     style: GoogleFonts.poppins(color: Colors.white),
                   ),
-                  backgroundColor: Colors.green,
+                  backgroundColor: kSuccessText,
                 ),
               );
               _refreshCustomers(withDelay: true);
@@ -192,7 +180,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                     'Erreur lors de l\'ajout du client : $e',
                     style: GoogleFonts.poppins(color: Colors.white),
                   ),
-                  backgroundColor: Colors.red,
+                  backgroundColor: kDangerText,
                 ),
               );
             }
@@ -255,18 +243,19 @@ class CustomersContentViewState extends State<CustomersContentView>
     final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Ajouter ce client comme Partenaire'),
+          return ArcDialog(
+            icon: Icons.storefront_outlined,
+            title: 'Ajouter ce client comme Partenaire',
             content: const Text(
                 'Vous allez ajouter ce client comme partenaire. Êtes-vous sûr de vouloir continuer ?'),
             actions: <Widget>[
-              TextButton(
+              OutlinedButton(
                 child: const Text('Annuler'),
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
               ),
-              TextButton(
+              FilledButton(
                 child: const Text('Valider'),
                 onPressed: () {
                   _customerUseCase.addEntityType(customer.id!);
@@ -283,7 +272,7 @@ class CustomersContentViewState extends State<CustomersContentView>
             'Client dupliqué en partenaire avec succès !',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ),
       );
       _refreshCustomers(withDelay: true);
@@ -294,18 +283,21 @@ class CustomersContentViewState extends State<CustomersContentView>
     final bool? shouldRefresh = await showDialog<bool>(
         context: context,
         builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: const Text('Désactiver le client'),
+          return ArcDialog(
+            icon: Icons.person_off_outlined,
+            tone: ArcTone.danger,
+            title: 'Désactiver le client',
             content:
                 const Text('Êtes-vous sûr de vouloir désactiver ce client ?'),
             actions: <Widget>[
-              TextButton(
+              OutlinedButton(
                 child: const Text('Annuler'),
                 onPressed: () {
                   Navigator.of(dialogContext).pop(false);
                 },
               ),
-              TextButton(
+              FilledButton(
+                style: arcDangerButtonStyle(),
                 child: const Text('Désactiver'),
                 onPressed: () async {
                   try {
@@ -319,7 +311,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                             'Client désactivé avec succès !',
                             style: GoogleFonts.poppins(color: Colors.white),
                           ),
-                          backgroundColor: Colors.green,
+                          backgroundColor: kSuccessText,
                         ),
                       );
                     } else {
@@ -329,7 +321,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                             "Erreur lors de la désactivation du client, au moins une commande associée n'est pas totalement payée.",
                             style: GoogleFonts.poppins(color: Colors.white),
                           ),
-                          backgroundColor: Colors.red,
+                          backgroundColor: kDangerText,
                         ),
                       );
                     }
@@ -341,7 +333,7 @@ class CustomersContentViewState extends State<CustomersContentView>
                           'Erreur lors de la désactivation : $e',
                           style: GoogleFonts.poppins(color: Colors.white),
                         ),
-                        backgroundColor: Colors.red,
+                        backgroundColor: kDangerText,
                       ),
                     );
                   }
@@ -416,591 +408,518 @@ class CustomersContentViewState extends State<CustomersContentView>
     }
   }
 
-  _setNeoInitialIndex(int index) {
-    tabController.animateTo(index);
+  void _setNeoInitialIndex(int index) {
     setState(() {
       neoCurrentIndex = index;
     });
   }
 
+  void _editAddress(EntityModel customer) {
+    customer.address != null ? _addressUpdate(customer) : _addAddress(customer);
+  }
+
+  void _editBank(EntityModel customer) {
+    customer.bankInformations != null
+        ? _bankInformationsUpdate(customer)
+        : _addBankInformations(customer);
+  }
+
+  void _onAction(EntityModel customer, _CustomerAction action) {
+    switch (action) {
+      case _CustomerAction.editGeneral:
+        _genUpdate(customer);
+        break;
+      case _CustomerAction.editAddress:
+        _editAddress(customer);
+        break;
+      case _CustomerAction.editBank:
+        _editBank(customer);
+        break;
+      case _CustomerAction.toPartner:
+        _addEntityType(customer);
+        break;
+      case _CustomerAction.disable:
+        _deleteCustomer(customer);
+        break;
+    }
+  }
+
+  void _pickLetter(String letter) {
+    setState(() {
+      _lastSearch = '';
+      searchController.clear();
+      _filter = letter;
+      _lastFilter = letter;
+      _customers = sortedEntities[_filter] as List<EntityModel>;
+    });
+  }
+
+  EntityModel? get _selected {
+    if (_customers.isEmpty) return null;
+    return _customers.where((c) => c.id == _selectedId).firstOrNull ??
+        _customers.first;
+  }
+
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return Column(
-      children: [
-        SelectableText('Ajouter un client',
-            style: GoogleFonts.roboto(fontSize: 20)),
-        const SizedBox(height: 10),
-        Center(
-          child: AddOrImportButtons(onAdd: () => _askCustomerType()),
+    final EntityModel? selected = _isLoading ? null : _selected;
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ArcPageHeader(
+            eyebrow: 'Réseau',
+            title: 'Clients',
+            actions: [
+              OutlinedButton.icon(
+                onPressed: () =>
+                    MySinglePage.maybeOf(context)?.openMenu('merchantImport'),
+                icon: const Icon(Icons.upload_file_outlined, size: 18),
+                label: const Text('Importer'),
+              ),
+              FilledButton.icon(
+                onPressed: () => _askCustomerType(),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text('Ajouter un client'),
+              ),
+            ],
+          ),
+          LayoutBuilder(builder: (context, constraints) {
+            final Widget table = _buildTableCard();
+            if (selected == null) return table;
+            final Widget sheet = _buildSheet(selected);
+            if (constraints.maxWidth >= 920) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: table),
+                  const SizedBox(width: 20),
+                  SizedBox(width: 380, child: sheet),
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [table, const SizedBox(height: 20), sheet],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tableau
+
+  Widget _buildTableCard() {
+    final int count = _customers.length;
+    return ArcTableCard(
+      toolbar: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ArcSearchField(
+            controller: searchController,
+            hint: 'Nom du client…',
+            semanticLabel: 'Rechercher un client',
+            width: 280,
+            onChanged: _onSearchChanged,
+          ),
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              for (final letter in availableFilters) _letterButton(letter),
+            ],
+          ),
+        ],
+      ),
+      footer: ArcPagination(
+        leading: Text(
+          _lastSearch.isNotEmpty
+              ? 'Recherche « $_lastSearch »'
+              : 'Lettre ${_filter.toUpperCase()}',
+          overflow: TextOverflow.ellipsis,
+          style: ArcText.small(),
         ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        label: count == 0 ? '0 sur 0' : '1–$count sur $count',
+      ),
+      child: _isLoading
+          ? const Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          : _customers.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: ArcEmptyState(
+                    icon: Icons.people_alt_outlined,
+                    title: 'Aucun client',
+                    message: _lastSearch.isNotEmpty
+                        ? 'Aucun client ne correspond à « $_lastSearch ».'
+                        : null,
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _tableHeader(),
+                    for (final customer in _customers) _tableRow(customer),
+                  ],
+                ),
+    );
+  }
+
+  Widget _letterButton(String letter) {
+    final bool on = _lastSearch.isEmpty && _filter == letter;
+    return Tooltip(
+      message: 'Lettre ${letter.toUpperCase()}',
+      child: Material(
+        color: on ? kNavy600 : kSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: on ? kNavy600 : kBorder),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _pickLetter(letter),
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: Center(
+              child: Text(
+                letter.toUpperCase(),
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: on ? Colors.white : kText2),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static TextStyle get _headStyle => GoogleFonts.poppins(
+      fontSize: 12, fontWeight: FontWeight.w600, color: kText2);
+
+  Widget _tableHeader() {
+    return Container(
+      color: kSurface2,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(children: [
+        Expanded(flex: 5, child: Text('Client', style: _headStyle)),
+        const SizedBox(width: 12),
+        Expanded(flex: 4, child: Text('Contact', style: _headStyle)),
+        const SizedBox(width: 76),
+      ]),
+    );
+  }
+
+  Widget _tableRow(EntityModel customer) {
+    final bool selected = _selected?.id == customer.id;
+    final String siret = customer.siret ?? '';
+    final String phone = customer.phone ?? '';
+    return Material(
+      color: selected ? kNavy50 : kSurface,
+      child: InkWell(
+        onTap: () => setState(() => _selectedId = customer.id),
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: kNavy100)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+          child: Row(children: [
+            Expanded(
+              flex: 5,
+              child: Row(children: [
+                ArcAvatar(customer.name ?? '', size: 34),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        customer.name ?? '',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: kNavy900),
+                      ),
+                      if (siret.isNotEmpty)
+                        Text(siret, style: ArcText.dataSmall(color: kText3)),
+                    ],
+                  ),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    customer.email ?? '',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(fontSize: 13, color: kInk),
+                  ),
+                  if (phone.isNotEmpty)
+                    Text(phone, style: ArcText.dataSmall(color: kText3)),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: 76,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: IconButton(
+                      tooltip: 'Créer une commande',
+                      padding: EdgeInsets.zero,
+                      iconSize: 18,
+                      style: IconButton.styleFrom(
+                          minimumSize: const Size(32, 32),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8))),
+                      onPressed: () =>
+                          _addOrder(customer.id!, customer.name!),
+                      icon: const Icon(Icons.post_add_rounded),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  _actionsMenu(customer),
+                ],
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionsMenu(EntityModel customer) {
+    return PopupMenuButton<_CustomerAction>(
+      tooltip: "Plus d'actions",
+      onSelected: (action) => _onAction(customer, action),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<_CustomerAction>>[
+        const PopupMenuItem<_CustomerAction>(
+          value: _CustomerAction.editGeneral,
+          child: Text('Editer informations générales'),
+        ),
+        const PopupMenuItem<_CustomerAction>(
+          value: _CustomerAction.editAddress,
+          child: Text('Editer l\'adresse'),
+        ),
+        const PopupMenuItem<_CustomerAction>(
+          value: _CustomerAction.editBank,
+          child: Text('Editer informations bancaires'),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem<_CustomerAction>(
+          value: _CustomerAction.toPartner,
+          child: Text('Dupliquer ce Client en Partenaire'),
+        ),
+        PopupMenuItem<_CustomerAction>(
+          value: _CustomerAction.disable,
+          child: Text('Désactiver ce client',
+              style: GoogleFonts.poppins(fontSize: 13, color: kDangerText)),
+        ),
+      ],
+      child: const SizedBox(
+        width: 32,
+        height: 32,
+        child: Icon(Icons.more_horiz_rounded, size: 20, color: kNavy600),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fiche latérale
+
+  Widget _buildSheet(EntityModel customer) {
+    final String siret = customer.siret ?? '';
+    final String editLabel = switch (neoCurrentIndex) {
+      1 => customer.address != null ? 'Modifier l\'adresse' : 'Ajouter l\'adresse',
+      2 => customer.bankInformations != null ? 'Modifier' : 'Ajouter',
+      _ => 'Modifier',
+    };
+    final VoidCallback onEdit = switch (neoCurrentIndex) {
+      1 => () => _editAddress(customer),
+      2 => () => _editBank(customer),
+      _ => () => _genUpdate(customer),
+    };
+    final ButtonStyle compact = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(0, 40)),
+      padding: const WidgetStatePropertyAll(
+          EdgeInsets.symmetric(horizontal: 12)),
+      textStyle: WidgetStatePropertyAll(
+          GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+    );
+
+    return Semantics(
+      container: true,
+      label: 'Fiche client',
+      child: ArcCard(
+        padding: const EdgeInsets.all(22),
+        shadow: ArcCard.raised,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SelectableText(
-                  'Filtres : ',
-                  style: GoogleFonts.roboto(fontSize: 20),
-                ),
-                InkResponse(
-                  onHighlightChanged: (isHighlighted) {
-                    if (isHighlighted) {
-                      setState(() {
-                        _buttonColor1 = kOrange;
-                        _button1Selected = true;
-                        _button2Selected = false;
-                        _button3Selected = false;
-                      });
-                    } else {
-                      setState(() {
-                        _buttonColor1 = _button1Selected ? kOrange : kBlue;
-                      });
-                    }
-                  },
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      _setNeoInitialIndex(0);
-                    },
-                    backgroundColor: _buttonColor1,
-                    child: const Icon(Icons.people, color: Colors.white),
+                ArcAvatar(customer.name ?? '', size: 48, dark: true),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SelectableText(
+                        customer.name ?? '',
+                        style: ArcText.dialogTitle()
+                            .copyWith(fontSize: 20, height: 1.15),
+                      ),
+                      if (siret.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text('SIRET $siret',
+                            style: ArcText.dataSmall(color: kText3)),
+                      ],
+                    ],
                   ),
                 ),
-                InkResponse(
-                  onHighlightChanged: (isHighlighted) {
-                    if (isHighlighted) {
-                      setState(() {
-                        _buttonColor2 = kOrange;
-                        _button1Selected = false;
-                        _button2Selected = true;
-                        _button3Selected = false;
-                      });
-                    } else {
-                      setState(() {
-                        _buttonColor2 = _button2Selected ? kOrange : kBlue;
-                      });
-                    }
-                  },
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      _setNeoInitialIndex(1);
-                    },
-                    backgroundColor: _buttonColor2,
-                    child: const Icon(Icons.gps_fixed, color: Colors.white),
-                  ),
-                ),
-                InkResponse(
-                  onHighlightChanged: (isHighlighted) {
-                    if (isHighlighted) {
-                      setState(() {
-                        _buttonColor3 = kOrange;
-                        _button1Selected = false;
-                        _button2Selected = false;
-                        _button3Selected = true;
-                      });
-                    } else {
-                      setState(() {
-                        _buttonColor3 = _button3Selected ? kOrange : kBlue;
-                      });
-                    }
-                  },
-                  child: FloatingActionButton(
-                    onPressed: () {
-                      _setNeoInitialIndex(2);
-                    },
-                    backgroundColor: _buttonColor3,
-                    child: const Icon(Icons.money, color: Colors.white),
-                  ),
+                const SizedBox(width: 8),
+                ArcIconAction(
+                  icon: Icons.edit_outlined,
+                  tooltip: 'Modifier le client',
+                  onPressed: () => _genUpdate(customer),
                 ),
               ],
             ),
-            SizedBox(
-              width: SizeConfig.screenWidth * 0.1,
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  iconColor: kBlue,
-                  focusColor: kGrey,
-                  hintText: 'Rechercher...',
-                  hintStyle: GoogleFonts.roboto(fontSize: 20),
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: kBlue, width: 2.0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onChanged: _onSearchChanged,
-              ),
+            const SizedBox(height: 18),
+            ArcSegmented<int>(
+              segments: const [
+                ArcSegment(0, 'Général'),
+                ArcSegment(1, 'Adresse'),
+                ArcSegment(2, 'Banque'),
+              ],
+              selected: neoCurrentIndex,
+              onChanged: _setNeoInitialIndex,
+              expand: true,
             ),
+            const SizedBox(height: 12),
+            switch (neoCurrentIndex) {
+              1 => _addressDetails(customer),
+              2 => _bankDetails(customer),
+              _ => _generalDetails(customer),
+            },
+            const SizedBox(height: 12),
+            const Divider(color: kNavy100),
+            const SizedBox(height: 18),
+            Row(children: [
+              Expanded(
+                child: ElevatedButton(
+                  style: compact,
+                  onPressed: () => _addOrder(customer.id!, customer.name!),
+                  child: const Text('Nouvelle commande'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton(
+                  style: compact,
+                  onPressed: onEdit,
+                  child: Text(editLabel),
+                ),
+              ),
+            ]),
           ],
         ),
-        const SizedBox(height: 40),
-        SizedBox(
-          width: SizeConfig.screenWidth * 0.8,
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 4.0,
-            runSpacing: 8.0,
-            children: availableFilters.map((letter) {
-              return Container(
-                padding: const EdgeInsets.all(0),
-                width: 35,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _lastSearch = '';
-                      searchController.clear();
-                      _filter = letter;
-                      _lastFilter = letter;
-                      _customers = sortedEntities[_filter] as List<EntityModel>;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(5),
-                    backgroundColor: _filter == letter ? kOrange : kBlue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      letter.toUpperCase(),
-                      style: const TextStyle(color: kWhite),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _customers.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return DefaultTabController(
-                      key: ValueKey(neoCurrentIndex),
-                      initialIndex: neoCurrentIndex,
-                      length: 3,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: kLGrey,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: kBlack.withValues(alpha: 0.1),
-                              spreadRadius: 1,
-                              blurRadius: 1,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 20),
-                        child: Column(
-                          children: [
-                            Container(
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                color: kLBlue,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  topRight: Radius.circular(10),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20),
-                                      child: SelectableText(
-                                        _customers[index].name!,
-                                        style: GoogleFonts.roboto(fontSize: 20),
-                                      ),
-                                    ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          _addOrder(_customers[index].id!,
-                                              _customers[index].name!);
-                                        },
-                                        hoverColor: Colors.transparent
-                                            .withValues(alpha: 0),
-                                        icon: const Icon(Icons.list_alt,
-                                            color: kBlack),
-                                      ),
-                                      const SizedBox(
-                                        width: 25,
-                                      ),
-                                      PopupMenuButton<FirstBoxItem>(
-                                        initialValue: firstBoxSelectedMenu,
-                                        icon: const Icon(
-                                            Icons.call_to_action_outlined),
-                                        onSelected: (FirstBoxItem item) {
-                                          switch (item) {
-                                            case FirstBoxItem.itemOne:
-                                              _genUpdate(_customers[index]);
-                                              break;
-                                            case FirstBoxItem.itemTwo:
-                                              _customers[index].address != null
-                                                  ? _addressUpdate(
-                                                      _customers[index])
-                                                  : _addAddress(
-                                                      _customers[index]);
-                                              break;
-                                            case FirstBoxItem.itemThree:
-                                              _customers[index]
-                                                          .bankInformations !=
-                                                      null
-                                                  ? _bankInformationsUpdate(
-                                                      _customers[index])
-                                                  : _addBankInformations(
-                                                      _customers[index]);
-                                              break;
-                                          }
-                                        },
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<FirstBoxItem>>[
-                                          const PopupMenuItem<FirstBoxItem>(
-                                            value: FirstBoxItem.itemOne,
-                                            child: Text(
-                                                'Editer informations générales'),
-                                          ),
-                                          const PopupMenuDivider(),
-                                          const PopupMenuItem<FirstBoxItem>(
-                                            value: FirstBoxItem.itemTwo,
-                                            child: Text('Editer l\'adresse'),
-                                          ),
-                                          const PopupMenuDivider(),
-                                          const PopupMenuItem<FirstBoxItem>(
-                                            value: FirstBoxItem.itemThree,
-                                            child: Text(
-                                                'Editer informations bancaires'),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        width: 25,
-                                      ),
-                                      PopupMenuButton<SampleItem>(
-                                        initialValue: selectedMenu,
-                                        onSelected: (SampleItem item) {
-                                          switch (item) {
-                                            case SampleItem.itemOne:
-                                              _addEntityType(_customers[index]);
-                                              break;
-                                            case SampleItem.itemTwo:
-                                              _deleteCustomer(
-                                                  _customers[index]);
-                                              break;
-                                          }
-                                          setState(() {
-                                            selectedMenu = item;
-                                          });
-                                        },
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<SampleItem>>[
-                                          const PopupMenuItem<SampleItem>(
-                                            value: SampleItem.itemOne,
-                                            child: Text(
-                                                'Dupliquer ce Client en Partenaire'),
-                                          ),
-                                          const PopupMenuItem<SampleItem>(
-                                            value: SampleItem.itemTwo,
-                                            child: Text('Désactiver ce client'),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(
-                              height: 0,
-                              color: Colors.white,
-                              thickness: 1,
-                            ),
-                            TabBar(
-                              indicatorColor: kLBlue,
-                              indicator: const BoxDecoration(
-                                color: kLBlue,
-                              ),
-                              tabs: [
-                                Tab(
-                                  child: Text(
-                                    'Informations générales',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      color: kBlack,
-                                    ),
-                                  ),
-                                ),
-                                Tab(
-                                  child: Text(
-                                    'Adresse',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      color: kBlack,
-                                    ),
-                                  ),
-                                ),
-                                Tab(
-                                  child: Text(
-                                    'Informations bancaires',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      color: kBlack,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Divider(
-                              height: 0,
-                              color: kLBlue,
-                              thickness: 1,
-                            ),
-                            SizedBox(
-                              height: 140,
-                              child: TabBarView(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        SelectableText(
-                                          'Informations personnelles:',
-                                          style: GoogleFonts.poppins(
-                                            color: kBlack,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SelectableText(
-                                          'Email: ${_customers[index].email}',
-                                          style: GoogleFonts.poppins(
-                                              color: kBlack,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                        SelectableText(
-                                          'Tel: ${_customers[index].phone}',
-                                          style: GoogleFonts.poppins(
-                                              color: kBlack,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                        SelectableText(
-                                          'Siret: ${_customers[index].siret}',
-                                          style: GoogleFonts.poppins(
-                                              color: kBlack,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  _customers[index].address != null
-                                      ? Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 15),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    SelectableText(
-                                                      'Localisation:',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        color: kBlack,
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    SelectableText(
-                                                      'Adresse: ${_customers[index].address!.street}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                    SelectableText(
-                                                      'Code Postal: ${_customers[index].address!.zip}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                    SelectableText(
-                                                      'Ville: ${_customers[index].address!.city}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                    SelectableText(
-                                                      'Pays: ${_customers[index].address!.country}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const VerticalDivider(
-                                              width: 1,
-                                              color: kGrey,
-                                              thickness: 1,
-                                              indent: 10,
-                                              endIndent: 10,
-                                            ),
-                                            Expanded(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 15),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    SelectableText(
-                                                      'Coordonnées GPS:',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        color: kBlack,
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    SelectableText(
-                                                      'lat: ${_customers[index].address!.lat ?? "Non renseigné"}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                    SelectableText(
-                                                      'long: ${_customers[index].address!.lng ?? "Non renseigné"}',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              color: kBlack,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : Center(
-                                          child: SelectableText(
-                                            'Aucune adresse enregistrée pour le moment',
-                                            style: GoogleFonts.poppins(
-                                                color: kBlack,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ),
-                                  _customers[index].bankInformations != null
-                                      ? Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 15),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    SelectableText(
-                                                      'Numéro de compte comptabilité: ${_customers[index].bankInformations!.accountingNumber ?? "Non renseigné"}',
-                                                      style: GoogleFonts.poppins(
-                                                          color: kBlack,
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.w400),
-                                                    ),
-                                                    SelectableText(
-                                                      'N° TVA intracommunautaire: ${_customers[index].bankInformations!.intraCommunityVat ?? "Non renseigné"}',
-                                                      style: GoogleFonts.poppins(
-                                                          color: kBlack,
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.w400),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : Center(
-                                          child: SelectableText(
-                                            'Aucune information bancaire enregistrée pour le moment',
-                                            style: GoogleFonts.poppins(
-                                                color: kBlack,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        )
-      ],
+      ),
+    );
+  }
+
+  Widget _generalDetails(EntityModel customer) {
+    return ArcDefinitionList([
+      ('Email', _value(customer.email)),
+      ('Téléphone', _value(customer.phone, mono: true)),
+      ('SIRET', _value(customer.siret, mono: true)),
+      if ((customer.code ?? '').trim().isNotEmpty)
+        ('Code', _value(customer.code, mono: true)),
+    ]);
+  }
+
+  Widget _addressDetails(EntityModel customer) {
+    final address = customer.address;
+    if (address == null) {
+      return const _SheetEmpty('Aucune adresse enregistrée pour le moment');
+    }
+    return ArcDefinitionList([
+      ('Rue', _value(address.street)),
+      ('Code postal', _value(address.zip, mono: true)),
+      ('Ville', _value(address.city)),
+      ('Pays', _value(address.country)),
+      if (address.lat != null) ('Latitude', _value('${address.lat}', mono: true)),
+      if (address.lng != null) ('Longitude', _value('${address.lng}', mono: true)),
+    ]);
+  }
+
+  Widget _bankDetails(EntityModel customer) {
+    final bank = customer.bankInformations;
+    if (bank == null) {
+      return const _SheetEmpty(
+          'Aucune information bancaire enregistrée pour le moment');
+    }
+    return ArcDefinitionList([
+      if ((bank.iban ?? '').isNotEmpty)
+        ('IBAN', _value(_groupBy4(bank.iban!), mono: true)),
+      if ((bank.bic ?? '').isNotEmpty) ('BIC', _value(bank.bic, mono: true)),
+      ('N° comptabilité', _value(bank.accountingNumber, mono: true)),
+      ('N° TVA intracom.', _value(bank.intraCommunityVat, mono: true)),
+    ]);
+  }
+
+  /// Valeur de la fiche ; « Non renseigné » en gris si elle est absente.
+  Widget _value(String? value, {bool mono = false}) {
+    if (value == null || value.trim().isEmpty || value == 'null') {
+      return Text('Non renseigné', style: ArcText.small(color: kText3));
+    }
+    return SelectableText(value, style: mono ? ArcText.data() : null);
+  }
+}
+
+/// IBAN groupé par 4 caractères.
+String _groupBy4(String value) {
+  final String raw = value.replaceAll(' ', '');
+  final List<String> parts = [];
+  for (int i = 0; i < raw.length; i += 4) {
+    parts.add(raw.substring(i, i + 4 > raw.length ? raw.length : i + 4));
+  }
+  return parts.join(' ');
+}
+
+/// Message d'onglet vide de la fiche client.
+class _SheetEmpty extends StatelessWidget {
+  final String message;
+  const _SheetEmpty(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(children: [
+        const Icon(Icons.info_outline_rounded, size: 16, color: kText3),
+        const SizedBox(width: 8),
+        Expanded(child: Text(message, style: ArcText.small(color: kText3))),
+      ]),
     );
   }
 }

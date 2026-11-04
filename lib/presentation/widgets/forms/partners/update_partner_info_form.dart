@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:back_office_tribuneo_v2/config/responsive.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/arc_form_panel.dart';
 
 class UpdatePartnerInfo extends StatefulWidget {
   final EntityModel? partner;
@@ -73,7 +70,7 @@ class UpdatePartnerInfoState extends State<UpdatePartnerInfo> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Modification du partenaire réussie'),
-          backgroundColor: Colors.green,
+          backgroundColor: kSuccessText,
         ),
       );
 
@@ -88,7 +85,7 @@ class UpdatePartnerInfoState extends State<UpdatePartnerInfo> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Erreur lors de la modification du partenaire'),
-          backgroundColor: Colors.red,
+          backgroundColor: kDangerText,
         ),
       );
     }
@@ -106,151 +103,108 @@ class UpdatePartnerInfoState extends State<UpdatePartnerInfo> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
+    final String name = widget.partner?.name ?? '';
 
-    double formWidth = Responsive.isMobile(context)
-        ? SizeConfig.screenWidth * 0.9
-        : SizeConfig.screenWidth * 0.4;
-
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: SizedBox(
-          width: formWidth,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(20)),
-              color: kPLGrey2,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Center(
-                    child: SelectableText(
-                      "Modifier un partenaire",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                          fontSize: Responsive.isMobile(context) ? 22 : 28,
-                          letterSpacing: 0.3,
-                          fontWeight: FontWeight.w600,
-                          color: kOrange),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+    return Form(
+      key: _formKey,
+      child: ArcFormPanel(
+        eyebrow: 'Modifier le partenaire',
+        title: name.trim().isEmpty ? 'Modifier un partenaire' : name,
+        onClose: _isSaving ? null : () => Navigator.pop(context, false),
+        actions: [
+          OutlinedButton(
+            onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ArcSubmitButton(
+            label: 'Enregistrer',
+            busy: _isSaving,
+            onPressed: updatePartner,
+          ),
+        ],
+        children: [
+          ArcFormSection(
+            number: '1',
+            title: 'Informations du partenaire',
+            children: [
+              ArcFormGrid([
+                ArcGridItem(
                   NeoInput(
                     controller: partnerNameController,
                     hintText: 'Nom du partenaire',
-                    fillColor: kPWhite,
+                    fillColor: kSurface,
                     validator: (value) {
                       return FormValidator.validateText(value ?? '');
                     },
                   ),
-                  const SizedBox(height: 16),
+                  span: true,
+                ),
+                // Le code n'est pas saisissable ici : aucun validateur, pour
+                // qu'une fiche sans code n'empêche pas d'enregistrer le reste.
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerCodeController,
+                      hintText: 'Code du partenaire',
+                      fillColor: kNavy50,
+                      readOnly: true,
+                    ),
+                  ),
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerSiretController,
+                      hintText: 'Siret du partenaire',
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validateSiret(value ?? '');
+                      },
+                    ),
+                  ),
+                ),
+                ArcGridItem(
                   NeoInput(
                     controller: partnerMailController,
                     hintText: 'Email du partenaire',
                     keyboardType: TextInputType.emailAddress,
-                    fillColor: kPWhite,
+                    fillColor: kSurface,
                     validator: (value) {
                       return FormValidator.validateMail(value ?? '');
                     },
                   ),
-                  const SizedBox(height: 16),
-                  NeoInput(
-                    controller: partnerSiretController,
-                    hintText: 'Siret du partenaire',
-                    fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validateSiret(value ?? '');
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  NeoInput(
-                    controller: partnerPhoneController,
-                    hintText: 'Téléphone du partenaire',
-                    keyboardType: TextInputType.phone,
-                    fillColor: kPWhite,
-                    validator: (value) {
-                      return FormValidator.validatePhoneNumber(value ?? '');
-                    },
-                    formatter: FilteringTextInputFormatter.digitsOnly,
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 4,
-                      right: 4,
-                      bottom: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.grey[600],
-                          size: SizeConfig.screenWidth > 600 ? 18 : 16,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            "Le code du partenaire est attribué à la création et n'est pas modifiable depuis cet écran.",
-                            style: GoogleFonts.poppins(
-                              fontSize: SizeConfig.screenWidth > 600 ? 13 : 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ],
+                ),
+                ArcGridItem(
+                  ArcMonoField(
+                    child: NeoInput(
+                      controller: partnerPhoneController,
+                      hintText: 'Téléphone du partenaire',
+                      keyboardType: TextInputType.phone,
+                      fillColor: kSurface,
+                      validator: (value) {
+                        return FormValidator.validatePhoneNumber(value ?? '');
+                      },
+                      formatter: FilteringTextInputFormatter.digitsOnly,
                     ),
                   ),
-                  // Le code n'est pas saisissable ici : aucun validateur, pour
-                  // qu'une fiche sans code n'empêche pas d'enregistrer le reste.
-                  NeoInput(
-                    controller: partnerCodeController,
-                    hintText: 'Code du partenaire',
-                    fillColor: kPWhite,
-                    readOnly: true,
-                  ),
-                  const SizedBox(height: 16),
-                  CheckboxListTile(
-                    title: const Text('Accepte la dématérialisation'),
-                    value: _checked,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _checked = value ?? false;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _isSaving
-                          ? const SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(
-                                color: kOrange,
-                              ),
-                            )
-                          : NeoButton(
-                              text: "Enregistrer",
-                              onPressed: updatePartner,
-                            ),
-                    ],
-                  ),
-                ],
+                ),
+              ]),
+              const ArcFormNote(
+                  "Le code du partenaire est attribué à la création et n'est pas modifiable depuis cet écran."),
+              ArcToggleCard(
+                value: _checked,
+                onChanged: (bool value) {
+                  setState(() {
+                    _checked = value;
+                  });
+                },
+                title: 'Accepte la dématérialisation',
+                subtitle:
+                    'Le magasin accepte les bons sur mobile, pas seulement le papier.',
               ),
-            ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

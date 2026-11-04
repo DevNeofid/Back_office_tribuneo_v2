@@ -5,13 +5,13 @@ import 'package:provider/provider.dart';
 
 import 'package:back_office_tribuneo_v2/config/responsive.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_avatar.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_docked_panel.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_panel.dart';
 
 const double _margin = 24;
-const double _buttonSize = 56;
+const double _buttonSize = 60;
 
 /// Marge autour du bouton dans laquelle déborde la pastille « masquer » : elle
 /// doit rester dans la zone du lanceur pour recevoir les clics.
@@ -297,8 +297,8 @@ class _LauncherButtonState extends State<_LauncherButton>
                   ),
                   if (widget.hasUnread)
                     const Positioned(
-                      right: 3,
-                      top: 11,
+                      right: 2,
+                      top: _launcherInset + 2,
                       child: _UnreadDot(key: ValueKey('assistant-unread')),
                     ),
                   Positioned(
@@ -337,7 +337,7 @@ class _LauncherButtonState extends State<_LauncherButton>
             width: _buttonSize,
             height: _buttonSize,
             decoration: BoxDecoration(
-              color: kBlue.withValues(alpha: 0.35 * (1 - t)),
+              color: kNavy600.withValues(alpha: 0.35 * (1 - t)),
               shape: BoxShape.circle,
             ),
           ),
@@ -360,19 +360,30 @@ class _LauncherButtonState extends State<_LauncherButton>
           // au survol et intercepte son clic.
           preferBelow: false,
           verticalOffset: _buttonSize / 2 + _launcherInset + 12,
-          child: Material(
-            color: kBlue,
-            shape: const CircleBorder(),
-            elevation: 4,
-            shadowColor: kBlack.withValues(alpha: 0.4),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              key: const ValueKey('assistant-launcher'),
-              onTap: widget.onOpen,
-              child: const SizedBox(
-                width: _buttonSize,
-                height: _buttonSize,
-                child: AssistantAvatar(size: _buttonSize),
+          // Rond blanc et picto Tribuneo (maquettes « Arc »).
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: Color(0x591F2240),
+                    blurRadius: 24,
+                    spreadRadius: -6,
+                    offset: Offset(0, 8)),
+              ],
+            ),
+            child: Material(
+              color: kSurface,
+              shape: const CircleBorder(side: BorderSide(color: kBorder)),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                key: const ValueKey('assistant-launcher'),
+                onTap: widget.onOpen,
+                child: const SizedBox(
+                  width: _buttonSize,
+                  height: _buttonSize,
+                  child: Center(child: ArcPicto(width: 34)),
+                ),
               ),
             ),
           ),
@@ -386,7 +397,7 @@ class _LauncherButtonState extends State<_LauncherButton>
       message: "Masquer l'assistant",
       child: Material(
         color: Colors.white,
-        shape: const CircleBorder(side: BorderSide(color: kLBlue)),
+        shape: const CircleBorder(side: BorderSide(color: kBorderStrong)),
         elevation: 1,
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -394,7 +405,7 @@ class _LauncherButtonState extends State<_LauncherButton>
           child: const SizedBox(
             width: 20,
             height: 20,
-            child: Icon(Icons.close, size: 14, color: kBlue),
+            child: Icon(Icons.close_rounded, size: 14, color: kNavy600),
           ),
         ),
       ),
@@ -453,7 +464,7 @@ class _LauncherTabState extends State<_LauncherTab> {
                     width: highlighted ? 28 : 20,
                     height: _tabHeight,
                     decoration: BoxDecoration(
-                      color: kBlue.withValues(alpha: highlighted ? 1 : 0.85),
+                      color: highlighted ? kNavy900 : kNavy600,
                       borderRadius: radius,
                     ),
                     child: const Icon(Icons.chevron_left,
@@ -471,19 +482,19 @@ class _LauncherTabState extends State<_LauncherTab> {
   }
 }
 
-/// Pastille `kOrange` : réponse arrivée panneau fermé.
+/// Pastille orange : réponse arrivée panneau fermé.
 class _UnreadDot extends StatelessWidget {
   const _UnreadDot({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 10,
-      height: 10,
+      width: 12,
+      height: 12,
       decoration: BoxDecoration(
         color: kOrange,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(color: Colors.white, width: 2),
       ),
     );
   }

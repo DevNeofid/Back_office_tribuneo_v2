@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Clients</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="clients" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 24px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #63677F">Réseau</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; color: #1F2240">Clients</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="Import.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid #CDCFDD; background: #FFFFFF; color: #3A4276; font-weight: 600; font-size: 14px; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 17v-6M9.5 13.5 12 11l2.5 2.5"/></svg>Importer</a>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter un client</button>
+</div>
+</header>
+
+<div style="padding: 0 40px 48px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 999 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #ECEDF6">
+<div style="flex: 1 1 260px; display: flex; align-items: center; gap: 10px; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #E4E5EE; border-radius: 10px; color: #63677F">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+<label for="cl-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rechercher un client</label>
+<input id="cl-search" type="search" placeholder="Nom, email, SIRET…" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: Poppins, sans-serif; font-size: 14px; background: transparent">
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px">
+<sc-for list="{{letters}}" as="l" hint-placeholder-count="26">
+<button type="button" onClick="{{l.pick}}" aria-label="Lettre {{l.label}}" style="width: 28px; height: 28px; border: 1px solid {{l.border}}; border-radius: 8px; background: {{l.bg}}; color: {{l.fg}}; font-family: Poppins, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0">{{l.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 13px">
+<thead><tr style="background: #F9F9FC">
+<th style="text-align: left; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873">Client</th>
+<th style="text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Contact</th>
+<th style="text-align: right; padding: 10px 12px; font-size: 12px; font-weight: 600; color: #545873">Dernière facture</th>
+<th style="text-align: right; padding: 10px 20px; font-size: 12px; font-weight: 600; color: #545873"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+<tr onClick="{{r.pick}}" style="background: {{r.bg}}; cursor: pointer">
+<td style="padding: 12px 20px; border-top: 1px solid #ECEDF6">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 34px; height: 34px; flex: 0 0 auto; border-radius: 10px; background: #ECEDF6; color: #3A4276; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 13px">{{r.ini}}</span>
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 600; color: #1F2240">{{r.name}}</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">{{r.siret}}</span>
+</div>
+</div>
+</td>
+<td style="padding: 12px; border-top: 1px solid #ECEDF6"><div style="display: flex; flex-direction: column"><span style="color: #1B1D30">{{r.email}}</span><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">{{r.tel}}</span></div></td>
+<td style="padding: 12px; border-top: 1px solid #ECEDF6; text-align: right"><div style="display: flex; flex-direction: column"><span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-weight: 500">{{r.inv}}</span><span style="font-size: 11px; color: #63677F">{{r.invDate}}</span></div></td>
+<td style="padding: 8px 20px; border-top: 1px solid #ECEDF6; text-align: right; white-space: nowrap">
+<button type="button" aria-label="Commandes du client" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></button>
+<button type="button" aria-label="Plus d'actions" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; font-size: 12px; color: #545873; border-top: 1px solid #ECEDF6">
+<span>Lettre A</span>
+<div style="display: flex; align-items: center; gap: 6px">
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%">1–6 sur 6</span>
+<button type="button" aria-label="Page précédente" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">‹</button>
+<button type="button" aria-label="Page suivante" disabled style="width: 32px; height: 32px; border: 1px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #B3B8DE">›</button>
+</div>
+</div>
+</div>
+
+<aside aria-label="Fiche client" style="flex: 1 1 340px; max-width: 400px; background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.12)">
+<div style="display: flex; align-items: flex-start; gap: 14px">
+<span style="width: 48px; height: 48px; flex: 0 0 auto; border-radius: 14px; background: #1F2240; color: #F8AA36; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 18px">{{sel.ini}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1">
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 20px; line-height: 1.15; color: #1F2240">{{sel.name}}</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">SIRET {{sel.siret}}</span>
+</div>
+<button type="button" aria-label="Modifier le client" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
+</div>
+<div role="tablist" style="display: flex; padding: 4px; gap: 4px; border-radius: 12px; background: #ECEDF6">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" role="tab" onClick="{{t.pick}}" style="flex: 1; height: 34px; border: 0; border-radius: 9px; background: {{t.bg}}; color: {{t.fg}}; box-shadow: {{t.shadow}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{isGeneral}}" hint-placeholder-val="{{true}}">
+<dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px 12px; font-size: 13px">
+<dt style="color: #63677F">Email</dt><dd style="margin: 0; color: #1B1D30; word-break: break-all">{{sel.email}}</dd>
+<dt style="color: #63677F">Téléphone</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{sel.tel}}</dd>
+<dt style="color: #63677F">SIRET</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{sel.siret}}</dd>
+<dt style="color: #63677F">Dernière facture</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{sel.inv}}</dd>
+</dl>
+</sc-if>
+<sc-if value="{{isAddress}}" hint-placeholder-val="{{false}}">
+<dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; font-size: 13px">
+<dt style="color: #63677F">Rue</dt><dd style="margin: 0">[Adresse du client]</dd>
+<dt style="color: #63677F">Code postal</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">[CP]</dd>
+<dt style="color: #63677F">Ville</dt><dd style="margin: 0">[Ville]</dd>
+<dt style="color: #63677F">Pays</dt><dd style="margin: 0">France</dd>
+</dl>
+</sc-if>
+<sc-if value="{{isBank}}" hint-placeholder-val="{{false}}">
+<dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; font-size: 13px">
+<dt style="color: #63677F">IBAN</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">FR76 •••• •••• [IBAN]</dd>
+<dt style="color: #63677F">BIC</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">[BIC]</dd>
+<dt style="color: #63677F">Titulaire</dt><dd style="margin: 0">{{sel.name}}</dd>
+</dl>
+</sc-if>
+<div style="height: 1px; background: #ECEDF6"></div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<a href="Commandes.dc.html" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-weight: 600; font-size: 13px; text-decoration: none">Voir ses commandes</a>
+<a href="Documents.dc.html" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #CDCFDD; color: #3A4276; font-weight: 600; font-size: 13px; text-decoration: none">Factures</a>
+</div>
+</aside>
+</div>
+</main>
+<button type="button" aria-label="Ouvrir Néo" style="position: absolute; right: 28px; bottom: 28px; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 0, tab: 'general', letter: 'A' };
+  }
+  renderVals() {
+    const data = [
+      { name: "A L'INSTITUT - AS SAUNIER", ini: 'AI', siret: '824 614 499 00013', email: 'ascoudair@orange.fr', tel: '04 92 34 18 41', inv: '—', invDate: '' },
+      { name: 'A.J.C. UBAYE', ini: 'AJ', siret: '750 833 915 00010', email: 'ajc.ubaye@gmail.com', tel: 'non renseigné', inv: '—', invDate: '' },
+      { name: "ABATTOIRS DU PAYS D'APT", ini: 'AB', siret: '[SIRET]', email: '[email]', tel: '', inv: '250,00 €', invDate: 'FATN00390 · 05/10/2026' },
+      { name: 'ADIT', ini: 'AD', siret: '[SIRET]', email: '[email]', tel: '', inv: '250,00 €', invDate: 'FATN00388 · 04/10/2026' },
+      { name: 'AGENCE MYLENE MURANO', ini: 'AM', siret: '[SIRET]', email: '[email]', tel: '', inv: '150,00 €', invDate: 'FATN00389 · 04/10/2026' },
+      { name: 'AMICALE DES SAPEURS-POMPIERS', ini: 'AS', siret: '[SIRET]', email: '[email]', tel: '', inv: '250,00 €', invDate: 'FATN00391 · 05/10/2026' }
+    ];
+    const rows = data.map((r, i) => ({
+      ...r,
+      bg: i === this.state.sel ? '#F5F5FA' : '#FFFFFF',
+      pick: () => this.setState({ sel: i })
+    }));
+    const tabs = [
+      { id: 'general', label: 'Général' },
+      { id: 'address', label: 'Adresse' },
+      { id: 'bank', label: 'Banque' }
+    ].map((t) => {
+      const on = this.state.tab === t.id;
+      return { ...t, bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#1F2240' : '#545873', shadow: on ? '0 1px 3px rgba(31,34,64,0.15)' : 'none', pick: () => this.setState({ tab: t.id }) };
+    });
+    const present = '3ABCDEFGHIJKLMNOPRSTUVWXY';
+    const letters = '3ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((c) => {
+      const on = this.state.letter === c;
+      const has = present.indexOf(c) >= 0;
+      return {
+        label: c,
+        bg: on ? '#3A4276' : (has ? '#FFFFFF' : '#F5F5FA'),
+        fg: on ? '#FFFFFF' : (has ? '#545873' : '#B3B8DE'),
+        border: on ? '#3A4276' : (has ? '#E4E5EE' : '#F5F5FA'),
+        pick: () => this.setState({ letter: c })
+      };
+    });
+    return {
+      rows, tabs, letters,
+      sel: data[this.state.sel],
+      isGeneral: this.state.tab === 'general',
+      isAddress: this.state.tab === 'address',
+      isBank: this.state.tab === 'bank'
+    };
+  }
+}
+</script>
+</body>
+</html>

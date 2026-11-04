@@ -1,6 +1,8 @@
 import '../../../domain/errors/merchant_enrichment_messages.dart';
 import 'ui/enrichment_dialog.dart';
 import 'package:flutter/material.dart';
+import '../../utils/common.dart';
+import '../arc/arc.dart';
 import '../../../domain/models/merchant_enrichment/research_models.dart';
 import '../../../domain/usecases/merchant_enrichment/research_usecase.dart';
 
@@ -76,6 +78,12 @@ class _ResearchFormState extends State<ResearchForm> {
     return 'Ligne ${row?.position ?? p.rowId}${name.isEmpty ? '' : ' · $name'}';
   }
 
+  /// Champs affichés sur toute la largeur (nom, adresse).
+  static const Set<String> _wide = {'name', 'street'};
+
+  /// Champs en chiffres à chasse fixe.
+  static const Set<String> _mono = {'siret', 'zip'};
+
   @override
   Widget build(BuildContext context) => PopScope(
       onPopInvokedWithResult: (didPop, _) {
@@ -84,33 +92,47 @@ class _ResearchFormState extends State<ResearchForm> {
       child: EnrichmentDialog(
           maxWidth: 640,
           onClose: () => Navigator.pop(context),
+          eyebrow: _rowLabel(),
           title: const Text('Préciser la recherche'),
           content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(_rowLabel()),
-                if (widget.session.proposal.state == 'provider_unavailable')
-                  const Text(
-                      'La source était indisponible lors de la recherche : cela ne signifie pas que le commerce est introuvable.'),
                 const Text(
                     'Confirmez les six critères publics ci-dessous. Les cellules restent inchangées. '
-                    'Toute application au brouillon demandera une confirmation indépendante.'),
+                    'Toute application au brouillon demandera une confirmation indépendante.',
+                    style: TextStyle(color: kText2)),
+                if (widget.session.proposal.state == 'provider_unavailable')
+                  const EnrichmentNotice(
+                      warning: true,
+                      child: Text(
+                          'La source était indisponible lors de la recherche : cela ne signifie pas que le commerce est introuvable.')),
                 const SizedBox(height: 16),
-                if (loading || sending) const LinearProgressIndicator(),
+                if (loading || sending) ...[
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: const LinearProgressIndicator(minHeight: 4)),
+                  const SizedBox(height: 12),
+                ],
                 LayoutBuilder(builder: (context, constraints) {
-                  final width = constraints.maxWidth >= 520
+                  final bool twoColumns = constraints.maxWidth >= 520;
+                  final double half = twoColumns
                       ? (constraints.maxWidth - 16) / 2
                       : constraints.maxWidth;
                   return Wrap(spacing: 16, runSpacing: 16, children: [
                     for (final entry in inputs.entries)
                       SizedBox(
-                        width: width,
+                        width: _wide.contains(entry.key)
+                            ? constraints.maxWidth
+                            : half,
                         child: TextField(
                           key: ValueKey('research-${entry.key}'),
                           controller: entry.value,
                           enabled: !sending,
                           textInputAction: TextInputAction.next,
+                          style: _mono.contains(entry.key)
+                              ? ArcText.data().copyWith(fontSize: 14)
+                              : null,
                           decoration: InputDecoration(
                               labelText: MerchantEnrichmentMessages.field(entry.key)),
                         ),
@@ -124,21 +146,24 @@ class _ResearchFormState extends State<ResearchForm> {
                           Text(error!, key: const ValueKey('research-error'))),
               ]),
           actions: [
-            TextButton(
+            OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Fermer')),
             FilledButton(
+                // Action de la maquette en navy : la recherche n'applique rien.
+                style: FilledButton.styleFrom(
+                    backgroundColor: kNavy600, foregroundColor: Colors.white),
                 onPressed:
                     loading || sending || inputs.length != 6 ? null : confirm,
-                child: sending
-                    ? const Row(mainAxisSize: MainAxisSize.min, children: [
-                        SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2)),
-                        SizedBox(width: 8),
-                        Flexible(child: Text('Relancer la recherche'))
-                      ])
-                    : const Text('Relancer la recherche'))
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  sending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.refresh_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  const Flexible(child: Text('Relancer la recherche')),
+                ])),
           ]));
 }

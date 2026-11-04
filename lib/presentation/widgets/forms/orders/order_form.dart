@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
@@ -17,10 +16,11 @@ import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/form_validator.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_input.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 
 class OrderForm extends StatefulWidget {
   final int idEntity;
@@ -51,7 +51,6 @@ class _OrderFormState extends State<OrderForm> {
 
   final OrderUseCase _orderUseCase = OrderUseCase();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool isChecked = false;
   bool changePage = false;
   bool orderNumberLabelIsVisible = false;
   final PartnerUseCase partnerUseCase = PartnerUseCase();
@@ -336,20 +335,8 @@ class _OrderFormState extends State<OrderForm> {
   String expiryDate = "";
   DateTime selectedExpiryDate = DateTime.now().add(const Duration(days: 365));
   _selectExpiryDate(BuildContext context) async {
+    // Couleurs du sélecteur : thème « Arc » global.
     final DateTime? selected = await showDatePicker(
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: kBlue,
-            ),
-            buttonTheme: const ButtonThemeData(
-              textTheme: ButtonTextTheme.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
       fieldHintText: "Jour/Mois/Année",
       locale: const Locale("fr", "FR"),
       context: context,
@@ -372,482 +359,445 @@ class _OrderFormState extends State<OrderForm> {
 
   @override
   Widget build(BuildContext context) {
-    Color getColor(Set<WidgetState> states) {
-      const Set<WidgetState> interactiveStates = <WidgetState>{
-        WidgetState.pressed,
-        WidgetState.hovered,
-        WidgetState.focused,
-      };
-      if (states.any(interactiveStates.contains)) {
-        return kOrange;
-      }
-      return kBlue;
-    }
-
-    SizeConfig().init(context);
-
-    return AlertDialog(
-      backgroundColor: kTransparent,
-      contentPadding: const EdgeInsets.all(0),
-      content: Form(
-        key: _formKey,
-        child: Stack(children: [
-          SizedBox(
-            width: SizeConfig.screenWidth * 0.65,
-            height: SizeConfig.screenHeight * 0.85,
-            child: Container(
-              width: SizeConfig.screenWidth * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                color: kPLGrey2,
-              ),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 980),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        _buildHeader(),
-                        const SizedBox(height: 30),
-                        _selectableDate(),
-                        SizedBox(height: SizeConfig.screenHeight * 0.03),
-                        _buildToggleButtons(),
-                        SizedBox(height: SizeConfig.screenHeight * 0.02),
-                        showImportView
-                            ? _buildImportFileView()
-                            : _buildAddOrderWiew(getColor),
-                        const SizedBox(height: 40),
-                        _groupWidgets(),
-                        SizedBox(height: SizeConfig.screenHeight * 0.04),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _isLoading
-                                ? const SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: CircularProgressIndicator(
-                                      color: kOrange,
-                                    ),
-                                  )
-                                : NeoButton(
-                                    text: "Enregistrer",
-                                    onPressed: addOrder,
-                                  ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Center(
-      child: SelectableText(
-        "Ajouter une commande",
-        style: GoogleFonts.poppins(
-            fontSize: 32,
-            letterSpacing: 0.3,
-            fontWeight: FontWeight.w600,
-            color: kOrange),
-      ),
-    );
-  }
-
-  Widget _selectableDate() {
-    return Center(
-      child: SizedBox(
-        width: 500,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 1,
-              child: NeoInput(
-                controller: expiryDateController,
-                hintText: 'Date d\'expiration',
-                fillColor: kPWhite,
-                validator: (value) {
-                  return FormValidator.validateOrderDate(value ?? '');
-                },
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: 52,
-                child: NeoButton(
-                  verticalPadding: 0,
-                  horizontalPadding: 0,
-                  fontSize: 14,
-                  text: "Choisir une date",
-                  backgroundColor: kBlue,
-                  onPressed: () {
-                    _selectExpiryDate(context);
-                  },
-                ),
-              ),
-            ),
+    return Form(
+      key: _formKey,
+      child: OrderSheet(
+        semanticLabel: 'Ajouter une commande',
+        width: 660,
+        header: OrderSheetHeader(
+          eyebrow: const OrderSheetEyebrow('Nouvelle commande'),
+          title: 'Ajouter une commande',
+          trailing: [
+            OrderSheetCloseButton(onPressed: () => Navigator.of(context).pop()),
           ],
         ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildMainFields(),
+            const SizedBox(height: 22),
+            _buildVouchersSection(),
+          ],
+        ),
+        footer: _buildFooter(),
       ),
     );
   }
 
-  Widget _buildToggleButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        NeoButton(
-          onPressed: () {
+  Widget _buildMainFields() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final bool twoColumns = constraints.maxWidth >= 420;
+      final Widget occasion =
+          OrderField(label: "Pour l'occasion de", child: _occasionField());
+      final Widget expiry =
+          OrderField(label: "Date d'expiration", child: _expiryField());
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OrderField(label: 'Offert par', child: _giftFromField()),
+          const SizedBox(height: 14),
+          if (twoColumns)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: occasion),
+                const SizedBox(width: 16),
+                Expanded(child: expiry),
+              ],
+            )
+          else ...[
+            occasion,
+            const SizedBox(height: 14),
+            expiry,
+          ],
+          const SizedBox(height: 14),
+          OrderField(
+            label: 'Personnalisation « offert par »',
+            optional: true,
+            child: _alternativeByField(),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _giftFromField() {
+    if (widget.idEntity != -1) {
+      return TextFormField(
+        controller: giftFromController,
+        readOnly: true,
+        style: ArcText.body(),
+        decoration: orderReadOnlyDecoration(hintText: widget.entityName),
+      );
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(kRadiusSm),
+        border: Border.all(color: kBorderStrong, width: 1.5),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          items: customers.map<DropdownItem<String>>((partner) {
+            return DropdownItem<String>(
+              value: partner.name,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                child: Text(partner.name!, style: ArcText.body()),
+              ),
+            );
+          }).toList(),
+          hint: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.search_rounded, size: 18, color: kText3),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    'Rechercher une entité...',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(fontSize: 14, color: kText3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          isExpanded: true,
+          valueListenable: _selectedCustomerValue,
+          onChanged: (String? value) {
             setState(() {
-              showImportView = false;
-              _cleanFileStorage();
+              dropdownValue = value;
+              _selectedCustomerValue.value = value;
+              entityId = customers
+                  .firstWhere((element) => element.name == dropdownValue)
+                  .id;
             });
           },
-          backgroundColor: showImportView ? Colors.grey : kOrange,
-          text: "Saisie manuelle",
+          dropdownSearchData: DropdownSearchData(
+            searchController: searchController,
+            searchBarWidgetHeight: 50,
+            searchBarWidget: Container(
+              height: 50,
+              padding: const EdgeInsets.only(
+                top: 8,
+                bottom: 4,
+                right: 8,
+                left: 8,
+              ),
+              child: TextFormField(
+                expands: true,
+                maxLines: null,
+                controller: searchController,
+                style: ArcText.body().copyWith(fontSize: 13),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  hintText: 'Rechercher une entité...',
+                ),
+              ),
+            ),
+            searchMatchFn: (item, searchValue) {
+              return item.value
+                  .toString()
+                  .toLowerCase()
+                  .contains(searchValue.toLowerCase());
+            },
+          ),
+          onMenuStateChange: (isOpen) {
+            if (!isOpen) {
+              giftFromController.clear();
+              searchController.clear();
+            }
+          },
         ),
-        const SizedBox(width: 15),
-        NeoButton(
+      ),
+    );
+  }
+
+  Widget _occasionField() {
+    return DropdownButtonFormField<UrssafModel>(
+      initialValue: _selectedUrssafEvent,
+      isExpanded: true,
+      hint: const Text("Choisir l'occasion (URSSAF)",
+          overflow: TextOverflow.ellipsis),
+      items: _urssafEvent
+          .map((event) => DropdownMenuItem<UrssafModel>(
+                value: event,
+                child: Text(event.name!, overflow: TextOverflow.ellipsis),
+              ))
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedUrssafEvent = value;
+        });
+      },
+      decoration: const InputDecoration(),
+    );
+  }
+
+  Widget _expiryField() {
+    return TextFormField(
+      controller: expiryDateController,
+      style: ArcText.data(),
+      validator: (value) {
+        return FormValidator.validateOrderDate(value ?? '');
+      },
+      decoration: InputDecoration(
+        hintText: 'Jour/Mois/Année',
+        prefixIcon: IconButton(
+          tooltip: 'Choisir une date',
+          icon: const Icon(Icons.calendar_month_outlined,
+              size: 18, color: kNavy600),
           onPressed: () {
-            setState(() {
-              showImportView = true;
-              _cleanRowStorage();
-            });
+            _selectExpiryDate(context);
           },
-          backgroundColor: showImportView ? kOrange : Colors.grey,
-          text: "Importer un fichier",
+        ),
+      ),
+    );
+  }
+
+  /// Exemple de personnalisation avec le client choisi, s'il est connu.
+  String get _alternativeByHint {
+    final String? name =
+        widget.idEntity != -1 ? widget.entityName : dropdownValue;
+    return name == null || name.trim().isEmpty
+        ? "Ex. Le CSE de l'entreprise"
+        : 'Ex. Le CSE de ${name.trim()}';
+  }
+
+  Widget _alternativeByField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextFormField(
+          controller: alternativeByController,
+          style: ArcText.body(),
+          decoration: InputDecoration(hintText: _alternativeByHint),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: _showHint,
+          builder: (context, showHint, child) {
+            return showHint
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      "Ceci va remplacer \"Offert par\" sur le chèque",
+                      style: ArcText.small(color: kNavy600),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
         ),
       ],
     );
   }
 
-  Widget _buildAddOrderWiew(getColor) {
+  void _setImportView(bool importView) {
+    if (importView == showImportView) return;
+    setState(() {
+      showImportView = importView;
+      if (importView) {
+        _cleanRowStorage();
+      } else {
+        _cleanFileStorage();
+      }
+    });
+  }
+
+  Widget _buildVouchersSection() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Différents fonds ?",
-                style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    letterSpacing: 0.3,
-                    fontWeight: FontWeight.w600,
-                    color: kBlue),
-              ),
-              const SizedBox(width: 15),
-              Checkbox(
-                checkColor: Colors.white,
-                fillColor: WidgetStateProperty.resolveWith(getColor),
-                value: isChecked,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isChecked = value!;
-                    if (neorow.length != 1) {
-                      neorow.removeRange(1, neorow.length);
-                    }
-                  });
-                },
-              ),
-            ],
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            Text('Bons cadeaux', style: ArcText.cardTitle()),
+            ArcSegmented<bool>(
+              segments: const [
+                ArcSegment(false, 'Saisie manuelle'),
+                ArcSegment(true, 'Importer un fichier'),
+              ],
+              selected: showImportView,
+              onChanged: _setImportView,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        showImportView ? _buildImportFileView() : _buildManualView(),
+      ],
+    );
+  }
+
+  Widget _buildManualView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < neorow.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          // La clé suit la ligne : son état reste le sien quand une ligne
+          // précédente est retirée.
+          KeyedSubtree(
+            key: ObjectKey(neorow[i]),
+            child: OrderLineBox(
+              trailing: neorow.length > 1
+                  ? IconButton(
+                      tooltip: 'Retirer la ligne',
+                      color: kDangerText,
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: () {
+                        setState(() {
+                          neorow.removeAt(i);
+                        });
+                      },
+                    )
+                  : null,
+              child: neorow[i],
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: kNavy400, width: 1.5),
+            ).merge(orderCompactButtonStyle()),
+            onPressed: () {
+              setState(() {
+                neorow.add(NeoRow());
+              });
+            },
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: const Text('Ajouter un autre montant'),
           ),
         ),
-        ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: neorow.length,
-            itemBuilder: (_, index) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10.0),
-                child: neorow[index],
-              );
-            }),
-        isChecked
-            ? Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      RawMaterialButton(
-                        onPressed: () {
-                          setState(() {
-                            neorow.add(NeoRow());
-                          });
-                        },
-                        padding: const EdgeInsets.all(12.0),
-                        shape: const CircleBorder(
-                          side: BorderSide(color: kBlue, width: 1),
-                        ),
-                        elevation: 2.0,
-                        fillColor: Colors.white,
-                        child: const Icon(Icons.add, color: kBlue),
-                      ),
-                      if (neorow.length > 1) ...[
-                        const SizedBox(width: 15),
-                        RawMaterialButton(
-                          onPressed: () {
-                            setState(() {
-                              neorow.removeLast();
-                            });
-                          },
-                          padding: const EdgeInsets.all(12.0),
-                          shape: const CircleBorder(
-                            side: BorderSide(color: Colors.red, width: 1),
-                          ),
-                          elevation: 2.0,
-                          fillColor: Colors.white,
-                          child: const Icon(Icons.remove, color: Colors.red),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              )
-            : const SizedBox.shrink(),
       ],
     );
   }
 
   Widget _buildImportFileView() {
-    return Column(
-      children: [
-        SizedBox(height: SizeConfig.screenHeight * 0.02),
-        Center(
-            child: NeoButton(
-                text: "Importer CSV/XLSX", onPressed: pickAndStoreFile)),
-        SizedBox(height: SizeConfig.screenHeight * 0.02),
-        Center(
-          child: Text(
-            selectedFile != null
-                ? "Fichier sélectionné : ${selectedFile!.name}"
-                : "Aucun fichier sélectionné",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: kGrey,
-            ),
-          ),
-        ),
-        SizedBox(height: SizeConfig.screenHeight * 0.02),
-      ],
-    );
-  }
-
-  Widget _groupWidgets() {
-    return Center(
-      child: SizedBox(
-        width: 700,
+    return CustomPaint(
+      painter: const _DashedBorderPainter(),
+      child: Padding(
+        padding: const EdgeInsets.all(28),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: widget.idEntity == -1
-                      ? DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey.shade400),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton2<String>(
-                              items: customers
-                                  .map<DropdownItem<String>>((partner) {
-                                return DropdownItem<String>(
-                                  value: partner.name,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10, horizontal: 12),
-                                    child: Text(
-                                      partner.name!,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                              hint: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  "Offert par",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w300,
-                                    color: kGrey,
-                                  ),
-                                ),
-                              ),
-                              isExpanded: true,
-                              valueListenable: _selectedCustomerValue,
-                              onChanged: (String? value) {
-                                setState(() {
-                                  dropdownValue = value;
-                                  _selectedCustomerValue.value = value;
-                                  entityId = customers
-                                      .firstWhere((element) =>
-                                          element.name == dropdownValue)
-                                      .id;
-                                });
-                              },
-                              dropdownSearchData: DropdownSearchData(
-                                searchController: searchController,
-                                searchBarWidgetHeight: 50,
-                                searchBarWidget: Container(
-                                  height: 50,
-                                  padding: const EdgeInsets.only(
-                                    top: 8,
-                                    bottom: 4,
-                                    right: 8,
-                                    left: 8,
-                                  ),
-                                  child: TextFormField(
-                                    expands: true,
-                                    maxLines: null,
-                                    controller: searchController,
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 8,
-                                      ),
-                                      hintText: 'Rechercher une entité...',
-                                      hintStyle: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                searchMatchFn: (item, searchValue) {
-                                  return item.value
-                                      .toString()
-                                      .toLowerCase()
-                                      .contains(searchValue.toLowerCase());
-                                },
-                              ),
-                              onMenuStateChange: (isOpen) {
-                                if (!isOpen) {
-                                  giftFromController.clear();
-                                  searchController.clear();
-                                }
-                              },
-                            ),
-                          ),
-                        )
-                      : TextFormField(
-                          controller: giftFromController,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 16,
-                            ),
-                            hintText: widget.entityName,
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintStyle: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w300,
-                              color: kGrey,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  BorderSide(color: Colors.grey.shade400),
-                            ),
-                          ),
-                          readOnly: true,
-                        ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
-                  child: DropdownButtonFormField<UrssafModel>(
-                    initialValue: _selectedUrssafEvent,
-                    items: _urssafEvent
-                        .map((event) => DropdownMenuItem<UrssafModel>(
-                              value: event,
-                              child: Text(event.name!),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedUrssafEvent = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: "Pour l'occasion de",
-                      labelStyle: const TextStyle(color: Colors.grey),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade400)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 14),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(height: 15),
-            ValueListenableBuilder<bool>(
-              valueListenable: _showHint,
-              builder: (context, showHint, child) {
-                return showHint
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Text(
-                            "Ceci va remplacer \"Offert par\" sur le chèque",
-                            style:
-                                GoogleFonts.poppins(color: kBlue, fontSize: 13),
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink();
-              },
-            ),
-            Center(
-              child: SizedBox(
-                width: 342,
-                child: NeoInput(
-                  controller: alternativeByController,
-                  hintText: 'Personnalisation offert par (optionnel)',
-                  fillColor: Colors.white,
-                ),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: kOrange50,
+                borderRadius: BorderRadius.circular(14),
               ),
+              child: const Icon(Icons.cloud_upload_outlined,
+                  color: kOrange700),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: orderCompactButtonStyle(),
+              onPressed: pickAndStoreFile,
+              child: const Text('Importer CSV/XLSX'),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              selectedFile != null
+                  ? "Fichier sélectionné : ${selectedFile!.name}"
+                  : "Aucun fichier sélectionné · une ligne par bénéficiaire, "
+                      "montants libres",
+              textAlign: TextAlign.center,
+              style: ArcText.small(color: kText3).copyWith(fontSize: 13),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _summary(String caption, String total) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(caption, style: ArcText.small(color: kText3)),
+        Text(total, style: ArcText.dialogTitle().copyWith(fontSize: 24)),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return OrderSheetFooter(
+      leading: showImportView
+          ? _summary('Total calculé depuis le fichier', '—')
+          : ListenableBuilder(
+              listenable: Listenable.merge([
+                for (final row in neorow) ...[
+                  row.fundNumberController,
+                  row.fundValueController,
+                ],
+              ]),
+              builder: (context, _) {
+                int quantity = 0;
+                double total = 0;
+                for (final row in neorow) {
+                  final int rowQuantity =
+                      int.tryParse(row.fundNumberController.text) ?? 0;
+                  quantity += rowQuantity;
+                  total += (double.tryParse(row.fundValueController.text) ??
+                          0) *
+                      rowQuantity;
+                }
+                return _summary('$quantity bon(s) · total de la commande',
+                    formatEuro(total));
+              },
+            ),
+      actions: [
+        OutlinedButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: _isLoading ? null : addOrder,
+          child: _isLoading
+              ? const OrderButtonSpinner()
+              : const Text('Enregistrer'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bordure en pointillés de la zone d'import (2 px, Navy 300).
+class _DashedBorderPainter extends CustomPainter {
+  const _DashedBorderPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = kNavy300
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    final Path path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+              Offset.zero & size, const Radius.circular(kRadiusMd))
+          .deflate(1));
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        canvas.drawPath(metric.extractPath(distance, distance + 6), paint);
+        distance += 11;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

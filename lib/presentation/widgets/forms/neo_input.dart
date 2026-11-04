@@ -12,7 +12,8 @@ class NeoInput extends StatelessWidget {
   final FontWeight hintFontWeight;
   final Color fillColor;
   final Color textColor;
-  final InputBorder border;
+  /// `null` : bordures du thème « Arc ».
+  final InputBorder? border;
   final String? Function(String?)? validator;
   final TextInputFormatter? formatter;
   final int? maxLength;
@@ -27,11 +28,8 @@ class NeoInput extends StatelessWidget {
     this.hintFontSize = kInputHintFontSize,
     this.hintFontWeight = kInputHintFontWeight,
     required this.fillColor,
-    this.border = const OutlineInputBorder(
-      borderSide: BorderSide(color: kPWhite),
-      borderRadius: BorderRadius.all(Radius.circular(kInputRadius)),
-    ),
-    this.textColor = kBlack,
+    this.border,
+    this.textColor = kText3,
     this.validator,
     this.formatter,
     this.maxLength,
@@ -58,7 +56,6 @@ class NeoInput extends StatelessWidget {
           ),
           labelText: hintText,
           errorText: errorText,
-          floatingLabelStyle: const TextStyle(color: kBlue),
           fillColor: fillColor,
           filled: true,
           isDense: true,

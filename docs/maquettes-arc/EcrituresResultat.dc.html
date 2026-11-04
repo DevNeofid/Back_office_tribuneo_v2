@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Écritures · résultat du déclenchement</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch; overflow: hidden">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="ecritures" hint-size="248px,1040px"></dc-import></div>
+<main aria-hidden="true" style="flex: 999 1 560px; min-width: 0; padding: 36px 40px; display: flex; flex-direction: column; gap: 20px">
+<span style="font-size: 13px; color: #63677F">Finance</span>
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; color: #1F2240">Écritures comptables</span>
+<div style="height: 110px; border-radius: 18px; background: #1F2240"></div>
+<div style="height: 520px; border-radius: 16px; background: #FFFFFF; border: 1px solid #E4E5EE"></div>
+</main>
+
+<div style="position: absolute; inset: 0; background: rgba(31,34,64,0.55); display: flex; align-items: center; justify-content: center; padding: 32px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 540px; max-width: 100%">
+<div role="group" aria-label="Résultat (maquette)" style="display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: rgba(255,255,255,0.15)">
+<sc-for list="{{variants}}" as="v" hint-placeholder-count="3">
+<button type="button" onClick="{{v.pick}}" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: {{v.bg}}; color: {{v.fg}}; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px; cursor: pointer">{{v.label}}</button>
+</sc-for>
+</div>
+<div role="dialog" aria-modal="true" aria-labelledby="er-title" style="width: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 24px; padding: 26px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 24px 64px -12px rgba(31,34,64,0.30)">
+<sc-if value="{{isRunning}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 16px">
+<svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="18" fill="none" stroke="#ECEDF6" stroke-width="5"/><path d="M22 4a18 18 0 0 1 18 18" fill="none" stroke="#F8AA36" stroke-width="5" stroke-linecap="round"/></svg>
+<div style="display: flex; flex-direction: column">
+<h2 id="er-title" style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 22px; color: #1F2240">Génération en cours…</h2>
+<span style="color: #545873">Période du 12/10/2026 au 04/11/2026.</span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isOk}}" hint-placeholder-val="{{false}}">
+<span style="width: 48px; height: 48px; border-radius: 14px; background: #E7F7EC; color: #0B7A34; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 24px; color: #1F2240">Écritures générées</h2>
+<span style="color: #545873">Période du 12/10/2026 au 04/11/2026.</span>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #F5F5FA; border: 1px solid #E4E5EE">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3A4276" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+<span style="flex: 1; min-width: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 12px">[nom du fichier].zip</span>
+<button type="button" aria-label="Télécharger" style="width: 34px; height: 34px; border: 0; border-radius: 9px; background: #FFFFFF; color: #3A4276; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+</div>
+<div style="display: flex; justify-content: flex-end"><button type="button" style="height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Fermer</button></div>
+</sc-if>
+<sc-if value="{{isConfig}}" hint-placeholder-val="{{true}}">
+<span style="width: 48px; height: 48px; border-radius: 14px; background: #FDEAF0; color: #B3123F; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 24px; color: #1F2240">Aucune écriture comptable générée</h2>
+<span style="color: #545873">Un ou plusieurs comptes bancaires utilisés sur la période n'ont pas de journal ou de compte 512 renseigné. Contactez Neofid pour compléter leur paramétrage, puis relancez le déclenchement.</span>
+</div>
+<div style="display: flex; flex-direction: column; border-radius: 14px; border: 1px solid #E4E5EE; overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; background: #FFFFFF">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 600; color: #1F2240">Compte principal</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">FR76 1680 7001 4304 3190 3016 646</span>
+</div>
+<span style="padding: 3px 9px; border-radius: 999px; background: #E7F7EC; color: #0B7A34; font-size: 12px; font-weight: 600; white-space: nowrap">Paramétré</span>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; background: #FFFBF3; border-top: 1px solid #ECEDF6">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-weight: 600; color: #1F2240">Compte secondaire</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">[IBAN]</span>
+</div>
+<span style="padding: 3px 9px; border-radius: 999px; background: #FDEAF0; color: #B3123F; font-size: 12px; font-weight: 600; white-space: nowrap">[journal ou compte 512 manquant]</span>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end"><button type="button" style="height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #3A4276; color: #FFFFFF; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer">Fermer</button></div>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { v: 'config' };
+  }
+  renderVals() {
+    const variants = [{ id: 'running', label: 'En cours' }, { id: 'ok', label: 'Réussi' }, { id: 'config', label: 'Paramétrage incomplet' }].map((x) => {
+      const on = this.state.v === x.id;
+      return { ...x, bg: on ? '#FFFFFF' : 'transparent', fg: on ? '#1F2240' : '#FFFFFF', pick: () => this.setState({ v: x.id }) };
+    });
+    return { variants, isRunning: this.state.v === 'running', isOk: this.state.v === 'ok', isConfig: this.state.v === 'config' };
+  }
+}
+</script>
+</body>
+</html>

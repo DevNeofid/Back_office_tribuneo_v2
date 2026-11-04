@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Partenaires</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&amp;family=Martian+Mono:wdth,wght@75..112.5,400..600&amp;family=Poppins:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F4F4F8}
+a{color:#3A4276}a:hover{color:#1F2240}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; background: #F4F4F8; font-family: Poppins, sans-serif; color: #1B1D30; font-size: 14px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<div style="flex: 0 0 248px; display: flex"><dc-import name="Sidebar" active="partenaires" hint-size="248px,1040px"></dc-import></div>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding: 36px 40px 24px; max-width: 1280px; box-sizing: border-box; width: 100%">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #63677F">Réseau</span>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-stretch: 92%; font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.02em; color: #1F2240">Magasins partenaires</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="Import.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 10px; border: 1.5px solid #CDCFDD; background: #FFFFFF; color: #3A4276; font-weight: 600; font-size: 14px; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 17v-6M9.5 13.5 12 11l2.5 2.5"/></svg>Importer des commerçants</a>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #F8AA36; color: #1F2240; font-family: Poppins, sans-serif; font-weight: 600; font-size: 14px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter un partenaire</button>
+</div>
+</header>
+
+<div style="padding: 0 40px 48px; max-width: 1280px; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; background: #FFFFFF; border: 1px solid #E4E5EE; border-radius: 14px">
+<div style="flex: 1 1 260px; display: flex; align-items: center; gap: 10px; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #E4E5EE; border-radius: 10px; color: #63677F">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+<label for="pa-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Rechercher un partenaire</label>
+<input id="pa-search" type="search" placeholder="Nom, code, SIRET, email…" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: Poppins, sans-serif; font-size: 14px; background: transparent">
+</div>
+<label for="pa-sector" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Secteur</label>
+<select id="pa-sector" style="height: 40px; padding: 0 10px; border: 1.5px solid #E4E5EE; border-radius: 10px; font-family: Poppins, sans-serif; font-size: 13px; color: #1B1D30; background: #FFFFFF">
+<option>Tous les secteurs</option>
+<option>Beauté et Bien-être</option>
+<option>Boulangerie</option>
+</select>
+<div role="group" aria-label="Dématérialisation" style="display: inline-flex; padding: 3px; gap: 3px; border-radius: 10px; background: #ECEDF6">
+<button type="button" style="height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: #FFFFFF; color: #1F2240; box-shadow: 0 1px 3px rgba(31,34,64,0.15); font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Tous</button>
+<button type="button" style="height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #545873; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Dématérialisés</button>
+<button type="button" style="height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: #545873; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Papier seul</button>
+</div>
+<div style="display: flex; align-items: center; gap: 4px; font-size: 12px; color: #545873"><span style="font-weight: 600">A–Z</span>
+<button type="button" style="height: 34px; padding: 0 10px; border: 1.5px solid #E4E5EE; border-radius: 8px; background: #FFFFFF; color: #3A4276; font-family: Poppins, sans-serif; font-weight: 600; font-size: 12px">Toutes les lettres</button>
+</div>
+</div>
+
+<sc-for list="{{partners}}" as="p" hint-placeholder-count="3">
+<div style="background: #FFFFFF; border: 1px solid {{p.border}}; border-radius: 16px; overflow: hidden; box-shadow: {{p.shadow}}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 20px">
+<span style="width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px; background: #ECEDF6; color: #3A4276; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 15px">{{p.ini}}</span>
+<div style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<span style="font-weight: 600; font-size: 15px; color: #1F2240">{{p.name}}</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 11px; color: #63677F">{{p.code}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 2px 8px; border-radius: 6px; background: #F5F5FA; border: 1px solid #D9DBEE; color: #31376A; font-size: 12px">{{p.sector}}</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: {{p.dematBg}}; color: {{p.dematFg}}; font-size: 12px; font-weight: 600">{{p.demat}}</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: {{p.flagBg}}; color: {{p.flagFg}}; font-size: 12px; font-weight: 600">{{p.flag}}</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0; min-width: 110px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #63677F">SOLDE TRIBUNEO</span>
+<span style="font-family: 'Martian Mono', monospace; font-stretch: 87.5%; font-size: 16px; font-weight: 500; color: #1F2240">{{p.balance}}</span>
+</div>
+<div style="display: flex; gap: 6px">
+<button type="button" aria-label="QR code du magasin" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2M20 14v6h-4M14 18v2"/></svg></button>
+<button type="button" aria-label="Modifier le partenaire" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
+<button type="button" aria-label="Plus d'actions" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: #F5F5FA; color: #3A4276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+<button type="button" onClick="{{p.toggle}}" aria-label="{{p.toggleLabel}}" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: {{p.chevBg}}; color: {{p.chevFg}}; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.chevPath}}"/></svg></button>
+</div>
+</div>
+<sc-if value="{{p.open}}" hint-placeholder-val="{{false}}">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid #ECEDF6; background: #F9F9FC">
+<div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid #ECEDF6">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">INFORMATIONS GÉNÉRALES</span>
+<dl style="margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 8px; font-size: 13px">
+<dt style="color: #63677F">Email</dt><dd style="margin: 0; word-break: break-all">{{p.email}}</dd>
+<dt style="color: #63677F">Téléphone</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{p.tel}}</dd>
+<dt style="color: #63677F">SIRET</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">{{p.siret}}</dd>
+<dt style="color: #63677F">Utilisateur</dt><dd style="margin: 0">{{p.user}}</dd>
+</dl>
+</div>
+<div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid #ECEDF6">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">ADRESSE</span>
+<span style="font-size: 13px">[Adresse du magasin]<br>[CP] [Ville]</span>
+<a href="ImportRelecture.dc.html" style="align-self: flex-start; font-size: 12px; font-weight: 600; text-decoration: none">Voir sur la carte IGN</a>
+</div>
+<div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: #545873">INFORMATIONS BANCAIRES</span>
+<dl style="margin: 0; display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; font-size: 13px">
+<dt style="color: #63677F">IBAN</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">FR76 •••• [IBAN]</dd>
+<dt style="color: #63677F">BIC</dt><dd style="margin: 0; font-family: 'Martian Mono', monospace; font-stretch: 87.5%">[BIC]</dd>
+</dl>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</main>
+<button type="button" aria-label="Ouvrir Néo" style="position: absolute; right: 28px; bottom: 28px; width: 60px; height: 60px; border: 0; border-radius: 999px; background: #FFFFFF; box-shadow: 0 8px 24px -6px rgba(31,34,64,0.35), 0 0 0 1px #E4E5EE; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 538.51 404.05" width="34" height="26" aria-hidden="true"><path d="m51.56,99.39c-.47,35.83-.91,71.89-.03,107.71.94,37.89,14.49,74.43,40.64,102.21,53.42,56.73,145.42,58.3,201.55,4.47,30.66-29.41,46.36-71.5,46.14-113.73" fill="none" stroke="#3A4276" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/><path d="m486.95,304.66c.47-35.83.91-71.89.03-107.71-.94-37.89-14.49-74.43-40.64-102.21-53.42-56.73-145.42-58.3-201.55-4.47-30.66,29.41-46.36,71.5-46.14,113.73" fill="none" stroke="#F8AA36" stroke-linecap="round" stroke-linejoin="round" stroke-width="102.04"/></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 0 };
+  }
+  renderVals() {
+    const yes = { demat: 'Dématérialisé', dematBg: '#E7F7EC', dematFg: '#0B7A34' };
+    const no = { demat: 'Papier seul', dematBg: '#EEEFF4', dematFg: '#545873' };
+    const data = [
+      { name: 'A CORPS PARFAIT', code: '', ini: 'CP', sector: 'Beauté et Bien-être', ...no, flag: 'Aucun compte utilisateur', flagBg: '#FFF2DC', flagFg: '#9A5B00', balance: '0,00 €', email: 'gaelle.borja@gmail.com', tel: '04 92 77 45 26', siret: '449 760 859 00024', user: 'aucun' },
+      { name: "A L'INSTITUT", code: '', ini: 'AI', sector: 'Beauté et Bien-être', ...yes, flag: 'Compte actif', flagBg: '#ECEDF6', flagFg: '#3A4276', balance: '0,00 €', email: 'ascoudair@orange.fr, alain.coudair@ascoudair.com', tel: '04 92 34 18 41', siret: '824 614 499 00013', user: 'Coudair' },
+      { name: 'DECATHLON DIGNE', code: 'DEC09', ini: 'DE', sector: '[Secteur]', dematBg: '#FFF2DC', dematFg: '#9A5B00', demat: '1 demande à payer', flag: '23,50 € au prochain virement', flagBg: '#1F2240', flagFg: '#F8AA36', balance: '[solde]', email: '[email]', tel: '[téléphone]', siret: '[SIRET]', user: '[utilisateur]' }
+    ];
+    const partners = data.map((p, i) => {
+      const open = this.state.open === i;
+      return {
+        ...p,
+        open,
+        border: open ? '#B3B8DE' : '#E4E5EE',
+        shadow: open ? '0 8px 24px -10px rgba(31,34,64,0.25)' : 'none',
+        chevBg: open ? '#3A4276' : '#F5F5FA',
+        chevFg: open ? '#FFFFFF' : '#3A4276',
+        chevPath: open ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6',
+        toggleLabel: open ? 'Replier la fiche' : 'Déplier la fiche',
+        toggle: () => this.setState({ open: open ? -1 : i })
+      };
+    });
+    return { partners };
+  }
+}
+</script>
+</body>
+</html>

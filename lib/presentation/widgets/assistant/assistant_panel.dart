@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 
 import 'package:back_office_tribuneo_v2/domain/models/assistant_model.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
-import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_avatar.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_message_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/neo_ai_button.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/tribuneo_mascot.dart';
 
 /// Panneau de conversation de l'assistant (§ 3.3 et § 5 de la spec).
@@ -89,16 +90,19 @@ class _AssistantPanelState extends State<AssistantPanel> {
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Fermer la conversation ?'),
+        return ArcDialog(
+          icon: Icons.delete_outline_rounded,
+          tone: ArcTone.danger,
+          title: 'Fermer la conversation ?',
           content: const Text('La conversation en cours sera effacée. '
               'Pour la garder, utilisez « Réduire ».'),
           actions: <Widget>[
-            TextButton(
+            OutlinedButton(
               child: const Text('Annuler'),
               onPressed: () => Navigator.of(context).pop(false),
             ),
-            TextButton(
+            FilledButton(
+              style: arcDangerButtonStyle(),
               child: const Text('Fermer et effacer'),
               onPressed: () => Navigator.of(context).pop(true),
             ),
@@ -178,6 +182,8 @@ class _AssistantPanelState extends State<AssistantPanel> {
     }
     _handlePendingChange(pending);
 
+    final BorderRadius radius =
+        BorderRadius.circular(widget.fullScreen ? 0 : kRadiusLg);
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): controller.minimize,
@@ -188,19 +194,27 @@ class _AssistantPanelState extends State<AssistantPanel> {
           container: true,
           label: 'Néo — assistant Tribuneo',
           child: Material(
-            color: kPWhite,
-            elevation: 8,
-            shadowColor: kBlack.withValues(alpha: 0.4),
+            color: kSurface,
+            elevation: 10,
+            shadowColor: const Color(0x661F2240),
             clipBehavior: Clip.antiAlias,
-            borderRadius: BorderRadius.circular(widget.fullScreen ? 0 : 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: radius,
+              side: widget.fullScreen
+                  ? BorderSide.none
+                  : const BorderSide(color: kBorder),
+            ),
             child: Column(
               children: [
                 _buildHeader(controller),
                 if (widget.banner != null) widget.banner!,
                 Expanded(
-                  child: messages.isEmpty && !pending
-                      ? _buildWelcome()
-                      : _buildThread(messages, pending),
+                  child: ColoredBox(
+                    color: kSurface2,
+                    child: messages.isEmpty && !pending
+                        ? _buildWelcome()
+                        : _buildThread(messages, pending),
+                  ),
                 ),
                 _buildInput(pending || controller.contextInvalid),
               ],
@@ -213,39 +227,52 @@ class _AssistantPanelState extends State<AssistantPanel> {
 
   Widget _buildHeader(AssistantController controller) {
     return Container(
-      color: kBlue,
-      padding: const EdgeInsets.fromLTRB(14, 8, 4, 8),
+      decoration: const BoxDecoration(
+        color: kSurface,
+        border: Border(bottom: BorderSide(color: kNavy100)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
       child: Row(
         children: [
-          const AssistantAvatar(size: 32),
-          const SizedBox(width: 10),
+          const _NeoBadge(),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              widget.title,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: ArcText.dialogTitle().copyWith(fontSize: 20),
+                ),
+                Text('Assistant Tribuneo',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: ArcText.small(color: kText3)),
+              ],
             ),
           ),
-          IconButton(
+          ArcIconAction(
+            icon: Icons.refresh_rounded,
             tooltip: 'Nouvelle conversation',
-            color: Colors.white,
             onPressed: _newConversation,
-            icon: const Icon(Icons.refresh),
+            size: 34,
           ),
-          IconButton(
+          const SizedBox(width: 6),
+          ArcIconAction(
+            icon: Icons.remove_rounded,
             tooltip: 'Réduire',
-            color: Colors.white,
             onPressed: controller.minimize,
-            icon: const Icon(Icons.remove),
+            size: 34,
           ),
-          IconButton(
+          const SizedBox(width: 6),
+          ArcIconAction(
+            icon: Icons.close_rounded,
             tooltip: 'Fermer',
-            color: Colors.white,
             onPressed: _close,
-            icon: const Icon(Icons.close),
+            size: 34,
           ),
         ],
       ),
@@ -254,47 +281,46 @@ class _AssistantPanelState extends State<AssistantPanel> {
 
   Widget _buildWelcome() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 12),
-          const TribuneoMascot(mood: TribuneoMascotMood.welcome),
-          const SizedBox(height: 12),
-          const Text(
-            'Bonjour !',
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w600, color: kBlue),
+          const Center(
+            child: TribuneoMascot(
+                width: 180, mood: TribuneoMascotMood.welcome),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: 12),
+          Text('Bonjour !',
+              style: ArcText.dialogTitle().copyWith(fontSize: 26)),
+          const SizedBox(height: 6),
+          Text(
             "Je suis l'assistant Tribuneo. Posez-moi une question sur "
             "l'utilisation du back-office, ou sur vos commandes, clients et "
             'commerçants.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, height: 1.4, color: kGrey),
+            style: ArcText.body(color: kText2).copyWith(fontSize: 13.5),
           ),
-          const SizedBox(height: 20),
-          for (final String suggestion in AssistantPanel.suggestions)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final String suggestion in AssistantPanel.suggestions)
+                OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: kBlue,
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: kLBlue),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 12),
-                    alignment: Alignment.centerLeft,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(kButtonRadius)),
+                    foregroundColor: kNavy700,
+                    backgroundColor: kSurface,
+                    side: const BorderSide(color: kNavy200, width: 1.5),
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: const StadiumBorder(),
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w400),
                   ),
                   onPressed: () => _send(suggestion),
                   child: Text(suggestion),
                 ),
-              ),
-            ),
+            ],
+          ),
         ],
       ),
     );
@@ -307,9 +333,9 @@ class _AssistantPanelState extends State<AssistantPanel> {
         onNotification: _onScroll,
         child: ListView.separated(
           controller: _scroll,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           itemCount: messages.length + (pending ? 1 : 0),
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
             if (index == messages.length) {
               return const AssistantTypingIndicator();
@@ -326,12 +352,17 @@ class _AssistantPanelState extends State<AssistantPanel> {
   }
 
   Widget _buildInput(bool pending) {
+    OutlineInputBorder border(Color color, [double width = 1.5]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color, width: width),
+        );
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: kPLGrey2)),
+        color: kSurface,
+        border: Border(top: BorderSide(color: kNavy100)),
       ),
-      padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -347,33 +378,71 @@ class _AssistantPanelState extends State<AssistantPanel> {
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
-              style: const TextStyle(fontSize: 14),
+              style: const TextStyle(fontSize: 14, color: kInk),
               decoration: InputDecoration(
                 hintText: 'Écrire…',
                 counterText: '',
                 isDense: true,
+                filled: true,
+                fillColor: kSurface,
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(kInputRadius)),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: kBlue),
-                  borderRadius: BorderRadius.circular(kInputRadius),
-                ),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: border(kBorderStrong),
+                enabledBorder: border(kBorderStrong),
+                disabledBorder: border(kBorder),
+                focusedBorder: border(kNavy600, 2),
               ),
             ),
           ),
+          const SizedBox(width: 8),
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: widget.input,
-            builder: (context, value, _) => IconButton(
-              tooltip: 'Envoyer',
-              color: kBlue,
-              onPressed:
-                  pending || value.text.trim().isEmpty ? null : () => _send(),
-              icon: const Icon(Icons.send),
+            builder: (context, value, _) => SizedBox.square(
+              dimension: 44,
+              child: IconButton(
+                tooltip: 'Envoyer',
+                onPressed:
+                    pending || value.text.trim().isEmpty ? null : () => _send(),
+                style: IconButton.styleFrom(
+                  backgroundColor: kOrange,
+                  foregroundColor: kNavy900,
+                  disabledBackgroundColor: kNavy100,
+                  disabledForegroundColor: kNavy400,
+                  minimumSize: const Size.square(44),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.send_rounded, size: 18),
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Visuel de Néo dans l'en-tête : picto Tribuneo dans un anneau arc-en-ciel.
+class _NeoBadge extends StatelessWidget {
+  const _NeoBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: Container(
+        width: 44,
+        height: 44,
+        padding: const EdgeInsets.all(2),
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: SweepGradient(
+              colors: NeoAiButton.rainbow,
+              transform: GradientRotation(3.67)),
+        ),
+        child: const DecoratedBox(
+          decoration: BoxDecoration(color: kSurface, shape: BoxShape.circle),
+          child: Center(child: ArcPicto(width: 26)),
+        ),
       ),
     );
   }

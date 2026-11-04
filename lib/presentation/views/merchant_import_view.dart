@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/merchant_import_batch_model.dart';
@@ -190,7 +190,7 @@ class _MerchantImportViewState extends State<MerchantImportView> {
     return ScaffoldMessenger(
       key: _messengerKey,
       child: Scaffold(
-        backgroundColor: kPLGrey,
+        backgroundColor: kCanvas,
         body: _openBatch != null
             ? MerchantImportGrid(
                 key: _gridKey,
@@ -205,38 +205,35 @@ class _MerchantImportViewState extends State<MerchantImportView> {
 
   Widget _buildBatchList() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
+          constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: kOrange,
-                      foregroundColor: kPWhite,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 16),
-                    ),
-                    onPressed: _createFromFile,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Nouveau lot depuis un fichier'),
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
+              ArcPageHeader(
+                eyebrow: 'Réseau',
+                title: 'Import de commerçants',
+                actions: [
+                  OutlinedButton.icon(
                     onPressed: _isLoading ? null : _loadBatches,
-                    icon: const Icon(Icons.refresh, size: 18),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
                     label: const Text('Recharger'),
+                  ),
+                  FilledButton.icon(
+                    onPressed: _createFromFile,
+                    icon: const Icon(Icons.upload_file_outlined, size: 18),
+                    label: const Text('Nouveau lot depuis un fichier'),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               _buildFileModel(),
               const SizedBox(height: 24),
-              _buildBatchTable(),
+              ArcTableCard(
+                toolbar: const ArcSectionTitle('Lots'),
+                child: _buildBatchTable(),
+              ),
             ],
           ),
         ),
@@ -245,7 +242,7 @@ class _MerchantImportViewState extends State<MerchantImportView> {
   }
 
   Widget _buildFileModel() {
-    final TextStyle text = GoogleFonts.poppins(fontSize: 13, color: kBlueEnd);
+    final TextStyle text = ArcText.body(color: kText2).copyWith(fontSize: 13);
     final TextStyle bold = text.copyWith(fontWeight: FontWeight.w600);
     Widget bullet(String title, String body) => Padding(
           padding: const EdgeInsets.only(top: 6),
@@ -255,23 +252,31 @@ class _MerchantImportViewState extends State<MerchantImportView> {
           ])),
         );
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kBlue.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: kLBlue),
-      ),
+    return ArcCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.description_outlined, color: kBlue, size: 20),
-              const SizedBox(width: 8),
-              Text('Modèle de fichier',
-                  style: GoogleFonts.poppins(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: kBlue)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kNavy50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.upload_file_outlined, color: kNavy600),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Modèle de fichier', style: ArcText.cardTitle()),
+                  Text('.csv ou .xlsx · 2 000 lignes au plus',
+                      style: ArcText.small()),
+                ],
+              )),
             ],
           ),
           const SizedBox(height: 6),
@@ -311,7 +316,7 @@ class _MerchantImportViewState extends State<MerchantImportView> {
         padding: const EdgeInsets.all(40),
         child: Center(
             child: SelectableText(_loadError!,
-                style: GoogleFonts.poppins(color: kRed))),
+                style: ArcText.body(color: kDangerText))),
       );
     }
     if (_batches.isEmpty) {
@@ -319,76 +324,98 @@ class _MerchantImportViewState extends State<MerchantImportView> {
         padding: const EdgeInsets.all(40),
         child: Center(
             child: Text('Aucun lot pour ce réseau.',
-                style: GoogleFonts.poppins(color: kGrey))),
+                style: ArcText.body(color: kText3))),
       );
     }
 
     Widget header(String label) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          child: Text(label,
-              style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: kWhite)),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          child: Text(label, style: ArcText.label()),
         );
-    Widget cell(String text, {Color color = kBlueEnd}) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+    Widget cell(String text, {bool data = false}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           child: Text(text,
-              style: GoogleFonts.poppins(fontSize: 13, color: color)),
+              style: data
+                  ? ArcText.dataSmall()
+                  : ArcText.body().copyWith(fontSize: 13)),
         );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Table(
-          columnWidths: const {
-            0: FlexColumnWidth(110),
-            1: FlexColumnWidth(220),
-            2: FlexColumnWidth(150),
-            3: FlexColumnWidth(380),
-            4: FlexColumnWidth(220),
-          },
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          border: TableBorder(
-              horizontalInside:
-                  BorderSide(color: kLBlue.withValues(alpha: 0.5))),
-          children: [
-            TableRow(
-              decoration: const BoxDecoration(color: kBlue),
-              children: ['Date', 'Source', 'Statut', 'Avancement', 'Action']
-                  .map(header)
-                  .toList(),
-            ),
-            for (int i = 0; i < _batches.length; i++)
-              TableRow(
-                decoration: BoxDecoration(
-                    color: i.isOdd ? kLBlue.withValues(alpha: 0.10) : kPWhite),
-                children: [
-                  cell(formatFrenchDate(_batches[i].createdDate)),
-                  cell(_batches[i].source ?? '—'),
-                  cell(_batches[i].statusLabel,
-                      color: _statusColor(_batches[i])),
-                  cell(_batches[i].progressLabel),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Wrap(
-                      spacing: 4,
+        LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                    width:
+                        constraints.maxWidth < 960 ? 960 : constraints.maxWidth,
+                    child: Table(
+                      columnWidths: const {
+                        0: FlexColumnWidth(110),
+                        1: FlexColumnWidth(220),
+                        2: FlexColumnWidth(150),
+                        3: FlexColumnWidth(380),
+                        4: FlexColumnWidth(220),
+                      },
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
+                      border: const TableBorder(
+                          horizontalInside: BorderSide(color: kBorder)),
                       children: [
-                        TextButton(
-                          onPressed: () => _openGrid(_batches[i]),
-                          child: const Text('Ouvrir'),
+                        TableRow(
+                          decoration: const BoxDecoration(color: kSurface2),
+                          children: [
+                            'Date',
+                            'Source',
+                            'Statut',
+                            'Avancement',
+                            'Action'
+                          ].map(header).toList(),
                         ),
-                        if (_batches[i].isEditable)
-                          TextButton(
-                            style: TextButton.styleFrom(foregroundColor: kRed),
-                            onPressed: () => _cancelBatch(_batches[i]),
-                            child: const Text('Abandonner'),
+                        for (int i = 0; i < _batches.length; i++)
+                          TableRow(
+                            decoration: BoxDecoration(
+                                color: i.isOdd ? kSurface2 : kSurface),
+                            children: [
+                              cell(formatFrenchDate(_batches[i].createdDate)),
+                              cell(_batches[i].source ?? '—', data: true),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: ArcPill(_batches[i].statusLabel,
+                                        tone: _statusTone(_batches[i]),
+                                        icon: _batches[i].isDone
+                                            ? Icons.check_circle_outline
+                                            : Icons.info_outline_rounded)),
+                              ),
+                              cell(_batches[i].progressLabel),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
+                                child: Wrap(
+                                  spacing: 4,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => _openGrid(_batches[i]),
+                                      child: const Text('Ouvrir'),
+                                    ),
+                                    if (_batches[i].isEditable)
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                            foregroundColor: kRed),
+                                        onPressed: () =>
+                                            _cancelBatch(_batches[i]),
+                                        child: const Text('Abandonner'),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                       ],
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
+                    )))),
         if (_hasMore) ...[
           const SizedBox(height: 12),
           Center(
@@ -404,18 +431,18 @@ class _MerchantImportViewState extends State<MerchantImportView> {
     );
   }
 
-  Color _statusColor(MerchantImportBatch batch) {
+  ArcTone _statusTone(MerchantImportBatch batch) {
     switch (batch.status) {
       case MerchantImportBatch.statusReview:
-        return kOrange;
+        return ArcTone.warning;
       case MerchantImportBatch.statusDone:
-        return kGreen;
+        return ArcTone.success;
       case MerchantImportBatch.statusFailed:
-        return kRed;
+        return ArcTone.danger;
       case MerchantImportBatch.statusCancelled:
-        return kGrey;
+        return ArcTone.neutral;
       default:
-        return kBlue;
+        return ArcTone.info;
     }
   }
 }

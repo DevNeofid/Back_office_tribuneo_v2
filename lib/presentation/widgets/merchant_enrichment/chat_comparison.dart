@@ -182,23 +182,33 @@ class _ChatComparisonState extends State<ChatComparison> {
           banner: Container(
               constraints: BoxConstraints(
                   maxHeight: MediaQuery.sizeOf(context).height * .22),
-              decoration: BoxDecoration(
-                  color: kBlue.withValues(alpha: 0.06),
-                  border: const Border(bottom: BorderSide(color: kPLGrey2))),
-              padding: const EdgeInsets.fromLTRB(14, 8, 8, 4),
-              child: SingleChildScrollView(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(_contextText,
-                        style: const TextStyle(fontSize: 12, color: kGrey)),
-                    Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                            onPressed: () =>
-                                finish(ChatComparisonOutcome.manual),
-                            child: const Text('Retour au choix manuel'))),
-                  ]))));
+              color: kSurface2,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Container(
+                  decoration: BoxDecoration(
+                      color: kNavy100,
+                      borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 8, 2),
+                  child: SingleChildScrollView(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text(_contextText,
+                            style: const TextStyle(
+                                fontSize: 12, height: 1.45, color: kNavy700)),
+                        Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                                style: TextButton.styleFrom(
+                                    minimumSize: const Size(0, 34),
+                                    padding: EdgeInsets.zero,
+                                    textStyle: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600)),
+                                onPressed: () =>
+                                    finish(ChatComparisonOutcome.manual),
+                                child: const Text('Retour au choix manuel'))),
+                      ])))));
     }
     return EnrichmentDialog(
         maxWidth: 900,
@@ -209,10 +219,16 @@ class _ChatComparisonState extends State<ChatComparison> {
           ConstrainedBox(
               constraints: BoxConstraints(
                   maxHeight: MediaQuery.sizeOf(context).height * .22),
-              child: SingleChildScrollView(
-                child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(_contextText)),
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                    color: kNavy100, borderRadius: BorderRadius.circular(14)),
+                child: SingleChildScrollView(
+                    child: Text(_contextText,
+                        style: const TextStyle(
+                            fontSize: 12, height: 1.45, color: kNavy700))),
               )),
           Expanded(child: _panel(fullScreen: false)),
         ]),
