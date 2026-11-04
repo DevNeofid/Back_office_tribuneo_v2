@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
-import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/arc_theme.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/login_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
@@ -37,9 +37,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Tribuneo Back-office',
-      theme: ThemeData(
-        scaffoldBackgroundColor: kPLGrey,
-      ),
+      theme: ArcTheme.light(),
       scaffoldMessengerKey: snackbarKey,
       navigatorKey: navigatorKey,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
