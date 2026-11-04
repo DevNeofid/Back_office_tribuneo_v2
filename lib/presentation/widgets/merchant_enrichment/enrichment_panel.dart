@@ -16,6 +16,11 @@ import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/usecases/merchant_enrichment/enrichment_usecase.dart';
 import '../../../domain/models/merchant_enrichment/vat_status.dart';
 import 'vat_presentation.dart';
+import '../../utils/common.dart';
+
+/// Orange lisible sur fond clair (le `kOrange` de la charte est trop pâle
+/// pour du texte).
+const kOrangeText = Color(0xffB86E00);
 
 /// Shared by the real grid and the local, transport-free widget harness.
 class EnrichmentButton extends StatefulWidget {
@@ -253,14 +258,38 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
     if (confirmed == true && mounted) await widget.session.start(ids);
   }
 
+  /// Lignes cochables au plus pour une recherche.
+  int get _maxRows => widget.session.capability?.maxRows ?? 2000;
+
+  bool _selectionLocked() {
+    final s = widget.session;
+    return s.busy || s.job?.active == true || !s.batchEditable();
+  }
+
+  /// « Tout sélectionner » : coche les lignes éligibles dans la limite de la
+  /// recherche, ou décoche tout si elles le sont déjà.
+  void _toggleAll(List<MerchantImportRow> eligible) {
+    final target = eligible.take(_maxRows).map((r) => r.id).toSet();
+    setState(() {
+      if (_selected.containsAll(target)) {
+        _selected.clear();
+      } else {
+        _selected
+          ..clear()
+          ..addAll(target);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = widget.session;
     return AnimatedBuilder(
         animation: s,
         builder: (context, _) {
-          final eligible =
-              widget.rows().where(EnrichmentUseCase.eligible).toList();
+          final rows = widget.rows();
+          final rowsById = {for (final r in rows) r.id: r};
+          final eligible = rows.where(EnrichmentUseCase.eligible).toList();
           final allowed = eligible.map((r) => r.id).toSet();
           _selected.removeWhere((id) => !allowed.contains(id));
           final job = s.job;
@@ -273,7 +302,7 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Flexible(
-                      flex: 3,
+                      flex: 2,
                       child: SingleChildScrollView(
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -284,7 +313,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 8),
                                   child: EnrichmentNotice(
-                                      error: true,
+                                      error: s.message !=
+                                          EnrichmentUseCase.appliedMessage,
                                       child: SelectableText(s.message!,
                                           key: const ValueKey(
                                               'enrichment-message')))),
@@ -302,100 +332,43 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                   value: job.total == 0
                                       ? 0
                                       : (job.done / job.total).clamp(0, 1)),
-                              EnrichmentBadge(
-                                  '${job.matched} correspondances · ${job.ambiguous} ambiguïtés · '
-                                  '${job.unresolved} non résolues · ${job.stale} obsolètes'
-                                  '${job.errorCode == null ? '' : ' · ${MerchantEnrichmentMessages.error(code: job.errorCode)}'}'),
+                              const SizedBox(height: 8),
+                              _jobSummary(job),
                             ],
                             Wrap(
                                 spacing: 8,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
+                                  if (job != null)
+                                    Text(
+                                        '${_jobLabel(job.status)} · ${job.done}/${job.total} lignes',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            color: kBlueEnd)),
                                   TextButton.icon(
                                       onPressed:
                                           s.busy ? null : () => s.resume(),
                                       icon: const Icon(Icons.refresh),
                                       label:
                                           const Text('Reprendre la lecture')),
-                                  TextButton(
-                                      onPressed: s.busy || job?.active != true
-                                          ? null
-                                          : s.cancel,
-                                      child:
-                                          const Text('Annuler la recherche')),
-                                  if (job != null)
-                                    Text(
-                                        '${_jobLabel(job.status)} · ${job.done}/${job.total} lignes'),
-                                ]),
-                            ExpansionTile(
-                                title:
-                                    const Text('Informations sur la recherche'),
-                                children: [
-                                  Text(s.capability?.vat == true
-                                      ? 'Propositions issues de sources publiques · Les valeurs déjà saisies sont conservées · TVA : source DGFiP datée, sans vérification VIES'
-                                      : 'Propositions issues de sources publiques · Les valeurs déjà saisies sont conservées · TVA non vérifiée'),
-                                  const Text(
-                                      'Fermer met la lecture en pause ; la recherche serveur continue. Vous pouvez éditer le lot puis rouvrir ce dialogue.')
+                                  if (job?.active == true)
+                                    TextButton(
+                                        onPressed: s.busy ? null : s.cancel,
+                                        child:
+                                            const Text('Annuler la recherche')),
+                                  Tooltip(
+                                    message: s.capability?.vat == true
+                                        ? 'Propositions issues de sources publiques. Les valeurs déjà saisies sont conservées. TVA : source DGFiP datée, sans vérification VIES.\n'
+                                            'Fermer met la lecture en pause ; la recherche serveur continue.'
+                                        : 'Propositions issues de sources publiques. Les valeurs déjà saisies sont conservées. TVA non vérifiée.\n'
+                                            'Fermer met la lecture en pause ; la recherche serveur continue.',
+                                    child: const Icon(Icons.info_outline,
+                                        size: 20, color: kBlue),
+                                  ),
                                 ]),
                             if (s.history != null &&
                                 s.history!.items.isNotEmpty)
-                              ExpansionTile(
-                                  title:
-                                      const Text('Historique des recherches'),
-                                  children: [
-                                    Wrap(
-                                        spacing: 8,
-                                        crossAxisAlignment:
-                                            WrapCrossAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                              width: 260,
-                                              child: DropdownButton<String>(
-                                                  isExpanded: true,
-                                                  itemHeight: null,
-                                                  value: s.history!.items.any((j) =>
-                                                          j.id == job?.id)
-                                                      ? job?.id
-                                                      : null,
-                                                  hint: const Text(
-                                                      'Historique des recherches'),
-                                                  items: s.history!.items
-                                                      .map((j) => DropdownMenuItem(
-                                                          value: j.id,
-                                                          child: Padding(
-                                                              padding: const EdgeInsets.symmetric(vertical: 8),
-                                                              child: Text(
-                                                                  '${_jobLabel(j.status)} · ${MerchantEnrichmentMessages.sourceDate(j.updatedAt)}'))))
-                                                      .toList(),
-                                                  onChanged: s.busy
-                                                      ? null
-                                                      : (id) => s.resume(
-                                                          historyOffset:
-                                                              s.history!.offset,
-                                                          jobId: id))),
-                                          TextButton(
-                                              onPressed: s.busy ||
-                                                      s.history!.offset == 0
-                                                  ? null
-                                                  : () => s.resume(
-                                                      historyOffset:
-                                                          (s.history!.offset -
-                                                                  20)
-                                                              .clamp(0, 2000)),
-                                              child: const Text(
-                                                  'Recherches précédentes')),
-                                          TextButton(
-                                              onPressed: s.busy ||
-                                                      !s.history!.hasNext
-                                                  ? null
-                                                  : () => s.resume(
-                                                      historyOffset:
-                                                          s.history!.offset +
-                                                              s.history!.limit),
-                                              child: const Text(
-                                                  'Recherches suivantes')),
-                                        ]),
-                                  ]),
+                              _historyPicker(job),
                           ]))),
                   const Divider(),
                   Expanded(
@@ -412,186 +385,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                 ]),
                             Expanded(
                                 child: TabBarView(children: [
-                              Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                        child: ListView.builder(
-                                            itemCount: eligible.length + 1,
-                                            itemBuilder: (context, index) {
-                                              if (index == 0) {
-                                                return Padding(
-                                                    padding: const EdgeInsets.only(bottom: 8),
-                                                    child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                                        children: [
-                                                          Text('${_selected.length} / ${eligible.length} lignes sélectionnées pour cette recherche (maximum ${s.capability?.maxRows ?? 2000}).'),
-                                                          const Text('Sélection indépendante des cases de validation de la grille.'),
-                                                        ]));
-                                              }
-                                              final row = eligible[index - 1];
-                                              final details = [
-                                                row.textOf('siret'),
-                                                '${row.textOf('street')} ${row.textOf('zip')} ${row.textOf('city')}'.trim(),
-                                              ].where((value) => value.isNotEmpty).join(' · ');
-                                              return CheckboxListTile(
-                                                  key: ValueKey(
-                                                      'enrichment-scope-${row.id}'),
-                                                  dense: true,
-                                                  title: Tooltip(
-                                                      message: row.textOf('name'),
-                                                      child: Text(
-                                                          'Ligne ${row.position} · ${row.textOf('name')}',
-                                                          maxLines: 3,
-                                                          overflow: TextOverflow.ellipsis)),
-                                                  subtitle: details.isEmpty ? null : Text(details),
-                                                  value: _selected
-                                                      .contains(row.id),
-                                                  onChanged: s.busy ||
-                                                          job?.active == true ||
-                                                          !s.batchEditable()
-                                                      ? null
-                                                      : (value) => setState(() {
-                                                            if (value == true) {
-                                                              _selected
-                                                                  .add(row.id);
-                                                            } else {
-                                                              _selected.remove(
-                                                                  row.id);
-                                                            }
-                                                          }));
-                                            })),
-                                    FilledButton(
-                                        onPressed: s.busy ||
-                                                job?.active == true ||
-                                                _selected.isEmpty ||
-                                                _selected.length >
-                                                    (s.capability?.maxRows ??
-                                                        0) ||
-                                                !s.batchEditable()
-                                            ? null
-                                            : _start,
-                                        child: Text(
-                                            'Rechercher sur ces ${_selected.length} lignes')),
-                                  ]),
-                              Column(children: [
-                                Expanded(
-                                    child: page == null || page.items.isEmpty
-                                        ? const Center(
-                                            child: Text(
-                                                'Aucune proposition publiée pour cette recherche.'))
-                                        : ListView.builder(
-                                            itemCount: page.items.length,
-                                            itemBuilder: (context, index) {
-                                              final p = page.items[index];
-                                              return ExpansionTile(
-                                                  key: ValueKey(
-                                                      'proposal-${p.id}'),
-                                                  title: Text(
-                                                      'Ligne ${widget.rows().where((r) => r.id == p.rowId).firstOrNull?.position ?? p.rowId} · ${_stateLabel(p.state)}'),
-                                                  subtitle: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(MerchantEnrichmentMessages.reasons(p.reasons)
-                                                            .join(' · ')),
-                                                        Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(12),
-                                                            child: Wrap(
-                                                                spacing: 8,
-                                                                runSpacing: 8,
-                                                                children: [
-                                                                  if (s
-                                                                      .canResearch(
-                                                                          p))
-                                                                    OutlinedButton(
-                                                                        onPressed: () =>
-                                                                            _research(
-                                                                                p),
-                                                                        child: const Text(
-                                                                            'Préciser la recherche')),
-                                                                  if (_canCompare(
-                                                                      p))
-                                                                    OutlinedButton(
-                                                                        onPressed: _comparing
-                                                                            ? null
-                                                                            : () => _compare(
-                                                                                p),
-                                                                        child: const Text(
-                                                                            'Comparer avec Néo')),
-                                                                ])),
-                                                      ]),
-                                                  children: [
-                                                    ...p.candidates
-                                                        .map((c) => Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(12),
-                                                            child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .stretch,
-                                                                children: [
-                                                                  Text(c.label,
-                                                                      style: Theme.of(
-                                                                              context)
-                                                                          .textTheme
-                                                                          .titleMedium),
-                                                                  const SizedBox(
-                                                                      height:
-                                                                          8),
-                                                                  ListTile(
-                                                                    contentPadding:
-                                                                        EdgeInsets
-                                                                            .zero,
-                                                                    subtitle: Text(
-                                                                        '${c.kind == 'address' ? 'Adresse seule' : 'Établissement local'} · '
-                                                                        'SIRET ${c.siret ?? 'non attribué'} · ${MerchantEnrichmentMessages.establishmentStatus(c.establishmentStatus)}\n'
-                                                                        '${MerchantEnrichmentMessages.matchLevel(c.matchLevel)} · ${MerchantEnrichmentMessages.reasons(c.reasons).join(' · ')} · Précision : ${MerchantEnrichmentMessages.geoPrecision(c.geoPrecision)}'
-                                                                        '${s.capability?.vat == true && c.kind == 'establishment' ? ' · TVA : ${vatStatusLabel(c.vatStatus, capability: true)}' : ''}'),
-                                                                  ),
-                                                                  Align(
-                                                                      alignment:
-                                                                          Alignment
-                                                                              .centerRight,
-                                                                      child: OutlinedButton(
-                                                                          onPressed: s.busy
-                                                                              ? null
-                                                                              : () => showDialog<void>(context: context, builder: (_) => _CandidateReview(session: s, proposal: p, candidate: c)),
-                                                                          child: const Text('Comparer / choisir'))),
-                                                                ])))
-                                                        .toList()
-                                                  ]);
-                                            })),
-                                if (page != null)
-                                  Wrap(
-                                      spacing: 12,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        TextButton(
-                                            onPressed: s.busy ||
-                                                    page.offset == 0
-                                                ? null
-                                                : () => s.readPage(
-                                                    (page.offset - page.limit)
-                                                        .clamp(0, page.total)),
-                                            child:
-                                                const Text('Page précédente')),
-                                        Text(
-                                            '${page.offset + (page.items.isEmpty ? 0 : 1)}–${page.offset + page.items.length} / ${page.total}'),
-                                        TextButton(
-                                            onPressed: s.busy || !page.hasNext
-                                                ? null
-                                                : () => s.readPage(
-                                                    page.offset + page.limit),
-                                            child: const Text('Page suivante')),
-                                      ]),
-                              ]),
+                              _rowsTab(eligible),
+                              _proposalsTab(page, rowsById),
                             ])),
                           ]))),
                 ]),
@@ -603,14 +398,330 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
           );
         });
   }
+
+  /// Compteurs de la recherche, en pastilles.
+  Widget _jobSummary(EnrichmentJob job) => Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Wrap(spacing: 6, runSpacing: 6, children: [
+        EnrichmentChip(_count(job.matched, 'correspondance'),
+            icon: Icons.check_circle_outline, color: kGreen),
+        EnrichmentChip(_count(job.ambiguous, 'ambiguïté'),
+            icon: Icons.help_outline, color: kOrangeText),
+        EnrichmentChip(_count(job.unresolved, 'non résolue', 'non résolues'),
+            icon: Icons.search_off, color: kGrey),
+        if (job.stale > 0)
+          EnrichmentChip(_count(job.stale, 'obsolète'),
+              icon: Icons.update, color: kGrey),
+        if (job.errorCode != null)
+          EnrichmentChip(
+              MerchantEnrichmentMessages.error(code: job.errorCode),
+              icon: Icons.error_outline,
+              color: kRed),
+      ]));
+
+  /// Recherche affichée, choisie dans les plus récentes.
+  Widget _historyPicker(EnrichmentJob? job) {
+    final s = widget.session;
+    return Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              // Texte flexible : il passe à la ligne sur un écran étroit.
+              const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.history, size: 18, color: kBlue),
+                SizedBox(width: 6),
+                Flexible(child: Text('Historique des recherches')),
+              ]),
+              SizedBox(
+                  width: 300,
+                  child: DropdownButton<String>(
+                      isExpanded: true,
+                      itemHeight: null,
+                      value: s.history!.items.any((j) => j.id == job?.id)
+                          ? job?.id
+                          : null,
+                      hint: const Text('Choisir une recherche'),
+                      items: s.history!.items
+                          .map((j) => DropdownMenuItem(
+                              value: j.id,
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Text(
+                                      '${_jobLabel(j.status)} · ${MerchantEnrichmentMessages.sourceDate(j.updatedAt)}'))))
+                          .toList(),
+                      onChanged: s.busy
+                          ? null
+                          : (id) => s.resume(
+                              historyOffset: s.history!.offset, jobId: id))),
+            ]));
+  }
+
+  Widget _rowsTab(List<MerchantImportRow> eligible) {
+    final s = widget.session;
+    final locked = _selectionLocked();
+    final reachable = eligible.length < _maxRows ? eligible.length : _maxRows;
+    final bool? all = _selected.isEmpty
+        ? false
+        : _selected.length >= reachable
+            ? true
+            : null;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      CheckboxListTile(
+          key: const ValueKey('enrichment-select-all'),
+          controlAffinity: ListTileControlAffinity.leading,
+          dense: true,
+          tristate: true,
+          value: all,
+          onChanged:
+              locked || eligible.isEmpty ? null : (_) => _toggleAll(eligible),
+          title: Text(
+              eligible.length > _maxRows
+                  ? 'Sélectionner les $_maxRows premières lignes'
+                  : 'Tout sélectionner',
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: Text(
+              '${_selected.length} / ${eligible.length} lignes sélectionnées pour cette recherche (maximum $_maxRows)')),
+      const Divider(height: 1),
+      Expanded(
+          child: ListView.builder(
+              itemCount: eligible.length,
+              itemBuilder: (context, index) {
+                final row = eligible[index];
+                final details = [
+                  row.textOf('siret'),
+                  '${row.textOf('street')} ${row.textOf('zip')} ${row.textOf('city')}'
+                      .trim(),
+                ].where((value) => value.isNotEmpty).join(' · ');
+                return CheckboxListTile(
+                    key: ValueKey('enrichment-scope-${row.id}'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    title: Tooltip(
+                        message: row.textOf('name'),
+                        child: Text(
+                            'Ligne ${row.position} · ${row.textOf('name')}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis)),
+                    subtitle: details.isEmpty
+                        ? null
+                        : Text(details,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                    value: _selected.contains(row.id),
+                    onChanged: locked
+                        ? null
+                        : (value) => setState(() {
+                              if (value == true) {
+                                _selected.add(row.id);
+                              } else {
+                                _selected.remove(row.id);
+                              }
+                            }));
+              })),
+      const SizedBox(height: 8),
+      FilledButton(
+          onPressed: locked ||
+                  _selected.isEmpty ||
+                  _selected.length > (s.capability?.maxRows ?? 0)
+              ? null
+              : _start,
+          child: Text('Rechercher sur ces ${_selected.length} lignes')),
+    ]);
+  }
+
+  /// Il reste au moins un champ applicable pour un de ses candidats.
+  bool _reviewable(EnrichmentProposal p) =>
+      p.candidates.any((c) => widget.session.applicable(p, c).isNotEmpty);
+
+  /// Charge la page suivante de propositions ; `false` s'il n'y en a pas.
+  Future<bool> _loadNextPage() async {
+    final page = widget.session.page;
+    if (page == null || !page.hasNext) return false;
+    await widget.session.readPage(page.offset + page.limit);
+    return widget.session.page?.offset != page.offset;
+  }
+
+  /// Revue d'un candidat, enchaînable sur les propositions suivantes.
+  /// [chained] : « Passer » et « Appliquer et suivante » enchaînent les
+  /// propositions à traiter.
+  Future<void> _review(EnrichmentProposal p, EnrichmentCandidate c,
+          {bool chained = true}) =>
+      showDialog<void>(
+          context: context,
+          builder: (_) => _CandidateReview(
+              session: widget.session,
+              proposal: p,
+              candidate: c,
+              pageItems: chained
+                  ? () => widget.session.page?.items ?? const []
+                  : null,
+              loadNextPage: chained ? _loadNextPage : null));
+
+  Widget _proposalsTab(EnrichmentPage<EnrichmentProposal>? page,
+      Map<int, MerchantImportRow> rowsById) {
+    final s = widget.session;
+    final todo = page?.items.where(_reviewable).toList() ?? const [];
+    return Column(children: [
+      if (todo.isNotEmpty)
+        Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                    key: const ValueKey('review-chain'),
+                    onPressed: s.busy
+                        ? null
+                        : () =>
+                            _review(todo.first, todo.first.candidates.first),
+                    icon: const Icon(Icons.playlist_play),
+                    label: Text(
+                        'Traiter une par une (${_count(todo.length, 'proposition')} sur cette page)')))),
+      Expanded(
+          child: page == null || page.items.isEmpty
+              ? const Center(
+                  child: Text('Aucune proposition publiée pour cette recherche.'))
+              : ListView.builder(
+                  itemCount: page.items.length,
+                  itemBuilder: (context, index) => _proposalTile(
+                      page.items[index], rowsById[page.items[index].rowId]))),
+      if (page != null)
+        Wrap(
+            spacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              TextButton(
+                  onPressed: s.busy || page.offset == 0
+                      ? null
+                      : () => s.readPage(
+                          (page.offset - page.limit).clamp(0, page.total)),
+                  child: const Text('Page précédente')),
+              Text(
+                  '${page.offset + (page.items.isEmpty ? 0 : 1)}–${page.offset + page.items.length} / ${page.total}'),
+              TextButton(
+                  onPressed: s.busy || !page.hasNext
+                      ? null
+                      : () => s.readPage(page.offset + page.limit),
+                  child: const Text('Page suivante')),
+            ]),
+    ]);
+  }
+
+  /// Une ligne par proposition : état et actions ; raisons et candidats une
+  /// fois dépliée.
+  Widget _proposalTile(EnrichmentProposal p, MerchantImportRow? row) {
+    final s = widget.session;
+    final style = _stateStyle(p.state);
+    final name = row?.textOf('name') ?? '';
+    final reasons = MerchantEnrichmentMessages.reasons(p.reasons);
+    final count = p.candidates.length;
+    final actions = [
+      if (s.canResearch(p))
+        OutlinedButton(
+            onPressed: () => _research(p),
+            child: const Text('Préciser la recherche')),
+      if (_canCompare(p))
+        OutlinedButton.icon(
+            onPressed: _comparing ? null : () => _compare(p),
+            icon: const Icon(Icons.forum_outlined, size: 18),
+            label: const Text('Comparer avec Néo')),
+    ];
+    return ExpansionTile(
+        key: ValueKey('proposal-${p.id}'),
+        leading: Tooltip(
+            message: _stateLabel(p.state),
+            child: Icon(style.icon, color: style.color)),
+        title: Text('Ligne ${row?.position ?? p.rowId}${name.isEmpty ? '' : ' · $name'}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                  [
+                    _stateLabel(p.state),
+                    if (count > 0) '$count candidat${count > 1 ? 's' : ''}',
+                  ].join(' · '),
+                  style: TextStyle(color: style.color, fontSize: 13)),
+              if (actions.isNotEmpty)
+                Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Wrap(spacing: 8, runSpacing: 6, children: actions)),
+            ]),
+        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        children: [
+          if (reasons.isNotEmpty)
+            Text(reasons.join(' · '),
+                style: const TextStyle(fontSize: 12, color: kGrey)),
+          ...p.candidates.map((c) => _candidateCard(p, c)),
+        ]);
+  }
+
+  Widget _candidateCard(EnrichmentProposal p, EnrichmentCandidate c) {
+    final s = widget.session;
+    final reasons = MerchantEnrichmentMessages.reasons(c.reasons);
+    final establishment = c.kind == 'establishment';
+    return Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+            color: kLGrey,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kLBlue.withValues(alpha: 0.6))),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(c.label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, color: kBlueEnd)),
+          const SizedBox(height: 8),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            EnrichmentChip(establishment ? 'Établissement' : 'Adresse seule',
+                icon: establishment ? Icons.storefront : Icons.place_outlined),
+            if (c.siret != null) EnrichmentChip('SIRET ${c.siret}'),
+            if (establishment) _establishmentChip(c.establishmentStatus),
+            _matchChip(c.matchLevel,
+                tooltip: reasons.isEmpty ? null : reasons.join('\n')),
+            if (c.geoPrecision != null)
+              EnrichmentChip(
+                  'Précision : ${MerchantEnrichmentMessages.geoPrecision(c.geoPrecision)}',
+                  icon: Icons.my_location),
+            if (s.capability?.vat == true && establishment)
+              EnrichmentChip(
+                  'TVA : ${vatStatusLabel(c.vatStatus, capability: true)}'),
+          ]),
+          Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: OutlinedButton(
+                      onPressed: s.busy ? null : () => _review(p, c, chained: false),
+                      child: const Text('Comparer / choisir')))),
+        ]));
+  }
 }
 
 class _CandidateReview extends StatefulWidget {
   final EnrichmentUseCase session;
   final EnrichmentProposal proposal;
   final EnrichmentCandidate candidate;
+
+  /// Propositions de la page, dans l'ordre : active la revue enchaînée
+  /// (« Passer », « Appliquer et suivante »). Absent : un seul candidat.
+  final List<EnrichmentProposal> Function()? pageItems;
+
+  /// Charge la page suivante ; `false` s'il n'y en a plus.
+  final Future<bool> Function()? loadNextPage;
   const _CandidateReview(
-      {required this.session, required this.proposal, required this.candidate});
+      {required this.session,
+      required this.proposal,
+      required this.candidate,
+      this.pageItems,
+      this.loadNextPage});
   @override
   State<_CandidateReview> createState() => _CandidateReviewState();
 }
@@ -618,12 +729,152 @@ class _CandidateReview extends StatefulWidget {
 class _CandidateReviewState extends State<_CandidateReview> {
   final Set<String> _fields = {};
   bool _acknowledge = false;
+
+  /// Proposition et candidat affichés : ils changent pendant une revue
+  /// enchaînée. Aucun champ n'est jamais coché d'office.
+  late EnrichmentProposal _p = widget.proposal;
+  late EnrichmentCandidate _c = widget.candidate;
+  int _applied = 0;
+  bool _advancing = false, _finished = false;
+
+  bool get _chained => widget.pageItems != null;
+
+  bool _reviewable(EnrichmentProposal p) =>
+      p.candidates.any((c) => widget.session.applicable(p, c).isNotEmpty);
+
+  /// Propositions de la page qui restent à traiter.
+  List<EnrichmentProposal> _todo() =>
+      (widget.pageItems?.call() ?? const []).where(_reviewable).toList();
+
+  EnrichmentProposal? _nextOnPage() {
+    final items = widget.pageItems?.call() ?? const [];
+    final from = items.indexWhere((x) => x.id == _p.id);
+    for (var i = from + 1; i < items.length; i++) {
+      if (_reviewable(items[i])) return items[i];
+    }
+    return null;
+  }
+
+  void _show(EnrichmentProposal p, [EnrichmentCandidate? c]) => setState(() {
+        _p = p;
+        _c = c ?? p.candidates.first;
+        _fields.clear();
+        _acknowledge = false;
+      });
+
+  /// Proposition suivante à traiter, sur cette page puis les suivantes ;
+  /// écran de fin s'il n'y en a plus.
+  Future<void> _advance() async {
+    if (_advancing) return;
+    var next = _nextOnPage();
+    if (next == null && widget.loadNextPage != null) {
+      setState(() => _advancing = true);
+      try {
+        while (next == null && await widget.loadNextPage!()) {
+          if (!mounted) return;
+          next = _todo().firstOrNull;
+        }
+      } finally {
+        if (mounted) setState(() => _advancing = false);
+      }
+    }
+    if (!mounted) return;
+    if (next == null) {
+      setState(() => _finished = true);
+    } else {
+      _show(next);
+    }
+  }
+
+  Future<void> _apply({required bool thenNext}) async {
+    final s = widget.session;
+    final applied =
+        await s.apply(_p, _c, {..._fields}, acknowledge: _acknowledge);
+    if (!mounted || !applied) return;
+    _applied++;
+    if (thenNext) {
+      await _advance();
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
+  Widget _finishedDialog() => EnrichmentDialog(
+      maxWidth: 600,
+      onClose: () => Navigator.pop(context),
+      title: const Text('Revue terminée'),
+      content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Icon(Icons.task_alt, color: kGreen, size: 48),
+            const SizedBox(height: 12),
+            Text(
+                'Plus aucune proposition à traiter. '
+                '${_count(_applied, 'proposition appliquée', 'propositions appliquées')} au brouillon pendant cette revue.',
+                textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            const Text(
+                'Validez ensuite les lignes dans la grille avant l’import.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: kGrey)),
+          ]),
+      actions: [
+        FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer')),
+      ]);
+
+  /// Ligne en cours et propositions restantes, pendant une revue enchaînée.
+  Widget _chainHeader(MerchantImportRow? row) {
+    final remaining = _todo().length;
+    final name = row?.textOf('name') ?? '';
+    return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text('Ligne ${row?.position ?? _p.rowId}${name.isEmpty ? '' : ' · $name'}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, color: kBlueEnd)),
+              EnrichmentChip(
+                  '${_count(remaining, 'proposition')} à traiter sur cette page',
+                  icon: Icons.playlist_play,
+                  color: kBlue),
+              if (_applied > 0)
+                EnrichmentChip(
+                    _count(_applied, 'appliquée', 'appliquées'),
+                    icon: Icons.check,
+                    color: kGreen),
+            ]));
+  }
+
+  /// Plusieurs candidats : choix explicite de celui à relire.
+  Widget _candidatePicker() => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Wrap(spacing: 6, runSpacing: 6, children: [
+        for (var i = 0; i < _p.candidates.length; i++)
+          ChoiceChip(
+              key: ValueKey('candidate-pick-${_p.candidates[i].id}'),
+              label: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 260),
+                  child: Text('${i + 1}. ${_p.candidates[i].label}',
+                      overflow: TextOverflow.ellipsis)),
+              selected: _p.candidates[i].id == _c.id,
+              onSelected: widget.session.busy
+                  ? null
+                  : (_) => _show(_p, _p.candidates[i])),
+      ]));
+
   @override
   Widget build(BuildContext context) {
-    final s = widget.session, p = widget.proposal, c = widget.candidate;
+    final s = widget.session;
+    if (_finished) return _finishedDialog();
     return AnimatedBuilder(
         animation: s,
         builder: (context, _) {
+          final p = _p, c = _c;
           final row = s.currentRow(p.rowId);
           final allowed = s.applicable(p, c);
           _fields.removeWhere((f) => !allowed.contains(f));
@@ -632,28 +883,70 @@ class _CandidateReviewState extends State<_CandidateReview> {
           final rowSiretEmpty =
               MerchantImportRow.normalized('siret', row?.valueOf('siret'))
                   .isEmpty;
+          final reasons = MerchantEnrichmentMessages.reasons(c.reasons);
+          final entries = c.fields.entries
+              .where((e) => EnrichmentUseCase.fields.contains(e.key))
+              .toList();
+          String before(String key) =>
+              row?.textOf(key).isNotEmpty == true ? row!.textOf(key) : 'Vide';
+          final canApply = !s.busy &&
+              !_advancing &&
+              _fields.isNotEmpty &&
+              !(geo && c.approximate && !_acknowledge) &&
+              VatRules.selectionValid(_fields, rowSiretEmpty: rowSiretEmpty);
           return EnrichmentDialog(
               onClose: s.busy ? null : () => Navigator.pop(context),
               title: Text('Choisir : ${c.label}'),
               content: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SelectableText(c.label,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    SelectableText(
-                        'SIRET : ${c.siret ?? 'non attribué'} · SIREN : ${c.siren ?? 'non attribué'}\n'
-                        'Raison sociale : ${c.legalName ?? 'non renseignée'} · ${MerchantEnrichmentMessages.establishmentStatus(c.establishmentStatus)}\n'
-                        '${MerchantEnrichmentMessages.matchLevel(c.matchLevel)} · ${MerchantEnrichmentMessages.reasons(c.reasons).join(' · ')}\n'
-                        'Précision géographique : ${MerchantEnrichmentMessages.geoPrecision(c.geoPrecision)} · TVA : ${vatStatusLabel(c.vatStatus, capability: vat)}'),
-                    const Text(
-                        'Choisissez explicitement les champs vides à appliquer. Les valeurs actuelles sont conservées.'),
+                    if (_chained) _chainHeader(row),
+                    if (_advancing) const LinearProgressIndicator(),
+                    if (p.candidates.length > 1) _candidatePicker(),
+                    Wrap(spacing: 6, runSpacing: 6, children: [
+                      EnrichmentChip('SIRET ${c.siret ?? 'non attribué'}'),
+                      EnrichmentChip('SIREN ${c.siren ?? 'non attribué'}'),
+                      if (c.legalName != null)
+                        EnrichmentChip(c.legalName!, icon: Icons.business),
+                      if (c.kind == 'establishment')
+                        _establishmentChip(c.establishmentStatus),
+                      _matchChip(c.matchLevel),
+                      EnrichmentChip(
+                          c.geoPrecision == null
+                              ? 'Précision géographique non renseignée'
+                              : 'Précision géographique : ${MerchantEnrichmentMessages.geoPrecision(c.geoPrecision)}',
+                          icon: Icons.my_location),
+                      EnrichmentChip(
+                          'TVA : ${vatStatusLabel(c.vatStatus, capability: vat)}'),
+                    ]),
+                    if (reasons.isNotEmpty)
+                      _Collapsible(
+                          key: const ValueKey('candidate-reasons'),
+                          title: 'Détails de la correspondance',
+                          children: [
+                            for (final reason in reasons)
+                              Padding(
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: Text('• $reason',
+                                      style: const TextStyle(fontSize: 13))),
+                          ]),
                     if (allowed.isEmpty)
-                      const Text(
-                          'Application indisponible : la proposition n’est plus à jour ou a déjà été appliquée, le SIRET diffère de celui de la ligne, la ligne n’est plus à relire, ou aucun champ vide n’a de valeur sourcée.'),
-                    if (s.message != null)
+                      const EnrichmentNotice(
+                          child: Text(
+                              'Rien à appliquer : aucun champ vide de la ligne n’a de valeur proposée, ou la proposition n’est plus applicable (ligne modifiée, SIRET différent, déjà appliquée).')),
+                    // En revue enchaînée, la réussite précédente est déjà
+                    // comptée dans l'en-tête : pas de message sur la suivante.
+                    if (s.message != null &&
+                        !(_chained &&
+                            s.message == EnrichmentUseCase.appliedMessage))
                       EnrichmentNotice(
-                          error: true, child: SelectableText(s.message!)),
+                          error: s.message != EnrichmentUseCase.appliedMessage,
+                          child: SelectableText(s.message!)),
+                    const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                            'Cochez les champs vides à remplir. Les valeurs déjà saisies sont conservées.',
+                            style: TextStyle(fontSize: 13, color: kGrey))),
                     EnrichmentComparison(
                         columns: const [
                           DataColumn(label: Text('Appliquer')),
@@ -662,45 +955,47 @@ class _CandidateReviewState extends State<_CandidateReview> {
                           DataColumn(label: Text('Proposition')),
                           DataColumn(label: Text('Après')),
                         ],
-                        rows: c.fields.entries
-                            .where(
-                                (e) => EnrichmentUseCase.fields.contains(e.key))
-                            .map((e) => DataRow(cells: [
-                                  DataCell(Checkbox(
-                                      value: _fields.contains(e.key),
-                                      onChanged: !allowed.contains(e.key) ||
-                                              s.busy
-                                          ? null
-                                          : (value) => setState(() {
-                                                final pair = e.key == 'lat' ||
-                                                        e.key == 'lng'
-                                                    ? {'lat', 'lng'}
-                                                    : {e.key};
-                                                if (value == true) {
-                                                  _fields.addAll(pair);
-                                                } else {
-                                                  _fields.removeAll(pair);
-                                                  // Sans SIRET sur la ligne, retirer le SIRET retire la TVA liée.
-                                                  VatRules.select(
-                                                      _fields, e.key, false,
-                                                      rowSiretEmpty:
-                                                          rowSiretEmpty);
-                                                }
-                                              }))),
-                                  DataCell(Text(_fieldLabel(e.key))),
-                                  DataCell(Text(
-                                      row?.textOf(e.key).isNotEmpty == true
-                                          ? row!.textOf(e.key)
-                                          : 'Vide')),
-                                  DataCell(Text(
-                                      MerchantImportRow.displayText(e.value))),
-                                  DataCell(Text(_fields.contains(e.key)
-                                      ? MerchantImportRow.displayText(e.value)
-                                      : row?.textOf(e.key).isNotEmpty == true
-                                          ? row!.textOf(e.key)
-                                          : 'Vide')),
-                                ]))
-                            .toList()),
+                        muted: {
+                          for (var i = 0; i < entries.length; i++)
+                            if (!allowed.contains(entries[i].key)) i
+                        },
+                        rows: entries.map((e) {
+                          final proposed =
+                              MerchantImportRow.displayText(e.value);
+                          final chosen = _fields.contains(e.key);
+                          return DataRow(cells: [
+                            DataCell(Checkbox(
+                                value: chosen,
+                                onChanged: !allowed.contains(e.key) || s.busy
+                                    ? null
+                                    : (value) => setState(() {
+                                          final pair =
+                                              e.key == 'lat' || e.key == 'lng'
+                                                  ? {'lat', 'lng'}
+                                                  : {e.key};
+                                          if (value == true) {
+                                            _fields.addAll(pair);
+                                          } else {
+                                            _fields.removeAll(pair);
+                                            // Sans SIRET sur la ligne, retirer le SIRET retire la TVA liée.
+                                            VatRules.select(
+                                                _fields, e.key, false,
+                                                rowSiretEmpty: rowSiretEmpty);
+                                          }
+                                        }))),
+                            DataCell(Text(_fieldLabel(e.key),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600))),
+                            DataCell(Text(before(e.key))),
+                            DataCell(Text(proposed.isEmpty ? '—' : proposed)),
+                            DataCell(Text(chosen ? proposed : before(e.key),
+                                style: chosen
+                                    ? const TextStyle(
+                                        color: kGreen,
+                                        fontWeight: FontWeight.w600)
+                                    : null)),
+                          ]);
+                        }).toList()),
                     if (c.kind == 'establishment')
                       VatCandidateSection(
                           candidate: c,
@@ -713,15 +1008,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                           onChanged: (value) => setState(() => VatRules.select(
                               _fields, VatRules.field, value,
                               rowSiretEmpty: rowSiretEmpty))),
-                    const SizedBox(height: 12),
-                    ...c.sources.entries
-                        .where((e) => EnrichmentUseCase.fields.contains(e.key))
-                        .map((e) => Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: SelectableText(
-                                '${_fieldLabel(e.key)} · ${MerchantEnrichmentMessages.provider(e.value.provider)} · ${MerchantEnrichmentMessages.sourceDate(e.value.retrievedAt)}\n'
-                                '${e.value.url} · Référence : ${e.value.recordId ?? '—'}'
-                                '${e.value.precision == null && e.key != 'lat' && e.key != 'lng' ? '' : ' · Précision : ${MerchantEnrichmentMessages.geoPrecision(e.value.precision)}'}'))),
+                    _sources(c),
                     if (c.approximate)
                       CheckboxListTile(
                           value: _acknowledge,
@@ -735,24 +1022,132 @@ class _CandidateReviewState extends State<_CandidateReview> {
                 TextButton(
                     onPressed: s.busy ? null : () => Navigator.pop(context),
                     child: const Text('Retour')),
+                if (_chained)
+                  TextButton.icon(
+                      onPressed: s.busy || _advancing ? null : _advance,
+                      icon: const Icon(Icons.skip_next),
+                      label: const Text('Passer')),
                 FilledButton(
-                    onPressed: s.busy ||
-                            _fields.isEmpty ||
-                            (geo && c.approximate && !_acknowledge) ||
-                            !VatRules.selectionValid(_fields,
-                                rowSiretEmpty: rowSiretEmpty)
-                        ? null
-                        : () async {
-                            final applied = await s.apply(p, c, {..._fields},
-                                acknowledge: _acknowledge);
-                            if (!mounted) return;
-                            if (applied) Navigator.pop(context);
-                          },
-                    child: const Text('Appliquer au brouillon')),
+                    onPressed: canApply
+                        ? () => _apply(thenNext: _chained)
+                        : null,
+                    child: Text(_chained
+                        ? 'Appliquer et suivante'
+                        : 'Appliquer au brouillon')),
               ]);
         });
   }
+
+  /// Sources repliées, regroupées quand plusieurs champs viennent du même
+  /// enregistrement : champs, source, date, référence et lien court.
+  Widget _sources(EnrichmentCandidate c) {
+    final groups =
+        <String, ({EnrichmentSource source, List<String> fields, bool geo})>{};
+    for (final e in c.sources.entries
+        .where((e) => EnrichmentUseCase.fields.contains(e.key))) {
+      final v = e.value;
+      final key =
+          '${v.provider}|${v.url}|${v.recordId}|${v.retrievedAt}|${v.precision}';
+      final geo = e.key == 'lat' || e.key == 'lng';
+      final group = groups[key];
+      groups[key] = (
+        source: v,
+        fields: [...?group?.fields, _fieldLabel(e.key)],
+        geo: (group?.geo ?? false) || geo
+      );
+    }
+    if (groups.isEmpty) return const SizedBox.shrink();
+    return _Collapsible(
+        key: const ValueKey('candidate-sources'),
+        title: 'Sources (${groups.length})',
+        children: [
+          for (final g in groups.values)
+            Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(g.fields.join(', '),
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(
+                          [
+                            MerchantEnrichmentMessages.provider(
+                                g.source.provider),
+                            MerchantEnrichmentMessages.sourceDate(
+                                g.source.retrievedAt),
+                            if (g.source.recordId != null)
+                              'Réf. ${g.source.recordId}',
+                            if (g.source.precision != null || g.geo)
+                              'Précision : ${MerchantEnrichmentMessages.geoPrecision(g.source.precision)}',
+                          ].join(' · '),
+                          style: const TextStyle(fontSize: 12, color: kGrey)),
+                      EnrichmentSourceLink(g.source.url),
+                    ])),
+        ]);
+  }
 }
+
+/// Section repliée par défaut (détails, sources).
+class _Collapsible extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _Collapsible({super.key, required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) => ExpansionTile(
+      title: Text(title,
+          style: const TextStyle(
+              fontSize: 14, fontWeight: FontWeight.w600, color: kBlue)),
+      tilePadding: EdgeInsets.zero,
+      dense: true,
+      shape: const Border(),
+      collapsedShape: const Border(),
+      expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+      childrenPadding: const EdgeInsets.only(left: 4, bottom: 8),
+      children: children);
+}
+
+/// « 1 correspondance », « 3 correspondances ».
+String _count(int n, String singular, [String? plural]) =>
+    '$n ${n > 1 ? plural ?? '${singular}s' : singular}';
+
+/// Icône et couleur de l'état d'une proposition.
+({IconData icon, Color color}) _stateStyle(String state) {
+  switch (state) {
+    case 'matched':
+      return (icon: Icons.check_circle, color: kGreen);
+    case 'applied':
+      return (icon: Icons.done_all, color: kGreen);
+    case 'ambiguous':
+      return (icon: Icons.help, color: kOrangeText);
+    case 'address_only':
+      return (icon: Icons.place, color: kBlue);
+    case 'insufficient_input':
+      return (icon: Icons.edit_note, color: kOrangeText);
+    case 'provider_unavailable':
+      return (icon: Icons.cloud_off, color: kRed);
+    case 'stale':
+      return (icon: Icons.update, color: kRed);
+    default:
+      return (icon: Icons.search_off, color: kGrey);
+  }
+}
+
+Widget _establishmentChip(String? status) => EnrichmentChip(
+    MerchantEnrichmentMessages.establishmentStatus(status),
+    color: status == 'closed'
+        ? kRed
+        : status == 'active'
+            ? kGreen
+            : kGrey);
+
+Widget _matchChip(String level, {String? tooltip}) => EnrichmentChip(
+    MerchantEnrichmentMessages.matchLevel(level),
+    icon: Icons.join_inner,
+    tooltip: tooltip,
+    color: level == 'exact_identifier' || level == 'name_address'
+        ? kGreen
+        : kOrangeText);
 
 bool _comparable(EnrichmentUseCase s, EnrichmentProposal p,
     {required bool hasRepository}) {

@@ -142,8 +142,19 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   /// à l'autre.
   final ValueNotifier<int?> _hoveredRowId = ValueNotifier<int?>(null);
 
+  /// Ligne courante pour le clavier (↑ ↓, Espace, E, Entrée), repérée dans
+  /// les deux volets.
+  final ValueNotifier<int?> _cursorRowId = ValueNotifier<int?>(null);
+  final FocusNode _gridFocus = FocusNode(debugLabel: 'merchant-import-grid');
+
   static const int _pageSize = 50;
   static const double _rowHeight = 40;
+
+  /// Trait vertical entre les colonnes, pour suivre une ligne.
+  static final Border _cellSeparator =
+      Border(right: BorderSide(color: kLBlue.withValues(alpha: 0.45)));
+  static final Border _headerSeparator =
+      Border(right: BorderSide(color: kWhite.withValues(alpha: 0.25)));
   static const double _headerHeight = 44;
   static const String _typePartner = 'partner';
   static const String _typeCustomer = 'customer';
@@ -186,8 +197,6 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     _GridColumn('bank_key', 'Clé RIB', 80),
     _GridColumn('account_number', 'N° comptable', 120),
     _GridColumn('naf', 'NAF', 90,
-        editor: _Editor.readOnly, hint: 'Rempli par la recherche automatique.'),
-    _GridColumn('website', 'Site web', 180,
         editor: _Editor.readOnly, hint: 'Rempli par la recherche automatique.'),
   ];
 
@@ -257,6 +266,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     _rightVertical.dispose();
     _horizontal.dispose();
     _hoveredRowId.dispose();
+    _cursorRowId.dispose();
+    _gridFocus.dispose();
     super.dispose();
   }
 
@@ -504,6 +515,12 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       });
     });
     setState(() => _editing = editing);
+    // `autofocus` est ignoré quand la grille a déjà le focus clavier.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && identical(_editing, editing)) {
+        editing.focusNode.requestFocus();
+      }
+    });
   }
 
   /// Envoie la saisie si elle diffère de la dernière valeur envoyée (ou, à
@@ -562,6 +579,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     }
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       _finishEdit(commit: false);
+      _returnToGrid();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -619,6 +637,105 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         rejected
             ? MerchantImportRow.statusRejected
             : MerchantImportRow.statusPending);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Clavier
+  // ---------------------------------------------------------------------------
+
+  /// La case de validation est-elle cochable pour [row] ? Mêmes règles que la
+  /// case à cocher de la grille.
+  bool _canToggleValidated(MerchantImportRow row) {
+    final String status = _statusOf(row);
+    final bool checked = status == MerchantImportRow.statusValidated;
+    return _editable &&
+        status != MerchantImportRow.statusImported &&
+        status != MerchantImportRow.statusRejected &&
+        (row.blockingIssues.isEmpty || checked);
+  }
+
+  /// Ligne sous le pointeur : elle devient la ligne courante du clavier.
+  void _pointRow(int rowId) {
+    _cursorRowId.value = rowId;
+    if (_editing == null && !_gridFocus.hasFocus) _gridFocus.requestFocus();
+  }
+
+  void _moveCursor(int delta) {
+    final List<MerchantImportRow> rows = _pageRows;
+    if (rows.isEmpty) return;
+    final int current = rows.indexWhere((r) => r.id == _cursorRowId.value);
+    final int next = current < 0
+        ? (delta > 0 ? 0 : rows.length - 1)
+        : (current + delta).clamp(0, rows.length - 1);
+    _cursorRowId.value = rows[next].id;
+    _revealRow(next);
+  }
+
+  /// Fait défiler la grille pour montrer la ligne d'index [index].
+  void _revealRow(int index) {
+    if (!_rightVertical.hasClients) return;
+    final ScrollPosition position = _rightVertical.position;
+    final double top = index * _rowHeight;
+    final double bottom = top + _rowHeight;
+    if (top < position.pixels) {
+      _rightVertical.jumpTo(top);
+    } else if (bottom > position.pixels + position.viewportDimension) {
+      _rightVertical.jumpTo((bottom - position.viewportDimension)
+          .clamp(0, position.maxScrollExtent));
+    }
+  }
+
+  KeyEventResult _onGridKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (_editing != null) return KeyEventResult.ignored;
+    final LogicalKeyboardKey key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _moveCursor(1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _moveCursor(-1);
+      return KeyEventResult.handled;
+    }
+    if (event is KeyRepeatEvent) return KeyEventResult.ignored;
+    final MerchantImportRow? row =
+        _cursorRowId.value == null ? null : _rowById(_cursorRowId.value!);
+    if (row == null) return KeyEventResult.ignored;
+    final String status = _statusOf(row);
+    if (key == LogicalKeyboardKey.space) {
+      if (_canToggleValidated(row)) {
+        _toggleValidated(row, status != MerchantImportRow.statusValidated);
+      } else if (row.blockingIssues.isNotEmpty) {
+        _snack('Ligne ${row.position} : à corriger avant validation.', kOrange);
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyE) {
+      if (_editable && status != MerchantImportRow.statusImported) {
+        _setRejected(row, status != MerchantImportRow.statusRejected);
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter ||
+        key == LogicalKeyboardKey.f2) {
+      _startEdit(row, _textColumns.first);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.escape) {
+      _cursorRowId.value = null;
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  /// Après Entrée ou Échap dans une cellule, le clavier revient à la grille.
+  void _returnToGrid() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _editing == null) _gridFocus.requestFocus();
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -802,11 +919,13 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
               ],
               if (result.skipped.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                EnrichmentNotice(child: Text(
-                    '${result.skipped.length} ligne(s) n\'ont pas été importées '
-                    'car elles ont de nouvelles anomalies : elles ont été '
-                    'décochées.',
-                    style: GoogleFonts.poppins(fontSize: 14, color: kBlueEnd))),
+                EnrichmentNotice(
+                    child: Text(
+                        '${result.skipped.length} ligne(s) n\'ont pas été importées '
+                        'car elles ont de nouvelles anomalies : elles ont été '
+                        'décochées.',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14, color: kBlueEnd))),
               ],
             ],
           ),
@@ -1217,6 +1336,17 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
             'Obligatoire'),
         item(const Icon(Icons.mouse_outlined, color: kGrey, size: 16),
             'Survolez une cellule ou un statut pour le détail'),
+        Tooltip(
+          message: 'Cliquez sur une ligne, puis :\n'
+              '↑ ↓  ligne précédente / suivante\n'
+              'Espace  valider / dévalider la ligne\n'
+              'E  écarter / rétablir la ligne\n'
+              'Entrée  modifier (Tab : cellule suivante)\n'
+              'Échap  quitter la cellule ou la ligne',
+          child: item(
+              const Icon(Icons.keyboard_outlined, color: kGrey, size: 16),
+              'Raccourcis clavier'),
+        ),
       ],
     );
   }
@@ -1256,91 +1386,96 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       ],
     );
 
-    return Container(
-      decoration: BoxDecoration(
-        color: kPWhite,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: kLBlue.withValues(alpha: 0.7)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: LayoutBuilder(
-        builder: (context, constraints) => Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: _leftWidth),
-              child: Scrollbar(
-                controller: _rightVertical,
-                thumbVisibility: true,
-                notificationPredicate: (notification) =>
-                    notification.depth == 1,
+    return Focus(
+      focusNode: _gridFocus,
+      onKeyEvent: _onGridKey,
+      child: Container(
+        decoration: BoxDecoration(
+          color: kPWhite,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: kLBlue.withValues(alpha: 0.7)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: LayoutBuilder(
+          builder: (context, constraints) => Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: _leftWidth),
                 child: Scrollbar(
-                  controller: _horizontal,
+                  controller: _rightVertical,
                   thumbVisibility: true,
-                  child: ScrollConfiguration(
-                    behavior: noScrollbars,
-                    child: SingleChildScrollView(
-                      controller: _horizontal,
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: _rightWidth,
-                        height: constraints.maxHeight,
-                        child: Column(
-                          children: [
-                            _headerRow([
-                              ..._scrollColumns.map((column) => _headerCell(
-                                  column.label, column.width,
-                                  hint: column.hint,
-                                  required: _requiredHint(column.key))),
-                              _headerCell('', _actionsWidth),
-                            ]),
-                            Expanded(
-                              child: ListView.builder(
-                                controller: _rightVertical,
-                                padding: listPadding,
-                                itemExtent: _rowHeight,
-                                itemCount: _pageRows.length,
-                                itemBuilder: (context, i) =>
-                                    _rightRow(_pageRows[i], i),
+                  notificationPredicate: (notification) =>
+                      notification.depth == 1,
+                  child: Scrollbar(
+                    controller: _horizontal,
+                    thumbVisibility: true,
+                    child: ScrollConfiguration(
+                      behavior: noScrollbars,
+                      child: SingleChildScrollView(
+                        controller: _horizontal,
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: _rightWidth,
+                          height: constraints.maxHeight,
+                          child: Column(
+                            children: [
+                              _headerRow([
+                                ..._scrollColumns.map((column) => _headerCell(
+                                    column.label, column.width,
+                                    hint: column.hint,
+                                    required: _requiredHint(column.key))),
+                                _headerCell('', _actionsWidth),
+                              ]),
+                              Expanded(
+                                child: ListView.builder(
+                                  controller: _rightVertical,
+                                  padding: listPadding,
+                                  itemExtent: _rowHeight,
+                                  itemCount: _pageRows.length,
+                                  itemBuilder: (context, i) =>
+                                      _rightRow(_pageRows[i], i),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            // Le volet figé passe au-dessus, avec une ombre dès que le volet
-            // droit a défilé.
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: _leftWidth,
-              child: AnimatedBuilder(
-                animation: _horizontal,
-                builder: (context, child) => DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: kPWhite,
-                    border: Border(
-                        right:
-                            BorderSide(color: kLBlue.withValues(alpha: 0.9))),
-                    boxShadow: _horizontal.hasClients && _horizontal.offset > 0
-                        ? [
-                            BoxShadow(
-                                color: kBlueEnd.withValues(alpha: 0.18),
-                                blurRadius: 8,
-                                offset: const Offset(3, 0)),
-                          ]
-                        : null,
+              // Le volet figé passe au-dessus, avec une ombre dès que le volet
+              // droit a défilé.
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: _leftWidth,
+                child: AnimatedBuilder(
+                  animation: _horizontal,
+                  builder: (context, child) => DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: kPWhite,
+                      border: Border(
+                          right:
+                              BorderSide(color: kLBlue.withValues(alpha: 0.9))),
+                      boxShadow:
+                          _horizontal.hasClients && _horizontal.offset > 0
+                              ? [
+                                  BoxShadow(
+                                      color: kBlueEnd.withValues(alpha: 0.18),
+                                      blurRadius: 8,
+                                      offset: const Offset(3, 0)),
+                                ]
+                              : null,
+                    ),
+                    child: child,
                   ),
-                  child: child,
+                  child: leftPane,
                 ),
-                child: leftPane,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1365,8 +1500,9 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       {String? hint, String? required}) {
     final TextStyle style = GoogleFonts.poppins(
         fontSize: 13, fontWeight: FontWeight.w600, color: kWhite);
-    Widget cell = SizedBox(
+    Widget cell = Container(
       width: width,
+      decoration: BoxDecoration(border: _headerSeparator),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Align(
@@ -1412,39 +1548,49 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       {required List<Widget> cells, bool leftPane = false}) {
     final String status = _statusOf(row);
     final Color base = _rowColor(status, index);
-    return MouseRegion(
-      onEnter: (_) => _hoveredRowId.value = row.id,
-      onExit: (_) {
-        if (_hoveredRowId.value == row.id) _hoveredRowId.value = null;
-      },
-      child: ValueListenableBuilder<int?>(
-        valueListenable: _hoveredRowId,
-        builder: (context, hovered, child) {
-          final bool active = hovered == row.id || _editing?.rowId == row.id;
-          Color accent = Colors.transparent;
-          if (status == MerchantImportRow.statusFailed) {
-            accent = kRed;
-          } else if (active) {
-            accent = kBlue;
-          }
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              color: active
-                  ? Color.alphaBlend(kBlue.withValues(alpha: 0.08), base)
-                  : base,
-              border: Border(
-                bottom: BorderSide(color: kLBlue.withValues(alpha: 0.45)),
-                left: leftPane
-                    ? BorderSide(color: accent, width: _accentWidth)
-                    : BorderSide.none,
-              ),
-            ),
-            child: child,
-          );
+    return Listener(
+      // Sans entrer dans l'arène des gestes : les clics des cellules restent
+      // intacts.
+      onPointerDown: (_) => _pointRow(row.id),
+      child: MouseRegion(
+        onEnter: (_) => _hoveredRowId.value = row.id,
+        onExit: (_) {
+          if (_hoveredRowId.value == row.id) _hoveredRowId.value = null;
         },
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: cells,
+        child: ListenableBuilder(
+          listenable: Listenable.merge([_hoveredRowId, _cursorRowId]),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cells,
+          ),
+          builder: (context, child) {
+            final bool cursor = _cursorRowId.value == row.id;
+            final bool active = cursor ||
+                _hoveredRowId.value == row.id ||
+                _editing?.rowId == row.id;
+            Color accent = Colors.transparent;
+            if (status == MerchantImportRow.statusFailed) {
+              accent = kRed;
+            } else if (cursor) {
+              accent = kOrange;
+            } else if (active) {
+              accent = kBlue;
+            }
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: active
+                    ? Color.alphaBlend(kBlue.withValues(alpha: 0.08), base)
+                    : base,
+                border: Border(
+                  bottom: BorderSide(color: kLBlue.withValues(alpha: 0.45)),
+                  left: leftPane
+                      ? BorderSide(color: accent, width: _accentWidth)
+                      : BorderSide.none,
+                ),
+              ),
+              child: child,
+            );
+          },
         ),
       ),
     );
@@ -1500,8 +1646,9 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       }
       content = box;
     }
-    return SizedBox(
+    return Container(
       width: _checkWidth,
+      decoration: BoxDecoration(border: _cellSeparator),
       child: Stack(
         alignment: Alignment.center,
         children: [content, _saveBadge(row.id, RowSaveQueue.statusField)],
@@ -1512,7 +1659,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   /// Phrase locale d'une anomalie (code du validateur) ; le message, le code et la
   /// sévérité d'origine restent intacts dans le modèle.
   static String _issueText(MerchantImportIssue issue) =>
-      MerchantEnrichmentMessages.importIssue(issue.code ?? '', field: issue.field);
+      MerchantEnrichmentMessages.importIssue(issue.code ?? '',
+          field: issue.field);
 
   /// Résumé lisible de la ligne : ce qu'il reste à faire, en clair.
   Widget _statusCell(MerchantImportRow row, String status) {
@@ -1598,8 +1746,9 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         child: chip,
       );
     }
-    return SizedBox(
+    return Container(
       width: _statusWidth,
+      decoration: BoxDecoration(border: _cellSeparator),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: Align(alignment: Alignment.centerLeft, child: chip),
@@ -1660,7 +1809,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                     decimal: true, signed: true)
                 : TextInputType.text,
             onSubmitted: (_) {
-              if (identical(_editing, cell)) _finishEdit(commit: true);
+              if (identical(_editing, cell)) {
+                _finishEdit(commit: true);
+                _returnToGrid();
+              }
             },
             onTapOutside: (_) {
               if (identical(_editing, cell)) _finishEdit(commit: true);
@@ -1724,13 +1876,16 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     Widget cell = Container(
       key: ValueKey('cell-${row.id}-$field'),
       width: column.width,
-      color: editing
-          ? null
-          : errors.isNotEmpty
-              ? kRed.withValues(alpha: 0.07)
-              : aiValue
-                  ? kOrange.withValues(alpha: 0.07)
-                  : null,
+      decoration: BoxDecoration(
+        color: editing
+            ? null
+            : errors.isNotEmpty
+                ? kRed.withValues(alpha: 0.07)
+                : aiValue
+                    ? kOrange.withValues(alpha: 0.07)
+                    : null,
+        border: _cellSeparator,
+      ),
       child: Stack(
         children: [
           Positioned.fill(child: content),

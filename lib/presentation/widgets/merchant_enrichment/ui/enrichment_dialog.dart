@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/common.dart';
+import '../../../utils/url_opener.dart';
 
 /// Local presentation only. Callers retain ownership of every action and guard.
 class EnrichmentDialog extends StatelessWidget {
@@ -166,11 +167,41 @@ class EnrichmentBadge extends StatelessWidget {
 }
 
 /// Retains the original DataCell widgets/callbacks; stacks values on narrow views.
+///
+/// Vue large : colonnes séparées par un trait vertical.
 class EnrichmentComparison extends StatelessWidget {
   final List<DataColumn> columns;
   final List<DataRow> rows;
+
+  /// Lignes estompées (rien à appliquer), par index.
+  final Set<int> muted;
   const EnrichmentComparison(
-      {super.key, required this.columns, required this.rows});
+      {super.key,
+      required this.columns,
+      required this.rows,
+      this.muted = const {}});
+
+  static const double _checkWidth = 96;
+  static const _separator =
+      VerticalDivider(width: 1, thickness: 1, color: kLBlue);
+
+  /// Cellules d'une ligne large, séparées par un trait vertical.
+  static Widget _wideRow(List<Widget> cells) => IntrinsicHeight(
+        child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          SizedBox(
+              width: _checkWidth,
+              child: Align(alignment: Alignment.center, child: cells[0])),
+          for (final cell in cells.skip(1)) ...[
+            _separator,
+            Expanded(
+                child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: Align(alignment: Alignment.centerLeft, child: cell))),
+          ],
+        ]),
+      );
+
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, size) {
         final wide = size.maxWidth >= 700;
@@ -178,52 +209,136 @@ class EnrichmentComparison extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (wide)
-                Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(children: [
-                SizedBox(width: 112, child: columns[0].label),
-                      for (final column in columns.skip(1))
-                        Expanded(child: column.label),
-                    ])),
-              for (final row in rows)
                 Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: kLGrey, borderRadius: BorderRadius.circular(12)),
-                  child: wide
-                      ? Row(children: [
-                  SizedBox(width: 112, child: row.cells[0].child),
-                          for (final cell in row.cells.skip(1))
-                            Expanded(
-                                child: Padding(
-                                    padding: const EdgeInsets.only(right: 12),
-                                    child: cell.child)),
-                        ])
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                              Row(children: [
-                                row.cells[0].child,
-                                Expanded(child: row.cells[1].child)
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                        color: kBlue.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12)),
+                    child: DefaultTextStyle.merge(
+                        style: const TextStyle(
+                            color: kBlueEnd, fontWeight: FontWeight.w600),
+                        child: _wideRow(
+                            [for (final column in columns) column.label]))),
+              for (var r = 0; r < rows.length; r++)
+                Opacity(
+                  opacity: muted.contains(r) ? 0.6 : 1,
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.all(wide ? 8 : 12),
+                    decoration: BoxDecoration(
+                        color: kLGrey,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: kLBlue.withValues(alpha: 0.6))),
+                    child: wide
+                        ? _wideRow(
+                            [for (final cell in rows[r].cells) cell.child])
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                                Row(children: [
+                                  rows[r].cells[0].child,
+                                  Expanded(child: rows[r].cells[1].child)
+                                ]),
+                                for (var i = 2; i < rows[r].cells.length; i++)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          DefaultTextStyle.merge(
+                                              style: const TextStyle(
+                                                  color: kBlue,
+                                                  fontWeight: FontWeight.w600),
+                                              child: columns[i].label),
+                                          rows[r].cells[i].child,
+                                        ]),
+                                  ),
                               ]),
-                              for (var i = 2; i < row.cells.length; i++)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        DefaultTextStyle.merge(
-                                            style: const TextStyle(
-                                                color: kBlue,
-                                                fontWeight: FontWeight.w600),
-                                            child: columns[i].label),
-                                        row.cells[i].child,
-                                      ]),
-                                ),
-                            ]),
+                  ),
                 ),
             ]);
       });
+}
+
+/// Petite pastille d'information (SIRET, état, niveau de correspondance…).
+class EnrichmentChip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final Color color;
+
+  /// Détail affiché au survol.
+  final String? tooltip;
+  const EnrichmentChip(this.label,
+      {super.key, this.icon, this.color = kBlueEnd, this.tooltip});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget chip = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.35))),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (icon != null) ...[
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+        ],
+        Flexible(
+            child: Text(label,
+                style: TextStyle(fontSize: 12, color: color, height: 1.3))),
+        if (tooltip != null) ...[
+          const SizedBox(width: 4),
+          Icon(Icons.info_outline, size: 13, color: color),
+        ],
+      ]),
+    );
+    if (tooltip != null) {
+      chip = Tooltip(
+          message: tooltip,
+          waitDuration: const Duration(milliseconds: 200),
+          child: chip);
+    }
+    return chip;
+  }
+}
+
+/// Lien court vers une source publique : le domaine est affiché, l'adresse
+/// complète est au survol. Seules les adresses http(s) sont ouvertes.
+class EnrichmentSourceLink extends StatelessWidget {
+  final String url;
+  const EnrichmentSourceLink(this.url, {super.key});
+
+  static String? _host(String url) {
+    final uri = Uri.tryParse(url.trim());
+    if (uri == null ||
+        !(uri.scheme == 'https' || uri.scheme == 'http') ||
+        uri.host.isEmpty) {
+      return null;
+    }
+    return uri.host;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final host = _host(url);
+    if (host == null) return const SizedBox.shrink();
+    return Tooltip(
+      message: url,
+      waitDuration: const Duration(milliseconds: 300),
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+            minimumSize: const Size(0, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            visualDensity: VisualDensity.compact),
+        onPressed: () => openExternalUrl(url),
+        icon: const Icon(Icons.open_in_new, size: 15),
+        label: Text(host,
+            style: const TextStyle(
+                fontSize: 12, decoration: TextDecoration.underline)),
+      ),
+    );
+  }
 }

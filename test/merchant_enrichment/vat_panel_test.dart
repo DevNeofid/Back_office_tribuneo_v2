@@ -66,11 +66,21 @@ void main() {
       (tester) async {
     await openCandidate(tester, vatCandidateJson());
 
-    expect(find.textContaining('trouvée dans la source DGFiP datée'),
+    expect(find.textContaining('Trouvée dans la source DGFiP datée'),
         findsWidgets);
     expect(find.text('Appliquer la TVA $vatNumber'), findsOneWidget);
     expect(find.textContaining('Date de lecture : 3 novembre 2026 à '), findsOneWidget);
-    expect(find.textContaining('vat_no%3D%22G3990000001%22'), findsOneWidget);
+    // Requête DGFiP complète au survol du lien court, pas dans le texte.
+    final vatLink = find.byKey(const ValueKey('vat-source-link'));
+    expect(vatLink, findsOneWidget);
+    expect(
+        find.descendant(
+            of: vatLink,
+            matching: find.byWidgetPredicate((w) =>
+                w is Tooltip &&
+                (w.message ?? '').contains('vat_no%3D%22G3990000001%22'))),
+        findsOneWidget);
+    expect(find.textContaining('vat_no%3D%22G3990000001%22'), findsNothing);
     expect(find.byKey(const ValueKey('vat-disclaimer')), findsOneWidget);
     expect(find.textContaining('ni une vérification VIES en temps réel'),
         findsOneWidget);

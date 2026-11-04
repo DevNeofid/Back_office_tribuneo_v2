@@ -10,6 +10,10 @@
 analyzer:
   errors:
     avoid_web_libraries_in_flutter: ignore
+  exclude:
+    # Lancé uniquement par test/merchant_enrichment/m12_verify.ps1, qui génère
+    # dans sa copie jetable les anciens modèles `m12_*` qu'il importe.
+    - test/merchant_enrichment/m12_compatibility.dart
 i ignorenclude: package:flutter_lints/flutter.yaml
 
 linter:

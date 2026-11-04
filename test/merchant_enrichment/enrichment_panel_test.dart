@@ -107,6 +107,43 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets(
+      'select all checks only eligible rows, a second click clears; no request',
+      (tester) async {
+    rows[4] = row(4);
+    rows[5] = row(5);
+    await pump(tester);
+    final all = find.byKey(const ValueKey('enrichment-select-all'));
+    expect(tester.widget<CheckboxListTile>(all).value, false);
+    await tester.tap(all);
+    await tester.pumpAndSettle();
+    // Lignes 1, 4 et 5 ; jamais la ligne validée ni la ligne client.
+    expect(find.text('Rechercher sur ces 3 lignes'), findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(all).value, true);
+    for (final id in [1, 4, 5]) {
+      expect(
+          tester
+              .widget<CheckboxListTile>(
+                  find.byKey(ValueKey('enrichment-scope-$id')))
+              .value,
+          true);
+    }
+    // Une ligne décochée : sélection partielle.
+    await tester.tap(find.byKey(const ValueKey('enrichment-scope-4')));
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(all).value, isNull);
+    await tester.tap(all);
+    await tester.pumpAndSettle();
+    expect(find.text('Rechercher sur ces 3 lignes'), findsOneWidget);
+    await tester.tap(all);
+    await tester.pumpAndSettle();
+    expect(find.text('Rechercher sur ces 0 lignes'), findsOneWidget);
+    expect(transport.calls.any((c) => c.method == 'POST'), false);
+    // Historique : la liste déroulante seule, sans pagination.
+    expect(find.text('Recherches précédentes'), findsNothing);
+    expect(find.text('Recherches suivantes'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets(
       'candidate requires manual choice; sources and before/after; explicit apply',
       (tester) async {
     await pump(tester);
@@ -118,12 +155,21 @@ void main() {
     await tester.tap(find.text('Comparer / choisir'));
     await tester.pumpAndSettle();
     expect(find.text('Avant'), findsOneWidget);
-    expect(find.textContaining('https://example.invalid/synthetic-source'),
+    // Sources folded by default; the full URL is the link tooltip.
+    await tester.ensureVisible(find.textContaining('Sources ('));
+    await tester.tap(find.textContaining('Sources ('));
+    await tester.pumpAndSettle();
+    expect(
+        find.byWidgetPredicate((w) =>
+            w is Tooltip &&
+            (w.message ?? '').contains('https://example.invalid/synthetic-source')),
         findsWidgets);
     final apply = find.widgetWithText(FilledButton, 'Appliquer au brouillon');
     expect(tester.widget<FilledButton>(apply).onPressed, isNull);
     // No candidate/field is selected implicitly, including an unambiguous result.
     final checkboxes = find.byType(Checkbox);
+    await tester.ensureVisible(checkboxes.at(2));
+    await tester.pumpAndSettle();
     await tester.tap(checkboxes.at(2));
     await tester.pumpAndSettle();
     expect(tester.widget<FilledButton>(apply).onPressed, isNotNull);

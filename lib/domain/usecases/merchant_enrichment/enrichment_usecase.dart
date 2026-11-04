@@ -49,6 +49,11 @@ class EnrichmentUseCase extends ChangeNotifier {
       this.maxPolls = 100});
 
   bool get available => enabled && capability?.available == true;
+
+  /// Message de réussite d'une application (affiché comme information, pas
+  /// comme erreur).
+  static const appliedMessage =
+      'Proposition appliquée au brouillon. Validation humaine et import restent à effectuer.';
   void _emit() {
     if (!_disposed) notifyListeners();
   }
@@ -379,8 +384,7 @@ class EnrichmentUseCase extends ChangeNotifier {
         if (index >= 0) page!.items[index] = result.proposal;
         _invalidProposals.add(proposal.id);
         success = true;
-        message =
-            'Proposition appliquée au brouillon. Validation humaine et import restent à effectuer.';
+        message = appliedMessage;
       } on EnrichmentException catch (e) {
         pending.onError(e.status >= 500 ? null : e.code);
         if (e.conflict) {

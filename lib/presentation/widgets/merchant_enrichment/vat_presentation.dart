@@ -1,4 +1,5 @@
 import '../../utils/common.dart';
+import 'ui/enrichment_dialog.dart';
 import 'package:flutter/material.dart';
 import '../../../domain/errors/merchant_enrichment_messages.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
@@ -67,12 +68,18 @@ class VatCandidateSection extends StatelessWidget {
                 subtitle: Text(rowSiretEmpty
                     ? 'La ligne n’a pas de SIRET : la TVA s’applique avec le SIRET ${candidate.siret} de ce candidat, dans la même opération.'
                     : 'Rattachée au SIREN ${candidate.siren} du SIRET de la ligne.')),
-            if (source != null)
+            if (source != null) ...[
               SelectableText(
                   'Source : DGFiP, numéros de TVA intracommunautaire (data.economie.gouv.fr) · '
-                  'Date de lecture : ${MerchantEnrichmentMessages.sourceDate(source.retrievedAt)}\n'
-                  '${source.url} · Référence : ${source.recordId ?? '—'}',
+                  'Date de lecture : ${MerchantEnrichmentMessages.sourceDate(source.retrievedAt)} · '
+                  'Référence : ${source.recordId ?? '—'}',
                   key: const ValueKey('vat-source')),
+              // Adresse complète de la requête au survol, pas dans le texte.
+              Align(
+                  alignment: Alignment.centerLeft,
+                  child: EnrichmentSourceLink(source.url,
+                      key: const ValueKey('vat-source-link'))),
+            ],
           ],
           if (capability && candidate.vatStatus != VatStatus.notChecked)
             const Text(vatDisclaimer,

@@ -1,6 +1,4 @@
-import 'package:web/web.dart' as web;
-
-/// Ouvre [url] dans un nouvel onglet, sans lien vers le BO (`noopener`).
-void openExternalUrl(String url) {
-  web.window.open(url, '_blank', 'noopener,noreferrer');
-}
+// Ouverture d'un lien externe : implémentation web, ou sans effet hors web
+// (tests sur la VM, où `package:web` n'est pas disponible).
+export 'url_opener_stub.dart'
+    if (dart.library.js_interop) 'url_opener_web.dart';

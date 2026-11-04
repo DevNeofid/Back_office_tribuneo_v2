@@ -164,7 +164,9 @@ void main() {
     await openPanel(tester);
     await openProposals(tester);
 
-    expect(shows(tester, 'Ligne 1 · Choix manuel requis'), isTrue);
+    // Ligne repliée : numéro et nom, puis état et nombre de candidats.
+    expect(shows(tester, 'Ligne 1 · ${rows[1]!.textOf('name')}'), isTrue);
+    expect(shows(tester, 'Choix manuel requis · 1 candidat'), isTrue);
     expect(
         shows(
             tester,
@@ -173,14 +175,18 @@ void main() {
         isTrue,
         reason:
             'raisons traduites, dédupliquées, inconnu en une phrase neutre');
+    // Niveau en pastille, raisons du candidat dans son infobulle.
+    expect(shows(tester, 'Correspondance à confirmer'), isTrue);
     expect(
         shows(
             tester,
-            'Correspondance à confirmer · Le nom correspond à la recherche. · '
-            'L’adresse reste à vérifier. · Une vérification complémentaire est nécessaire.'),
+            'Le nom correspond à la recherche.\n'
+            'L’adresse reste à vérifier.\nUne vérification complémentaire est nécessaire.'),
         isTrue);
     expect(shows(tester, 'Précision : Rue'), isTrue);
-    expect(shows(tester, 'État de l’établissement non renseigné'), isTrue);
+    // Adresse seule : pas d'état d'établissement affiché.
+    expect(shows(tester, 'Adresse seule'), isTrue);
+    expect(shows(tester, 'État de l’établissement'), isFalse);
     expectNoLeak(tester);
 
     await tester.tap(find.text('Comparer / choisir'));
@@ -191,14 +197,22 @@ void main() {
     expect(find.text('Code postal'), findsOneWidget);
     expect(find.text('Latitude'), findsOneWidget);
     expect(find.text('Longitude'), findsOneWidget);
-    // Source : attribution lisible, date française, URL et référence conservées.
-    expect(shows(tester, 'Latitude · Géocodage IGN · ${M.sourceDate(date)}'),
+    // Sources repliées par défaut, puis regroupées par enregistrement :
+    // attribution lisible, date française, référence ; URL au survol du lien.
+    expect(shows(tester, 'Géocodage IGN'), isFalse);
+    await tester.ensureVisible(find.text('Sources (1)'));
+    await tester.tap(find.text('Sources (1)'));
+    await tester.pumpAndSettle();
+    expect(shows(tester, 'Adresse, Code postal, Ville, Pays, Latitude, Longitude'),
         isTrue);
-    expect(M.sourceDate(date), isNot('Date non disponible'));
     expect(
         shows(tester,
-            'https://example.invalid/synthetic-source · Référence : synthetic-address'),
+            'Géocodage IGN · ${M.sourceDate(date)} · Réf. synthetic-address · Précision : Rue'),
         isTrue);
+    expect(M.sourceDate(date), isNot('Date non disponible'));
+    expect(shows(tester, 'https://example.invalid/synthetic-source'), isTrue);
+    expect(find.text('example.invalid'), findsOneWidget,
+        reason: 'lien court : le domaine, pas l’URL complète');
     expect(shows(tester, 'J’accepte des coordonnées approximatives (Rue)'),
         isTrue);
     expectNoLeak(tester);

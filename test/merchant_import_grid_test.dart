@@ -144,7 +144,12 @@ void main() {
     await _pumpGrid(tester, useCase);
 
     await tester.tap(find.text('Boulangerie Paul'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    // Le clic rend la ligne courante pour le clavier, mais la saisie va bien
+    // au champ ouvert.
+    expect(
+        tester.widget<TextField>(find.byType(TextField).last).focusNode!.hasFocus,
+        isTrue);
     await tester.enterText(find.byType(TextField).last, 'Paul & Fils');
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pumpAndSettle();
@@ -193,5 +198,58 @@ void main() {
     expect(
         useCase.patches.last, {'row': 1, 'version': 2, 'status': 'validated'});
     expect(find.text('Importer les lignes validées (1)'), findsOneWidget);
+  });
+
+  testWidgets(
+      'clavier : ↑ ↓ ligne, Espace valide, E écarte, Entrée modifie, Échap rend la main',
+      (tester) async {
+    final _FakeUseCase useCase = _FakeUseCase([
+      _row(1, 'Boulangerie Paul'),
+      _row(2, 'Fleuriste', issues: const [
+        MerchantImportIssue(
+            field: 'siret', level: 'error', message: 'SIRET absent.')
+      ]),
+      _row(3, 'Primeur'),
+    ]);
+    await _pumpGrid(tester, useCase);
+    expect(find.text('Raccourcis clavier'), findsOneWidget);
+
+    // Un clic sur une ligne en fait la ligne courante.
+    await tester.tap(find.text('Prête à valider').first);
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pumpAndSettle();
+    expect(
+        useCase.patches.last, {'row': 1, 'version': 1, 'status': 'validated'});
+
+    // Ligne bloquante : rien n'est envoyé, un message l'explique.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pumpAndSettle();
+    expect(useCase.patches, hasLength(1));
+    expect(find.text('Ligne 2 : à corriger avant validation.'), findsOneWidget);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyE);
+    await tester.pumpAndSettle();
+    expect(
+        useCase.patches.last, {'row': 3, 'version': 1, 'status': 'rejected'});
+
+    // Entrée : édition du nom ; Échap : retour au clavier de la grille.
+    final int fields = tester.widgetList(find.byType(TextField)).length;
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNWidgets(fields + 1));
+    expect(
+        tester.widget<TextField>(find.byType(TextField).last).controller!.text,
+        'Boulangerie Paul');
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNWidgets(fields));
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pumpAndSettle();
+    expect(useCase.patches.last, {'row': 1, 'version': 2, 'status': 'pending'});
   });
 }
