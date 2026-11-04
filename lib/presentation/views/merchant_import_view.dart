@@ -9,14 +9,16 @@ import 'package:back_office_tribuneo_v2/domain/models/merchant_import_batch_mode
 import 'package:back_office_tribuneo_v2/domain/usecases/merchant_import_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/merchant_import/merchant_import_grid.dart';
 
-/// Import assisté des commerçants, ouvert en plein écran depuis « Partenaires ».
+/// Import assisté des commerçants : menu « Import » de `MySinglePage`, aussi
+/// ouvert depuis les boutons d'import des écrans Partenaires et Clients.
 ///
 /// Premier état : la liste des lots ; un lot ouvert affiche sa grille de
-/// relecture. Retourne `true` à la fermeture si au moins un commerçant a été
-/// importé (la liste des partenaires est alors à recharger).
+/// relecture. Quitter l'écran avec un lot ouvert attend la fin des
+/// enregistrements (`MySinglePageState.setLeaveGuard`).
 class MerchantImportView extends StatefulWidget {
   const MerchantImportView({super.key});
 
@@ -41,12 +43,20 @@ class _MerchantImportViewState extends State<MerchantImportView> {
   String? _loadError;
 
   MerchantImportBatch? _openBatch;
-  bool _hasImported = false;
+  MySinglePageState? _page;
 
   @override
   void initState() {
     super.initState();
+    _page = MySinglePage.maybeOf(context);
+    _page?.setLeaveGuard(_canLeave);
     _loadBatches();
+  }
+
+  @override
+  void dispose() {
+    _page?.clearLeaveGuard(_canLeave);
+    super.dispose();
   }
 
   Future<void> _loadBatches() async {
@@ -153,13 +163,13 @@ class _MerchantImportViewState extends State<MerchantImportView> {
     _loadBatches();
   }
 
-  Future<void> _close() async {
-    if (_openBatch != null) {
-      final bool canLeave =
-          await _gridKey.currentState?.prepareToLeave() ?? true;
-      if (!canLeave) return;
-    }
-    if (mounted) Navigator.of(context).pop(_hasImported);
+  /// Avant de changer d'écran : attend la fin des enregistrements du lot
+  /// ouvert et avertit s'il reste des échecs.
+  Future<bool> _canLeave() async {
+    if (_openBatch == null) return true;
+    return await _gridKey.currentState
+            ?.prepareToLeave(actionLabel: 'Quitter') ??
+        true;
   }
 
   void _snack(String message, Color color) {
@@ -175,42 +185,20 @@ class _MerchantImportViewState extends State<MerchantImportView> {
 
   @override
   Widget build(BuildContext context) {
-    // Messager propre à la vue : ceux de l'application s'afficheraient sous ce
-    // dialogue plein écran.
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _close();
-      },
-      child: ScaffoldMessenger(
-        key: _messengerKey,
-        child: Scaffold(
-          backgroundColor: kPLGrey,
-          appBar: AppBar(
-            backgroundColor: kBlue,
-            foregroundColor: kWhite,
-            automaticallyImplyLeading: false,
-            title: Text('Import de commerçants',
-                style: GoogleFonts.poppins(
-                    fontSize: 20, fontWeight: FontWeight.w600, color: kWhite)),
-            actions: [
-              IconButton(
-                tooltip: 'Fermer',
-                onPressed: _close,
-                icon: const Icon(Icons.close),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          body: _openBatch != null
-              ? MerchantImportGrid(
-                  key: _gridKey,
-                  batch: _openBatch!,
-                  onBack: _backToList,
-                  onImported: () => _hasImported = true,
-                )
-              : _buildBatchList(),
-        ),
+    // Messager propre à la vue : les messages s'affichent dans la zone de
+    // l'import.
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        backgroundColor: kPLGrey,
+        body: _openBatch != null
+            ? MerchantImportGrid(
+                key: _gridKey,
+                batch: _openBatch!,
+                onBack: _backToList,
+                onImported: () {},
+              )
+            : _buildBatchList(),
       ),
     );
   }

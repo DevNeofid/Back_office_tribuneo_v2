@@ -7,6 +7,7 @@ import 'package:back_office_tribuneo_v2/config/responsive.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_avatar.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_docked_panel.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_panel.dart';
 
 const double _margin = 24;
@@ -22,14 +23,35 @@ const double _tabHeight = 48;
 ///
 /// À placer dans un `Positioned.fill` au-dessus du contenu ; les zones vides
 /// laissent passer les clics vers la page.
-class AssistantOverlay extends StatefulWidget {
-  const AssistantOverlay({super.key});
+///
+/// [docked] : conversation contextuelle (ex. comparaison Néo de l'import de
+/// commerçants) affichée à la place du panneau ordinaire tant qu'elle existe.
+class AssistantOverlay extends StatelessWidget {
+  final AssistantDockedPanel? docked;
+
+  const AssistantOverlay({super.key, this.docked});
 
   @override
-  State<AssistantOverlay> createState() => _AssistantOverlayState();
+  Widget build(BuildContext context) {
+    final AssistantDockedPanel? docked = this.docked;
+    if (docked == null) return const _AssistantOverlayBody(docked: null);
+    return ListenableBuilder(
+      listenable: docked,
+      builder: (context, _) => _AssistantOverlayBody(docked: docked),
+    );
+  }
 }
 
-class _AssistantOverlayState extends State<AssistantOverlay> {
+class _AssistantOverlayBody extends StatefulWidget {
+  final AssistantDockedPanel? docked;
+
+  const _AssistantOverlayBody({required this.docked});
+
+  @override
+  State<_AssistantOverlayBody> createState() => _AssistantOverlayState();
+}
+
+class _AssistantOverlayState extends State<_AssistantOverlayBody> {
   /// Brouillon du message, conservé quand le panneau est réduit.
   final TextEditingController _input = TextEditingController();
 
@@ -42,7 +64,9 @@ class _AssistantOverlayState extends State<AssistantOverlay> {
   @override
   Widget build(BuildContext context) {
     final AssistantController controller = context.watch<AssistantController>();
-    if (!controller.ready) return const SizedBox.shrink();
+    final Widget? dockedPanel = widget.docked?.panel;
+    if (!controller.ready && dockedPanel == null)
+      return const SizedBox.shrink();
 
     final bool reduceMotion = MediaQuery.of(context).disableAnimations;
     final bool desktop = Responsive.isDesktop(context);
@@ -66,13 +90,16 @@ class _AssistantOverlayState extends State<AssistantOverlay> {
                   child: child,
                 ),
         ),
-        child: controller.isOpen
-            ? AssistantPanel(
-                key: const ValueKey('assistant-panel'),
-                input: _input,
-                fullScreen: !desktop,
-              )
-            : const SizedBox.shrink(key: ValueKey('assistant-panel-closed')),
+        child: dockedPanel != null
+            ? KeyedSubtree(key: widget.docked!.panelKey, child: dockedPanel)
+            : controller.isOpen
+                ? AssistantPanel(
+                    key: const ValueKey('assistant-panel'),
+                    input: _input,
+                    fullScreen: !desktop,
+                  )
+                : const SizedBox.shrink(
+                    key: ValueKey('assistant-panel-closed')),
       );
 
       return Stack(
@@ -104,10 +131,16 @@ class _AssistantOverlayState extends State<AssistantOverlay> {
             Positioned(
               right: _margin,
               bottom: _margin,
+              // Un peu plus large pour une conversation contextuelle : elle
+              // affiche des fiches (candidats) en plus des messages.
               width: math.max(
-                  0, math.min(400, constraints.maxWidth - 2 * _margin)),
+                  0,
+                  math.min(dockedPanel != null ? 480 : 400,
+                      constraints.maxWidth - 2 * _margin)),
               height: math.max(
-                  0, math.min(600, constraints.maxHeight - 2 * _margin)),
+                  0,
+                  math.min(dockedPanel != null ? 680 : 600,
+                      constraints.maxHeight - 2 * _margin)),
               child: panelSwitcher,
             )
           else

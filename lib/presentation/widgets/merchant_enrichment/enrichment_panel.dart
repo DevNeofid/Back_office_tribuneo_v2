@@ -7,7 +7,10 @@ import '../../../domain/models/merchant_enrichment/chat_context_reference.dart';
 import '../../../domain/repositories/assistant_repository.dart';
 import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
 import 'chat_comparison.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../config/responsive.dart';
+import '../assistant/assistant_docked_panel.dart';
 import '../../../domain/models/merchant_import_row_model.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/usecases/merchant_enrichment/enrichment_usecase.dart';
@@ -33,10 +36,20 @@ class EnrichmentButton extends StatefulWidget {
 class _EnrichmentButtonState extends State<EnrichmentButton> {
   final _comparisonLifetime = ChatComparisonLifetime();
   bool _opening = false;
+
+  /// Comparaison affichée dans le bouton flottant de Néo, à fermer si la
+  /// grille disparaît (changement d'écran).
+  AssistantDockedPanel? _docked;
+  Object? _dockedToken;
   @override
   void dispose() {
     _comparisonLifetime.invalidate();
     _comparisonLifetime.dispose();
+    final docked = _docked, token = _dockedToken;
+    // Arbre verrouillé pendant le démontage : fermeture différée.
+    if (docked != null && token != null) {
+      scheduleMicrotask(() => docked.close(token));
+    }
     super.dispose();
   }
   @override
@@ -52,15 +65,63 @@ class _EnrichmentButtonState extends State<EnrichmentButton> {
     setState(() => _opening = true);
     try {
       if (!await widget.prepare() || !mounted) return;
-      await showDialog<void>(
-          context: context,
-          builder: (_) =>
-              EnrichmentPanel(session: widget.session, rows: widget.rows,
-                scopeActive: () => mounted, lifetime: _comparisonLifetime, comparisonRepository: widget.comparisonRepository));
+      // Avec le bouton flottant de Néo, « Comparer avec Néo » ferme ce
+      // dialogue et ouvre la comparaison dans le panneau de Néo ; le dialogue
+      // est rouvert ensuite si la comparaison y renvoie.
+      final docked = AssistantDockedScope.maybeOf(context);
+      while (mounted) {
+        final comparison = await showDialog<ChatComparisonUseCase>(
+            context: context,
+            builder: (_) => EnrichmentPanel(
+                session: widget.session,
+                rows: widget.rows,
+                scopeActive: () => mounted,
+                lifetime: _comparisonLifetime,
+                comparisonRepository: widget.comparisonRepository,
+                dockComparison: docked != null));
+        widget.session.pause();
+        if (comparison == null || docked == null || !mounted) return;
+        final outcome = await _compareInAssistant(docked, comparison);
+        if (!mounted) return;
+        final selection = outcome.selection;
+        if (selection != null &&
+            _comparable(widget.session, selection.proposal,
+                hasRepository: widget.comparisonRepository != null)) {
+          await showDialog<void>(
+              context: context,
+              builder: (_) => _CandidateReview(
+                  session: widget.session,
+                  proposal: selection.proposal,
+                  candidate: selection.candidate));
+        }
+        if (!outcome.reopenPanel) return;
+      }
     } finally {
       widget.session.pause();
       if (mounted) setState(() => _opening = false);
     }
+  }
+
+  Future<ChatComparisonOutcome> _compareInAssistant(
+      AssistantDockedPanel docked, ChatComparisonUseCase comparison) {
+    final completer = Completer<ChatComparisonOutcome>();
+    void done(ChatComparisonOutcome outcome) {
+      if (completer.isCompleted) return;
+      completer.complete(outcome);
+      final token = _dockedToken;
+      _dockedToken = null;
+      if (token != null) docked.close(token);
+    }
+
+    _docked = docked;
+    _dockedToken = docked.show(
+        ChatComparison(
+            session: comparison,
+            fullScreen: !Responsive.isDesktop(context),
+            onDone: done),
+        // Remplacée par une autre conversation ancrée.
+        onDismissed: () => done(ChatComparisonOutcome.closed));
+    return completer.future;
   }
 
   @override
@@ -96,8 +157,13 @@ class EnrichmentPanel extends StatefulWidget {
   final bool Function()? scopeActive;
   final ChatComparisonLifetime? lifetime;
   final AssistantRepository Function(ChatContextReference, String)? comparisonRepository;
+
+  /// « Comparer avec Néo » ferme ce dialogue en retournant la comparaison
+  /// préparée, affichée ensuite dans le bouton flottant de Néo.
+  final bool dockComparison;
   const EnrichmentPanel({super.key, required this.session, required this.rows,
-    this.scopeActive, this.lifetime, this.comparisonRepository});
+    this.scopeActive, this.lifetime, this.comparisonRepository,
+    this.dockComparison = false});
   @override
   State<EnrichmentPanel> createState() => _EnrichmentPanelState();
 }
@@ -119,15 +185,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
   }
 
   bool _comparing = false;
-  bool _canCompare(EnrichmentProposal p) {
-    final s = widget.session, row = s.currentRow(p.rowId);
-    return (AssistantRepository.gatewayReady || widget.comparisonRepository != null) &&
-      s.available && s.capability?.chatResolution == true && !s.busy && s.batchEditable() &&
-      (p.state == 'ambiguous' || (s.capability?.targetedResearch == true &&
-        {'address_only', 'not_found', 'insufficient_input', 'provider_unavailable'}.contains(p.state))) &&
-      p.batchId == s.batchId && (p.candidates.isNotEmpty || s.capability?.targetedResearch == true) &&
-      p.candidates.length <= 5 && row != null && EnrichmentUseCase.eligible(row) && row.version == p.baseVersion;
-  }
+  bool _canCompare(EnrichmentProposal p) => _comparable(widget.session, p,
+      hasRepository: widget.comparisonRepository != null);
   Future<void> _compare(EnrichmentProposal p) async {
     if (_comparing || !_canCompare(p)) return;
     setState(() => _comparing = true);
@@ -137,10 +196,19 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
       if (!mounted || !_canCompare(p)) return;
       final reference = ChatContextReference(batchId: p.batchId, rowId: p.rowId,
         proposalId: p.id, expectedVersion: p.baseVersion);
+      final docked = widget.dockComparison;
       final comparison = ChatComparisonUseCase(enrichment: s, reference: reference, proposal: p,
-        tenant: tenant, lifetime: widget.lifetime, active: () => mounted && (widget.scopeActive?.call() ?? true),
+        tenant: tenant, lifetime: widget.lifetime,
+        // Ancrée dans Néo, la comparaison survit à ce dialogue : elle dépend
+        // seulement de la grille.
+        active: docked ? () => widget.scopeActive?.call() ?? true
+          : () => mounted && (widget.scopeActive?.call() ?? true),
         assistant: widget.comparisonRepository?.call(reference, tenant) ??
           ApiAssistantRepository(enrichmentContext: reference, expectedTenant: tenant));
+      if (docked) {
+        Navigator.pop(context, comparison);
+        return;
+      }
       final selected = await showDialog<({EnrichmentProposal proposal, EnrichmentCandidate candidate})>(
         context: context, builder: (_) => ChatComparison(session: comparison));
       if (!mounted || selected == null || !_canCompare(selected.proposal)) return;
@@ -684,6 +752,17 @@ class _CandidateReviewState extends State<_CandidateReview> {
               ]);
         });
   }
+}
+
+bool _comparable(EnrichmentUseCase s, EnrichmentProposal p,
+    {required bool hasRepository}) {
+  final row = s.currentRow(p.rowId);
+  return (AssistantRepository.gatewayReady || hasRepository) &&
+    s.available && s.capability?.chatResolution == true && !s.busy && s.batchEditable() &&
+    (p.state == 'ambiguous' || (s.capability?.targetedResearch == true &&
+      {'address_only', 'not_found', 'insufficient_input', 'provider_unavailable'}.contains(p.state))) &&
+    p.batchId == s.batchId && (p.candidates.isNotEmpty || s.capability?.targetedResearch == true) &&
+    p.candidates.length <= 5 && row != null && EnrichmentUseCase.eligible(row) && row.version == p.baseVersion;
 }
 
 // Libellés du catalogue partagé (domain/errors/merchant_enrichment_messages.dart) :

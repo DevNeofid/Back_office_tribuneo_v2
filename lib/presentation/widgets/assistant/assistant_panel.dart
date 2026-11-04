@@ -23,8 +23,18 @@ class AssistantPanel extends StatefulWidget {
   final TextEditingController input;
   final bool fullScreen;
 
+  /// Titre de l'en-tête.
+  final String title;
+
+  /// Contexte affiché sous l'en-tête (conversation contextuelle).
+  final Widget? banner;
+
   const AssistantPanel(
-      {super.key, required this.input, required this.fullScreen});
+      {super.key,
+      required this.input,
+      required this.fullScreen,
+      this.title = 'Néo',
+      this.banner});
 
   @override
   State<AssistantPanel> createState() => _AssistantPanelState();
@@ -186,6 +196,7 @@ class _AssistantPanelState extends State<AssistantPanel> {
             child: Column(
               children: [
                 _buildHeader(controller),
+                if (widget.banner != null) widget.banner!,
                 Expanded(
                   child: messages.isEmpty && !pending
                       ? _buildWelcome()
@@ -208,10 +219,11 @@ class _AssistantPanelState extends State<AssistantPanel> {
         children: [
           const AssistantAvatar(size: 32),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Néo',
-              style: TextStyle(
+              widget.title,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600),

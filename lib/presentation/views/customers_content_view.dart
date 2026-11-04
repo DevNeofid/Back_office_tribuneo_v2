@@ -14,6 +14,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/cus
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/customers/update_customers_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/order_form.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/check_siret_dialog.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/merchant_import/merchant_import_shortcut.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 
 enum SampleItem { itemOne, itemTwo }
@@ -429,14 +430,9 @@ class CustomersContentViewState extends State<CustomersContentView>
       children: [
         SelectableText('Ajouter un client',
             style: GoogleFonts.roboto(fontSize: 20)),
+        const SizedBox(height: 10),
         Center(
-          child: ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(kOrange),
-                iconColor: WidgetStateProperty.all(kWhite),
-              ),
-              onPressed: () => _askCustomerType(),
-              child: const Icon(Icons.add)),
+          child: AddOrImportButtons(onAdd: () => _askCustomerType()),
         ),
         const SizedBox(height: 20),
         Row(

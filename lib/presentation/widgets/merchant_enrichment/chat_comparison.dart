@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/assistant_model.dart';
+import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
+import '../../utils/common.dart';
 import '../../../domain/usecases/merchant_enrichment/chat_comparison_usecase.dart';
 import '../assistant/assistant_controller.dart';
 import '../assistant/assistant_panel.dart';
@@ -10,10 +12,44 @@ import 'research_actions.dart';
 import 'research_form.dart';
 import '../../../domain/usecases/merchant_enrichment/research_usecase.dart';
 
+typedef ChatComparisonSelection = ({
+  EnrichmentProposal proposal,
+  EnrichmentCandidate candidate
+});
+
+/// Fin d'une comparaison affichée dans le bouton flottant de Néo.
+class ChatComparisonOutcome {
+  /// Candidat choisi dans la conversation, à relire avant application.
+  final ChatComparisonSelection? selection;
+
+  /// Rouvrir « Compléter les informations » (retour au choix manuel, candidat
+  /// choisi, recherche précisée).
+  final bool reopenPanel;
+
+  const ChatComparisonOutcome._(this.selection, this.reopenPanel);
+
+  /// Panneau fermé ou réduit : on ne rouvre rien.
+  static const ChatComparisonOutcome closed =
+      ChatComparisonOutcome._(null, false);
+  static const ChatComparisonOutcome manual =
+      ChatComparisonOutcome._(null, true);
+  const ChatComparisonOutcome.selected(ChatComparisonSelection selection)
+      : this._(selection, true);
+}
+
 /// Dedicated controller and session: the ordinary assistant is never reset or replaced.
+///
+/// Sans [onDone] : affichage en dialogue, fermé par `Navigator.pop` avec le
+/// candidat choisi. Avec [onDone] : panneau du bouton flottant de Néo
+/// (`AssistantDockedPanel`), qui reçoit l'issue de la comparaison.
 class ChatComparison extends StatefulWidget {
   final ChatComparisonUseCase session;
-  const ChatComparison({super.key, required this.session});
+  final ValueChanged<ChatComparisonOutcome>? onDone;
+
+  /// Panneau du bouton flottant en plein écran (mobile).
+  final bool fullScreen;
+  const ChatComparison(
+      {super.key, required this.session, this.onDone, this.fullScreen = false});
   @override
   State<ChatComparison> createState() => _ChatComparisonState();
 }
@@ -22,7 +58,20 @@ class _ChatComparisonState extends State<ChatComparison> {
   late final AssistantController controller;
   final input = TextEditingController();
   Timer? timer;
-  bool reviewing = false, checking = false;
+  bool reviewing = false, checking = false, done = false;
+
+  bool get docked => widget.onDone != null;
+
+  void finish(ChatComparisonOutcome outcome) {
+    if (done || !mounted) return;
+    done = true;
+    if (docked) {
+      widget.onDone!(outcome);
+    } else {
+      Navigator.pop(context, outcome.selection);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +88,7 @@ class _ChatComparisonState extends State<ChatComparison> {
 
   void changed() {
     if (!mounted) return;
-    if (!controller.isOpen) Navigator.pop(context);
+    if (!controller.isOpen) finish(ChatComparisonOutcome.closed);
   }
 
   void validateLocal() {
@@ -71,7 +120,7 @@ class _ChatComparisonState extends State<ChatComparison> {
     try {
       final selected = await widget.session.review(block, id);
       if (mounted && !controller.contextInvalid)
-        Navigator.pop(context, selected);
+        finish(ChatComparisonOutcome.selected(selected));
     } catch (_) {
       if (mounted) controller.invalidateContext();
     } finally {
@@ -90,7 +139,7 @@ class _ChatComparisonState extends State<ChatComparison> {
       final accepted = await showDialog<bool>(context: context,
         builder: (_) => ResearchForm(session: form));
       // A subsequent comparison is opened by a new human action and gets a new session.
-      if (accepted == true && mounted) Navigator.pop(context);
+      if (accepted == true && mounted) finish(ChatComparisonOutcome.manual);
     } catch (_) {
       if (mounted) controller.invalidateContext();
     } finally { reviewing = false; }
@@ -107,8 +156,51 @@ class _ChatComparisonState extends State<ChatComparison> {
     super.dispose();
   }
 
+  String get _contextText {
+    final row = widget.session.enrichment.currentRow(widget.session.reference.rowId);
+    return '${row?.textOf('name') ?? ''}\n'
+        'Comparaison Néo · Lot ${widget.session.reference.batchId} · Ligne ${row?.position ?? widget.session.reference.rowId}\n'
+        'Comparer les candidats publics existants. Le choix et l’application restent à confirmer.';
+  }
+
+  Widget _panel({required bool fullScreen, Widget? banner}) =>
+      ChangeNotifierProvider<AssistantController>.value(
+          value: controller,
+          child: ResearchActions(
+              open: research,
+              child: AssistantPanel(
+                  input: input,
+                  fullScreen: fullScreen,
+                  title: docked ? 'Néo · Comparaison' : 'Néo',
+                  banner: banner)));
+
   @override
-  Widget build(BuildContext context) => EnrichmentDialog(
+  Widget build(BuildContext context) {
+    if (docked) {
+      return _panel(
+          fullScreen: widget.fullScreen,
+          banner: Container(
+              constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * .22),
+              decoration: BoxDecoration(
+                  color: kBlue.withValues(alpha: 0.06),
+                  border: const Border(bottom: BorderSide(color: kPLGrey2))),
+              padding: const EdgeInsets.fromLTRB(14, 8, 8, 4),
+              child: SingleChildScrollView(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(_contextText,
+                        style: const TextStyle(fontSize: 12, color: kGrey)),
+                    Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                            onPressed: () =>
+                                finish(ChatComparisonOutcome.manual),
+                            child: const Text('Retour au choix manuel'))),
+                  ]))));
+    }
+    return EnrichmentDialog(
         maxWidth: 900,
         scrollable: false,
         title: const Text('Comparaison Néo'),
@@ -120,17 +212,9 @@ class _ChatComparisonState extends State<ChatComparison> {
               child: SingleChildScrollView(
                 child: Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                        '${widget.session.enrichment.currentRow(widget.session.reference.rowId)?.textOf('name') ?? ''}\n'
-                        'Comparaison Néo · Lot ${widget.session.reference.batchId} · Ligne ${widget.session.enrichment.currentRow(widget.session.reference.rowId)?.position ?? widget.session.reference.rowId}\n'
-                        'Comparer les candidats publics existants. Le choix et l’application restent à confirmer.')),
+                    child: Text(_contextText)),
               )),
-          Expanded(
-              child: ChangeNotifierProvider<AssistantController>.value(
-                  value: controller,
-                  child: ResearchActions(
-                      open: research,
-                      child: AssistantPanel(input: input, fullScreen: false)))),
+          Expanded(child: _panel(fullScreen: false)),
         ]),
         actions: [
           TextButton(
@@ -138,4 +222,5 @@ class _ChatComparisonState extends State<ChatComparison> {
               child: const Text('Retour au choix manuel'))
         ],
       );
+  }
 }

@@ -16,6 +16,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/url_opener.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/accounting_entries.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/customers_content_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/dashboard_content_view.dart';
+import 'package:back_office_tribuneo_v2/presentation/views/merchant_import_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/document_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/next_transfer_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/orders_content_view.dart';
@@ -25,6 +26,7 @@ import 'package:back_office_tribuneo_v2/presentation/views/stats_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/transfert_order_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_controller.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_deep_link.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_docked_panel.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/assistant/assistant_overlay.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/header_widget.dart';
 
@@ -36,6 +38,10 @@ class MySinglePage extends StatefulWidget {
 
   static MySinglePageState of(BuildContext context) {
     return context.findAncestorStateOfType<MySinglePageState>()!;
+  }
+
+  static MySinglePageState? maybeOf(BuildContext context) {
+    return context.findAncestorStateOfType<MySinglePageState>();
   }
 }
 
@@ -110,20 +116,30 @@ class MySinglePageState extends State<MySinglePage> {
       "icon": Icons.storefront,
     },
     4: {
+      "name": "merchantImport",
+      "title": "Import de commerçants",
+      "short": "Import",
+      "content": const MerchantImportView(),
+      "icon": Icons.upload_file,
+      // La grille d'import gère son propre défilement : pas de défilement de
+      // page, le contenu occupe la hauteur restante.
+      "fullHeight": true,
+    },
+    5: {
       "name": "activitySectors",
       "title": "Secteurs d'activité",
       "short": "Secteurs",
       "content": const SectorActivityView(),
       "icon": Icons.construction,
     },
-    5: {
+    6: {
       "name": "document",
       "title": "Documents",
       "short": "Documents",
       "content": const DocumentsContentView(),
       "icon": Icons.document_scanner_outlined,
     },
-    6: {
+    7: {
       "name": "bankTransfertOrder",
       "title": "Historique d'ordres de virement bancaire",
       "short": "Virements",
@@ -131,21 +147,21 @@ class MySinglePageState extends State<MySinglePage> {
       "icon": Icons.reorder,
     },
     // Nom « refund » conservé : c'est lui qui est mémorisé comme dernier menu ouvert.
-    7: {
+    8: {
       "name": "refund",
       "title": "Prochain virement",
       "short": "Prochain virement",
       "content": const NextTransferView(),
       "icon": Icons.euro,
     },
-    8: {
+    9: {
       "name": "accountingentries",
       "title": "Écritures comptables",
       "short": "Écritures",
       "content": const AccountingEntriesView(),
       "icon": Icons.edit,
     },
-    9: {
+    10: {
       "name": "stats",
       "title": "Statistiques",
       "short": "Statistiques",
@@ -174,7 +190,33 @@ class MySinglePageState extends State<MySinglePage> {
     }
   }
 
-  callBackMenu(int indexContent) {
+  /// Écran affiché avant de quitter le menu courant : `false` pour rester
+  /// (ex. corrections de l'import encore en cours d'enregistrement).
+  Future<bool> Function()? _leaveGuard;
+
+  /// Branché par l'écran affiché ; [guard] `null` le retire.
+  void setLeaveGuard(Future<bool> Function()? guard) => _leaveGuard = guard;
+
+  /// Retire [guard] s'il est encore celui en place.
+  void clearLeaveGuard(Future<bool> Function() guard) {
+    if (_leaveGuard == guard) _leaveGuard = null;
+  }
+
+  /// Affiche le menu nommé [name] (`menuItems[*]['name']`).
+  void openMenu(String name) {
+    final int? index = menuItems.entries
+        .where((entry) => entry.value['name'] == name)
+        .firstOrNull
+        ?.key;
+    if (index != null) callBackMenu(index);
+  }
+
+  Future<void> callBackMenu(int indexContent) async {
+    final Future<bool> Function()? guard = _leaveGuard;
+    if (guard != null && menuItems[indexContent]!['name'] != selectedMenu) {
+      if (!await guard() || !mounted) return;
+      _leaveGuard = null;
+    }
     if (kDebugMode) {
       print("###DEBUG###");
       print(
@@ -214,6 +256,10 @@ class MySinglePageState extends State<MySinglePage> {
     ..onOpenUrl = openExternalUrl;
   final ScreenOpenRequests _openRequests = ScreenOpenRequests();
 
+  /// Conversation Néo contextuelle (comparaison de l'import de commerçants)
+  /// affichée dans le bouton flottant.
+  final AssistantDockedPanel _dockedAssistant = AssistantDockedPanel();
+
   /// Deep-link de l'assistant : affiche le menu cible et lui transmet la
   /// demande d'ouverture (élément, onglet) s'il y en a une.
   void _openAssistantLink(AssistantLinkBlock link) {
@@ -245,6 +291,7 @@ class MySinglePageState extends State<MySinglePage> {
   void dispose() {
     _assistant.dispose();
     _openRequests.dispose();
+    _dockedAssistant.dispose();
     super.dispose();
   }
 
@@ -259,7 +306,10 @@ class MySinglePageState extends State<MySinglePage> {
         ChangeNotifierProvider<AssistantController>.value(value: _assistant),
         ChangeNotifierProvider<ScreenOpenRequests>.value(value: _openRequests),
       ],
-      child: _buildScaffold(context),
+      child: AssistantRepository.visible
+          ? AssistantDockedScope(
+              docked: _dockedAssistant, child: _buildScaffold(context))
+          : _buildScaffold(context),
     );
   }
 
@@ -292,12 +342,17 @@ class MySinglePageState extends State<MySinglePage> {
           children: [
             _buildContent(context),
             if (AssistantRepository.visible)
-              const Positioned.fill(child: AssistantOverlay()),
+              Positioned.fill(
+                  child: AssistantOverlay(docked: _dockedAssistant)),
           ],
         ),
       ),
     );
   }
+
+  /// Le menu affiché gère son propre défilement (grille d'import).
+  bool get _isFullHeight => menuItems.values.any(
+      (item) => item['name'] == selectedMenu && item['fullHeight'] == true);
 
   Widget _buildContent(BuildContext context) {
     return Row(
@@ -308,13 +363,33 @@ class MySinglePageState extends State<MySinglePage> {
             width: _sideMenuWidth,
             child: menu,
           ),
-        if (loadedData)
+        if (loadedData && _isFullHeight)
+          Expanded(
+            flex: 10,
+            child: SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Header(title: contentTitle),
+                    SizedBox(
+                      height: SizeConfig.blockSizeVertical * 2,
+                    ),
+                    Expanded(child: content),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        if (loadedData && !_isFullHeight)
           Expanded(
             flex: 10,
             child: SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 30, horizontal: 30),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 30, horizontal: 30),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -344,8 +419,8 @@ class MySinglePageState extends State<MySinglePage> {
                 height: SizeConfig.screenHeight,
                 decoration: const BoxDecoration(color: kLBlue),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 20, horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                   child: Column(
                     children: [
                       Container(
