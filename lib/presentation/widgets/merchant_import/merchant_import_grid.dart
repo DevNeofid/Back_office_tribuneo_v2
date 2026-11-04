@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
+import 'package:back_office_tribuneo_v2/data/local/merchant_import_view_store.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/merchant_import_exceptions.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/merchant_enrichment_messages.dart';
@@ -40,6 +41,10 @@ class MerchantImportGrid extends StatefulWidget {
   final EnrichmentTransport? enrichmentTransport;
   final bool enrichmentEnabled;
 
+  /// Mémorisation de la vue (filtre, recherche, page) ; remplaçable dans les
+  /// tests.
+  final MerchantImportViewStore? viewStore;
+
   const MerchantImportGrid({
     super.key,
     required this.batch,
@@ -48,6 +53,7 @@ class MerchantImportGrid extends StatefulWidget {
     this.useCase,
     this.enrichmentTransport,
     this.enrichmentEnabled = merchantEnrichmentEnabled,
+    this.viewStore,
   });
 
   @override
@@ -74,6 +80,7 @@ enum _Filter {
   all('Toutes'),
   pending('À relire'),
   errors('En anomalie'),
+  enriched('Complétées par la recherche'),
   validated('Validées'),
   rejected('Écartées'),
   imported('Importées'),
@@ -126,6 +133,14 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
 
   /// Lignes de la page affichée, dans l'ordre (navigation au clavier).
   List<MerchantImportRow> _pageRows = [];
+
+  late final MerchantImportViewStore _viewStore =
+      widget.viewStore ?? SecureMerchantImportViewStore();
+  Timer? _viewSaveDebounce;
+
+  /// L'utilisateur a déjà changé la vue : la vue mémorisée, lue ensuite, ne
+  /// l'écrase pas.
+  bool _viewTouched = false;
 
   _EditingCell? _editing;
   Timer? _editDebounce;
@@ -200,6 +215,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         editor: _Editor.readOnly, hint: 'Rempli par la recherche automatique.'),
   ];
 
+  /// Champs affichés dans la grille.
+  static final List<String> _fieldKeys =
+      [_nameColumn, ..._scrollColumns].map((column) => column.key).toList();
+
   /// Colonnes texte, dans l'ordre de navigation au clavier (Tab).
   static final List<_GridColumn> _textColumns = [_nameColumn, ..._scrollColumns]
       .where((column) => column.editor == _Editor.text)
@@ -251,6 +270,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     _rightVertical
         .addListener(() => _syncScroll(_rightVertical, _leftVertical));
     _reloadAll();
+    _restoreView();
   }
 
   @override
@@ -258,6 +278,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     _enrichment.dispose();
     _queue.dispose();
     _searchDebounce?.cancel();
+    _viewSaveDebounce?.cancel();
     _editDebounce?.cancel();
     _pollTimer?.cancel();
     _editing?.dispose();
@@ -431,6 +452,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         return status == MerchantImportRow.statusPending;
       case _Filter.errors:
         return _hasAnomaly(row);
+      case _Filter.enriched:
+        return _fieldKeys.any(row.isAiValue);
       case _Filter.validated:
         return status == MerchantImportRow.statusValidated;
       case _Filter.rejected:
@@ -452,6 +475,49 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
             row.textOf('siret').replaceAll(' ', '').contains(compactNeedle));
   }
 
+  List<MerchantImportRow> _filteredRows() => _rows
+      .where((row) => _matchesFilter(row, _filter) && _matchesSearch(row))
+      .toList();
+
+  // ---------------------------------------------------------------------------
+  // Vue mémorisée (filtre, recherche, page)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _restoreView() async {
+    Map<String, dynamic>? saved;
+    try {
+      saved = await _viewStore.read(_batch.id);
+    } catch (_) {
+      return; // Stockage indisponible : vue par défaut.
+    }
+    if (saved == null || !mounted || _viewTouched) return;
+    final _Filter filter = _Filter.values.firstWhere(
+        (f) => f.name == saved!['filter'],
+        orElse: () => _Filter.all);
+    final String search =
+        saved['search'] is String ? saved['search'] as String : '';
+    final int page = saved['page'] is int ? saved['page'] as int : 0;
+    setState(() {
+      _filter = filter;
+      _search = search.trim();
+      _searchController.text = search;
+      _page = page < 0 ? 0 : page;
+    });
+  }
+
+  /// Mémorise la vue après un changement (filtre, recherche, page).
+  void _viewChanged() {
+    _viewTouched = true;
+    _viewSaveDebounce?.cancel();
+    _viewSaveDebounce = Timer(const Duration(milliseconds: 400), () {
+      _viewStore.save(_batch.id, {
+        'filter': _filter.name,
+        'search': _search,
+        'page': _page,
+      }).catchError((Object _) {});
+    });
+  }
+
   Map<_Filter, int> _counts() {
     final Map<_Filter, int> counts = {for (final f in _Filter.values) f: 0};
     for (final MerchantImportRow row in _rows) {
@@ -470,6 +536,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         _search = text.trim();
         _page = 0;
       });
+      _viewChanged();
     });
   }
 
@@ -700,6 +767,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
       return KeyEventResult.handled;
     }
     if (event is KeyRepeatEvent) return KeyEventResult.ignored;
+    if (key == LogicalKeyboardKey.keyN) {
+      _goToNextIssue();
+      return KeyEventResult.handled;
+    }
     final MerchantImportRow? row =
         _cursorRowId.value == null ? null : _rowById(_cursorRowId.value!);
     if (row == null) return KeyEventResult.ignored;
@@ -1005,9 +1076,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     }
 
     final Map<_Filter, int> counts = _counts();
-    final List<MerchantImportRow> filtered = _rows
-        .where((row) => _matchesFilter(row, _filter) && _matchesSearch(row))
-        .toList();
+    final List<MerchantImportRow> filtered = _filteredRows();
     final int pageCount =
         filtered.isEmpty ? 1 : (filtered.length / _pageSize).ceil();
     final int page = _page.clamp(0, pageCount - 1);
@@ -1021,6 +1090,8 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(counts),
+          const SizedBox(height: 10),
+          _buildProgress(counts),
           EnrichmentButton(
             session: _enrichment,
             rows: () => _rows,
@@ -1115,6 +1186,129 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
     );
   }
 
+  /// Avancement de la relecture du lot, et accès à la prochaine ligne à
+  /// corriger.
+  Widget _buildProgress(Map<_Filter, int> counts) {
+    final int total = counts[_Filter.all]!;
+    if (total == 0) return const SizedBox.shrink();
+    final int imported = counts[_Filter.imported]!;
+    final int validated = counts[_Filter.validated]!;
+    final int rejected = counts[_Filter.rejected]!;
+    final int errors = counts[_Filter.errors]!;
+    final int done = imported + validated + rejected;
+    final List<(int, Color, String)> segments = [
+      (imported, kGreen, 'importée'),
+      (validated, kGreen.withValues(alpha: 0.45), 'validée'),
+      (rejected, kGrey.withValues(alpha: 0.35), 'écartée'),
+      (total - done, kLBlue.withValues(alpha: 0.35), 'à relire'),
+    ];
+    final TextStyle small = GoogleFonts.poppins(fontSize: 12, color: kGrey);
+    String plural(int n, String word) => '$n $word${n > 1 ? 's' : ''}';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Avancement : $done / $total lignes traitées',
+                  key: const ValueKey('grid-progress'),
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: kBlueEnd)),
+              const SizedBox(height: 4),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: SizedBox(
+                  height: 8,
+                  child: Row(children: [
+                    for (final (int n, Color color, String _) in segments)
+                      if (n > 0)
+                        Expanded(flex: n, child: ColoredBox(color: color)),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(spacing: 14, runSpacing: 2, children: [
+                for (final (int n, Color color, String word) in segments)
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                            color: color, shape: BoxShape.circle)),
+                    const SizedBox(width: 4),
+                    Text(word == 'à relire' ? '$n à relire' : plural(n, word),
+                        style: small),
+                  ]),
+              ]),
+            ],
+          ),
+        ),
+        if (errors > 0) ...[
+          const SizedBox(width: 16),
+          Tooltip(
+            message: 'Raccourci clavier : N',
+            child: OutlinedButton.icon(
+              key: const ValueKey('next-issue'),
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: kRed,
+                  side: BorderSide(color: kRed.withValues(alpha: 0.5))),
+              onPressed: _goToNextIssue,
+              icon: const Icon(Icons.error_outline, size: 18),
+              label: Text('Prochaine à corriger ($errors)'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Ligne en anomalie suivant la ligne courante (en boucle), sur toutes les
+  /// pages : elle devient la ligne courante et sa première cellule fautive
+  /// s'ouvre.
+  void _goToNextIssue() {
+    _finishEdit(commit: true);
+    List<MerchantImportRow> rows = _filteredRows();
+    if (!rows.any(_hasAnomaly) && _rows.any(_hasAnomaly)) {
+      // Masquées par le filtre ou la recherche : on affiche les anomalies.
+      _filter = _Filter.errors;
+      _search = '';
+      _searchController.clear();
+      rows = _filteredRows();
+    }
+    final int start = rows.indexWhere((r) => r.id == _cursorRowId.value);
+    int index = -1;
+    for (var i = 1; i <= rows.length; i++) {
+      final int candidate = (start + i) % rows.length;
+      if (_hasAnomaly(rows[candidate])) {
+        index = candidate;
+        break;
+      }
+    }
+    if (index < 0) {
+      _snack('Aucune ligne à corriger.', kGreen);
+      return;
+    }
+    final MerchantImportRow target = rows[index];
+    setState(() => _page = index ~/ _pageSize);
+    _viewChanged();
+    _cursorRowId.value = target.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _revealRow(index % _pageSize);
+      final MerchantImportIssue? issue = target.blockingIssues
+          .where((issue) => issue.field != null)
+          .firstOrNull;
+      if (issue != null) {
+        _jumpToIssue(target, issue);
+      } else {
+        _gridFocus.requestFocus();
+      }
+    });
+  }
+
   Widget _buildSaveIndicator() {
     final int failed = _queue.failedCount;
     final int active = _queue.activeCount;
@@ -1162,6 +1356,10 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
             spacing: 8,
             runSpacing: 8,
             children: _Filter.values
+                .where((filter) =>
+                    filter != _Filter.enriched ||
+                    counts[filter]! > 0 ||
+                    _filter == filter)
                 .map((filter) => ChoiceChip(
                       label: Text('${filter.label} (${counts[filter]})'),
                       selected: _filter == filter,
@@ -1170,10 +1368,13 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
                           fontSize: 13,
                           color: _filter == filter ? kWhite : kBlueEnd),
                       showCheckmark: false,
-                      onSelected: (_) => setState(() {
-                        _filter = filter;
-                        _page = 0;
-                      }),
+                      onSelected: (_) {
+                        setState(() {
+                          _filter = filter;
+                          _page = 0;
+                        });
+                        _viewChanged();
+                      },
                     ))
                 .toList(),
           ),
@@ -1267,6 +1468,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   void _goToPage(int page) {
     _finishEdit(commit: true);
     setState(() => _page = page);
+    _viewChanged();
     if (_leftVertical.hasClients) _leftVertical.jumpTo(0);
   }
 
@@ -1342,6 +1544,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
               'Espace  valider / dévalider la ligne\n'
               'E  écarter / rétablir la ligne\n'
               'Entrée  modifier (Tab : cellule suivante)\n'
+              'N  prochaine ligne à corriger\n'
               'Échap  quitter la cellule ou la ligne',
           child: item(
               const Icon(Icons.keyboard_outlined, color: kGrey, size: 16),

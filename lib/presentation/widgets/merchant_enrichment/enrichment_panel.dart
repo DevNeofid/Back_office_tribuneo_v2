@@ -11,11 +11,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../config/responsive.dart';
 import '../assistant/assistant_docked_panel.dart';
+import '../assistant/neo_ai_button.dart';
 import '../../../domain/models/merchant_import_row_model.dart';
 import '../../../domain/models/merchant_enrichment/enrichment_models.dart';
 import '../../../domain/usecases/merchant_enrichment/enrichment_usecase.dart';
 import '../../../domain/models/merchant_enrichment/vat_status.dart';
 import 'vat_presentation.dart';
+import 'ui/enrichment_mini_map.dart';
 import '../../utils/common.dart';
 
 /// Orange lisible sur fond clair (le `kOrange` de la charte est trop pâle
@@ -623,10 +625,9 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
             onPressed: () => _research(p),
             child: const Text('Préciser la recherche')),
       if (_canCompare(p))
-        OutlinedButton.icon(
-            onPressed: _comparing ? null : () => _compare(p),
-            icon: const Icon(Icons.forum_outlined, size: 18),
-            label: const Text('Comparer avec Néo')),
+        NeoAiButton(
+            label: 'Comparer avec Néo',
+            onPressed: _comparing ? null : () => _compare(p)),
     ];
     return ExpansionTile(
         key: ValueKey('proposal-${p.id}'),
@@ -996,6 +997,18 @@ class _CandidateReviewState extends State<_CandidateReview> {
                                     : null)),
                           ]);
                         }).toList()),
+                    if (EnrichmentMiniMap.displayable(
+                        c.fields['lat'], c.fields['lng']))
+                      _Collapsible(
+                          key: const ValueKey('candidate-map'),
+                          title: 'Position proposée sur la carte',
+                          initiallyExpanded: true,
+                          children: [
+                            EnrichmentMiniMap(
+                                lat: (c.fields['lat'] as num).toDouble(),
+                                lng: (c.fields['lng'] as num).toDouble(),
+                                precision: c.geoPrecision),
+                          ]),
                     if (c.kind == 'establishment')
                       VatCandidateSection(
                           candidate: c,
@@ -1091,10 +1104,16 @@ class _CandidateReviewState extends State<_CandidateReview> {
 class _Collapsible extends StatelessWidget {
   final String title;
   final List<Widget> children;
-  const _Collapsible({super.key, required this.title, required this.children});
+  final bool initiallyExpanded;
+  const _Collapsible(
+      {super.key,
+      required this.title,
+      required this.children,
+      this.initiallyExpanded = false});
 
   @override
   Widget build(BuildContext context) => ExpansionTile(
+      initiallyExpanded: initiallyExpanded,
       title: Text(title,
           style: const TextStyle(
               fontSize: 14, fontWeight: FontWeight.w600, color: kBlue)),
