@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/arc_theme.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/initial_route.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/login_view.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/main_usecase.dart';
@@ -31,6 +32,15 @@ class MyApp extends StatelessWidget {
   final bool isAuthenticated;
   const MyApp({super.key, required this.isAuthenticated});
 
+  /// Pile de départ : une seule page, choisie selon la session (et non selon
+  /// l'URL, qui peut encore indiquer `/#/login` après une reconnexion).
+  static List<Route<dynamic>> initialRoutes(
+          bool isAuthenticated) =>
+      isAuthenticated
+          ? singleInitialRoute('/', (context) => const MySinglePage())
+          : singleInitialRoute(
+              '/login', (context) => const LoginView(title: 'Login Page'));
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -46,6 +56,7 @@ class MyApp extends StatelessWidget {
         Locale('fr', 'FR'),
       ],
       initialRoute: isAuthenticated ? '/' : '/login',
+      onGenerateInitialRoutes: (_) => initialRoutes(isAuthenticated),
       routes: {
         '/login': (context) => const LoginView(title: 'Login Page'),
         '/': (context) => const MySinglePage(),

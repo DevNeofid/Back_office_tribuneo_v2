@@ -90,6 +90,9 @@ const kControlHeightCompact = 36.0;
 const kSidebarWidth = 248.0;
 const kContentMaxWidth = 1280.0;
 
+/// Largeur maximale des écrans à grand tableau (Commandes).
+const kContentWideMaxWidth = 1760.0;
+
 /// DEFAULT BUTTON STYLE
 const kButtonWidth = 300.0;
 const kButtonHeight = 50.0;

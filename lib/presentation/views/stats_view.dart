@@ -209,13 +209,12 @@ class StatsContentViewState extends State<StatsContentView> {
   }
 
   Future<void> _pickStartDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
+    DateTime? picked = await showArcDatePicker(
+      context,
+      helpText: 'Date de début',
       initialDate: _selectedStartDate,
       firstDate: DateTime(2010),
       lastDate: DateTime(3000),
-      locale: const Locale('fr', 'FR'),
-      fieldHintText: 'Jour/Mois/Annee',
     );
     if (picked != null) {
       setState(() {
@@ -228,13 +227,12 @@ class StatsContentViewState extends State<StatsContentView> {
   }
 
   Future<void> _pickEndDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
+    DateTime? picked = await showArcDatePicker(
+      context,
+      helpText: 'Date de fin',
       initialDate: _selectedEndDate,
       firstDate: DateTime(2010),
       lastDate: DateTime(3000),
-      locale: const Locale('fr', 'FR'),
-      fieldHintText: 'Jour/Mois/Annee',
     );
     if (picked != null) {
       setState(() {

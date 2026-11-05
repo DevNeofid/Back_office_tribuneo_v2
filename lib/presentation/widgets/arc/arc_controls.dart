@@ -237,3 +237,61 @@ class ArcFilterChip extends StatelessWidget {
     );
   }
 }
+
+/// Rangée de lettres (A, B, C…) pour filtrer une liste par initiale (clients,
+/// partenaires). [selected] `null` : aucune lettre active (recherche en cours).
+class ArcLetterBar extends StatelessWidget {
+  final List<String> letters;
+  final String? selected;
+  final ValueChanged<String> onSelected;
+  const ArcLetterBar({
+    super.key,
+    required this.letters,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      children: [for (final letter in letters) _button(letter)],
+    );
+  }
+
+  Widget _button(String letter) {
+    final bool on = selected != null && selected == letter;
+    return Tooltip(
+      message: 'Lettre ${letter.toUpperCase()}',
+      child: Semantics(
+        selected: on,
+        button: true,
+        child: Material(
+          color: on ? kNavy600 : kSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: on ? kNavy600 : kBorder),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => onSelected(letter),
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: Center(
+                child: Text(
+                  letter.toUpperCase(),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: on ? Colors.white : kText2),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

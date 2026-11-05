@@ -6,22 +6,17 @@ import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc_date_picker.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 
 /// Sélecteur de date de validité : minimum demain, aucune date passée possible.
 Future<DateTime?> pickExpiryDate(BuildContext context,
     {DateTime? current, String? helpText}) {
   final DateTime minDate = tomorrow();
-  DateTime initialDate = current ?? minDate;
-  if (initialDate.isBefore(minDate)) initialDate = minDate;
-
-  // Couleurs du sélecteur : thème « Arc » global.
-  return showDatePicker(
-    helpText: helpText,
-    fieldHintText: 'Jour/Mois/Année',
-    locale: const Locale('fr', 'FR'),
-    context: context,
-    initialDate: initialDate,
+  return showArcDatePicker(
+    context,
+    helpText: helpText ?? 'Date de validité',
+    initialDate: current ?? minDate,
     firstDate: minDate,
     lastDate: DateTime(3000),
   );

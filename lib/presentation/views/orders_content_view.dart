@@ -552,8 +552,10 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                     child: CircularProgressIndicator(color: kBlue),
                   ),
                   columns: const [
+                    // Largeurs fixes : le n° de commande et les montants ne
+                    // doivent jamais passer sur deux lignes.
                     DataColumn2(
-                      size: ColumnSize.S,
+                      fixedWidth: 130,
                       label: Expanded(
                           child: Center(
                               child: Text('N°', textAlign: TextAlign.center))),
@@ -579,14 +581,15 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                               child: Text('Qté', textAlign: TextAlign.center))),
                     ),
                     DataColumn2(
-                      size: ColumnSize.S,
+                      fixedWidth: 120,
                       numeric: true,
-                      label: Text('Payé'),
+                      label: Text('Payé', maxLines: 1, softWrap: false),
                     ),
                     DataColumn2(
-                        size: ColumnSize.S,
+                        fixedWidth: 130,
                         numeric: true,
-                        label: Text('Montant total')),
+                        label: Text('Montant total',
+                            maxLines: 1, softWrap: false)),
                     DataColumn2(
                       size: ColumnSize.M,
                       label: Text('Paiement'),
@@ -712,6 +715,7 @@ class OrderDataSource extends AsyncDataTableSource {
         cells: [
           DataCell(Center(
               child: SelectableText(order.orderNumber ?? '',
+                  maxLines: 1,
                   style: ArcText.data(color: kNavy900),
                   textAlign: TextAlign.center))),
           DataCell(Center(
@@ -751,12 +755,16 @@ class OrderDataSource extends AsyncDataTableSource {
               alignment: Alignment.centerRight,
               child: Text(
                 (order.paid ?? 0).toStringAsFixed(2),
+                maxLines: 1,
+                softWrap: false,
                 style: ArcText.data(),
               ))),
           DataCell(Align(
               alignment: Alignment.centerRight,
               child: Text(
                 (order.totalAmount ?? 0).toStringAsFixed(2),
+                maxLines: 1,
+                softWrap: false,
                 style: ArcText.data(),
               ))),
           DataCell(OrderPaymentStatus.of(order).pill()),
@@ -983,11 +991,9 @@ class ShowPaymentState extends State<ShowPayment> {
 
   DateTime selectedDate = DateTime.now();
   _selectDate(BuildContext context) async {
-    // Couleurs du sélecteur : thème « Arc » global.
-    final DateTime? selected = await showDatePicker(
-      fieldHintText: "Jour/Mois/Année",
-      locale: const Locale("fr", "FR"),
-      context: context,
+    final DateTime? selected = await showArcDatePicker(
+      context,
+      helpText: 'Date du paiement',
       initialDate: selectedDate,
       firstDate: DateTime(2010),
       lastDate: DateTime(3000),

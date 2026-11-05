@@ -617,7 +617,9 @@ class PartnersContentViewState extends State<PartnersContentView> {
         _addActivity(partner);
         break;
       case EditBoxItem.itemThree:
-        partner.address != null ? _addressUpdate(partner) : _addAddress(partner);
+        partner.address != null
+            ? _addressUpdate(partner)
+            : _addAddress(partner);
         break;
       case EditBoxItem.itemFour:
         partner.bankInformations != null
@@ -742,101 +744,66 @@ class PartnersContentViewState extends State<PartnersContentView> {
     return ArcCard(
       padding: const EdgeInsets.all(12),
       radius: 14,
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          ArcSearchField(
-            controller: searchController,
-            hint: 'Nom du partenaire…',
-            semanticLabel: 'Rechercher un partenaire',
-            width: 300,
-            onChanged: _onSearchChanged,
-          ),
-          Container(
-            height: 40,
-            padding: const EdgeInsets.only(left: 12, right: 6),
-            decoration: BoxDecoration(
-              color: kSurface,
-              borderRadius: BorderRadius.circular(kRadiusSm),
-              border: Border.all(color: kBorder, width: 1.5),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            ArcSearchField(
+              controller: searchController,
+              hint: 'Nom du partenaire…',
+              semanticLabel: 'Rechercher un partenaire',
+              width: 300,
+              onChanged: _onSearchChanged,
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String?>(
-                value: sectors.contains(_sectorFilter) ? _sectorFilter : null,
-                hint: Text('Tous les secteurs',
-                    style: GoogleFonts.poppins(fontSize: 13, color: kInk)),
-                icon: const Icon(Icons.expand_more_rounded, size: 18),
-                borderRadius: BorderRadius.circular(12),
-                style: GoogleFonts.poppins(fontSize: 13, color: kInk),
-                onChanged: (value) => setState(() => _sectorFilter = value),
-                items: [
-                  const DropdownMenuItem<String?>(
-                      value: null, child: Text('Tous les secteurs')),
-                  for (final name in sectors)
-                    DropdownMenuItem<String?>(value: name, child: Text(name)),
-                ],
+            Container(
+              height: 40,
+              padding: const EdgeInsets.only(left: 12, right: 6),
+              decoration: BoxDecoration(
+                color: kSurface,
+                borderRadius: BorderRadius.circular(kRadiusSm),
+                border: Border.all(color: kBorder, width: 1.5),
               ),
-            ),
-          ),
-          ArcSegmented<_DematFilter>(
-            segments: const [
-              ArcSegment(_DematFilter.all, 'Tous'),
-              ArcSegment(_DematFilter.demat, 'Dématérialisés'),
-              ArcSegment(_DematFilter.paper, 'Papier seul'),
-            ],
-            selected: _dematFilter,
-            onChanged: (value) => setState(() => _dematFilter = value),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('A–Z',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: kText2)),
-              const SizedBox(width: 6),
-              PopupMenuButton<String>(
-                tooltip: 'Choisir la lettre',
-                onSelected: _pickLetter,
-                itemBuilder: (BuildContext context) => [
-                  for (final letter in availableFilters)
-                    PopupMenuItem<String>(
-                      value: letter,
-                      height: 36,
-                      child: Text('Lettre ${letter.toUpperCase()}'),
-                    ),
-                ],
-                child: Container(
-                  height: 34,
-                  padding: const EdgeInsets.only(left: 10, right: 6),
-                  decoration: BoxDecoration(
-                    color: kSurface,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: kBorder, width: 1.5),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text(
-                      _lastSearch.isNotEmpty
-                          ? 'Recherche'
-                          : 'Lettre ${_filter.toUpperCase()}',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: kNavy600),
-                    ),
-                    const SizedBox(width: 2),
-                    const Icon(Icons.expand_more_rounded,
-                        size: 18, color: kNavy600),
-                  ]),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                  value: sectors.contains(_sectorFilter) ? _sectorFilter : null,
+                  hint: Text('Tous les secteurs',
+                      style: GoogleFonts.poppins(fontSize: 13, color: kInk)),
+                  icon: const Icon(Icons.expand_more_rounded, size: 18),
+                  borderRadius: BorderRadius.circular(12),
+                  style: GoogleFonts.poppins(fontSize: 13, color: kInk),
+                  onChanged: (value) => setState(() => _sectorFilter = value),
+                  items: [
+                    const DropdownMenuItem<String?>(
+                        value: null, child: Text('Tous les secteurs')),
+                    for (final name in sectors)
+                      DropdownMenuItem<String?>(value: name, child: Text(name)),
+                  ],
                 ),
               ),
-            ],
+            ),
+            ArcSegmented<_DematFilter>(
+              segments: const [
+                ArcSegment(_DematFilter.all, 'Tous'),
+                ArcSegment(_DematFilter.demat, 'Dématérialisés'),
+                ArcSegment(_DematFilter.paper, 'Papier seul'),
+              ],
+              selected: _dematFilter,
+              onChanged: (value) => setState(() => _dematFilter = value),
+            ),
+          ],
+        ),
+        if (availableFilters.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          // Une lettre par bouton, comme sur l'écran Clients.
+          ArcLetterBar(
+            letters: availableFilters,
+            selected: _lastSearch.isEmpty ? _filter : null,
+            onSelected: _pickLetter,
           ),
         ],
-      ),
+      ]),
     );
   }
 
@@ -871,7 +838,8 @@ class PartnersContentViewState extends State<PartnersContentView> {
             child: InkWell(
               onTap: toggle,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: LayoutBuilder(builder: (context, constraints) {
                   final Widget identity = Row(
                     children: [
@@ -1129,8 +1097,8 @@ class PartnersContentViewState extends State<PartnersContentView> {
       child: LayoutBuilder(builder: (context, constraints) {
         if (constraints.maxWidth >= 760) {
           return Table(
-            border: const TableBorder(
-                verticalInside: BorderSide(color: kNavy100)),
+            border:
+                const TableBorder(verticalInside: BorderSide(color: kNavy100)),
             children: [
               TableRow(children: [general, addressColumn, bankColumn]),
             ],

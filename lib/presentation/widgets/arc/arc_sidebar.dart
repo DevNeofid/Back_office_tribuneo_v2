@@ -170,19 +170,48 @@ class _NavTileState extends State<_NavTile> {
   }
 }
 
-class _UserCard extends StatelessWidget {
+/// Carte du compte connecté : un clic n'importe où sur la carte déconnecte.
+class _UserCard extends StatefulWidget {
   final String name;
   final VoidCallback onSignOut;
   const _UserCard({required this.name, required this.onSignOut});
 
   @override
+  State<_UserCard> createState() => _UserCardState();
+}
+
+class _UserCardState extends State<_UserCard> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
+    final String name = widget.name;
     final String initials =
         name.isEmpty ? '?' : name.substring(0, name.length < 2 ? 1 : 2).toUpperCase();
-    return Container(
+    final BorderRadius radius = BorderRadius.circular(14);
+    return Tooltip(
+      message: 'Se déconnecter',
+      child: Semantics(
+        button: true,
+        label: 'Se déconnecter ($name)',
+        excludeSemantics: true,
+        child: Material(
+          color: _hover ? kNavy700 : kNavy800,
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: widget.onSignOut,
+            onHover: (h) => setState(() => _hover = h),
+            child: _content(name, initials),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _content(String name, String initials) {
+    return Padding(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: kNavy800, borderRadius: BorderRadius.circular(14)),
       child: Row(children: [
         Container(
           width: 36,
@@ -204,16 +233,10 @@ class _UserCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: Colors.white)),
         ),
-        IconButton(
-          tooltip: 'Se déconnecter',
-          onPressed: onSignOut,
-          iconSize: 18,
-          color: kNavy300,
-          style: IconButton.styleFrom(
-              foregroundColor: kNavy300,
-              minimumSize: const Size(36, 36)),
-          icon: const Icon(Icons.logout_rounded),
-        ),
+        const SizedBox(width: 8),
+        Icon(Icons.logout_rounded,
+            size: 18, color: _hover ? Colors.white : kNavy300),
+        const SizedBox(width: 9),
       ]),
     );
   }

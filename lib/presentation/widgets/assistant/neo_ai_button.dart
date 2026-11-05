@@ -15,6 +15,9 @@ class NeoAiButton extends StatefulWidget {
 
   const NeoAiButton({super.key, required this.label, this.onPressed});
 
+  /// Épaisseur de l'anneau arc-en-ciel, aussi fine qu'une bordure de bouton.
+  static const double ringWidth = 1;
+
   /// Dégradé de la bordure et de l'icône.
   static const List<Color> rainbow = [
     Color(0xff7C4DFF),
@@ -70,7 +73,7 @@ class _NeoAiButtonState extends State<NeoAiButton>
         animation: _spin,
         builder: (context, child) => Container(
           key: const ValueKey('neo-ai-ring'),
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(NeoAiButton.ringWidth),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: _enabled ? null : kNavy200,

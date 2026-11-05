@@ -528,12 +528,10 @@ class CustomersContentViewState extends State<CustomersContentView> {
             width: 280,
             onChanged: _onSearchChanged,
           ),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              for (final letter in availableFilters) _letterButton(letter),
-            ],
+          ArcLetterBar(
+            letters: availableFilters,
+            selected: _lastSearch.isEmpty ? _filter : null,
+            onSelected: _pickLetter,
           ),
         ],
       ),
@@ -570,37 +568,6 @@ class CustomersContentViewState extends State<CustomersContentView> {
                     for (final customer in _customers) _tableRow(customer),
                   ],
                 ),
-    );
-  }
-
-  Widget _letterButton(String letter) {
-    final bool on = _lastSearch.isEmpty && _filter == letter;
-    return Tooltip(
-      message: 'Lettre ${letter.toUpperCase()}',
-      child: Material(
-        color: on ? kNavy600 : kSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: on ? kNavy600 : kBorder),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => _pickLetter(letter),
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: Center(
-              child: Text(
-                letter.toUpperCase(),
-                style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: on ? Colors.white : kText2),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -824,23 +791,21 @@ class CustomersContentViewState extends State<CustomersContentView> {
             const SizedBox(height: 12),
             const Divider(color: kNavy100),
             const SizedBox(height: 18),
-            Row(children: [
-              Expanded(
-                child: ElevatedButton(
-                  style: compact,
-                  onPressed: () => _addOrder(customer.id!, customer.name!),
-                  child: const Text('Nouvelle commande'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton(
-                  style: compact,
-                  onPressed: onEdit,
-                  child: Text(editLabel),
-                ),
-              ),
-            ]),
+            // L'un sous l'autre, en pleine largeur : côte à côte, la fiche
+            // (380 px) coupait « Nouvelle commande » sur deux lignes.
+            ElevatedButton.icon(
+              style: compact,
+              onPressed: () => _addOrder(customer.id!, customer.name!),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Nouvelle commande',
+                  maxLines: 1, softWrap: false),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              style: compact,
+              onPressed: onEdit,
+              child: Text(editLabel, maxLines: 1, softWrap: false),
+            ),
           ],
         ),
       ),

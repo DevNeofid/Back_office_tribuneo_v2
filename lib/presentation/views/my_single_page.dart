@@ -106,6 +106,8 @@ class MySinglePageState extends State<MySinglePage> {
       "short": "Commandes",
       "content": const OrdersContentView(),
       "icon": Icons.receipt_long_outlined,
+      // Tableau à 11 colonnes : il profite de toute la largeur de l'écran.
+      "wide": true,
     },
     3: {
       "name": "partner",
@@ -209,20 +211,53 @@ class MySinglePageState extends State<MySinglePage> {
     if (_leaveGuard == guard) _leaveGuard = null;
   }
 
+  /// Menus affichés précédemment, le plus récent en dernier : la flèche
+  /// « retour » du navigateur y revient au lieu de quitter le back-office.
+  final List<String> _history = [];
+  static const int _historyMax = 50;
+
   /// Affiche le menu nommé [name] (`menuItems[*]['name']`).
   void openMenu(String name) {
-    final int? index = menuItems.entries
-        .where((entry) => entry.value['name'] == name)
-        .firstOrNull
-        ?.key;
+    final int? index = _indexOf(name);
     if (index != null) callBackMenu(index);
   }
 
-  Future<void> callBackMenu(int indexContent) async {
+  int? _indexOf(String name) => menuItems.entries
+      .where((entry) => entry.value['name'] == name)
+      .firstOrNull
+      ?.key;
+
+  /// Retour navigateur : revient au menu précédent (le garde-fou de l'écran
+  /// courant peut refuser, l'historique est alors conservé).
+  Future<void> _goBack() async {
+    while (_history.isNotEmpty) {
+      final int? index = _indexOf(_history.last);
+      if (index == null) {
+        _history.removeLast();
+        continue;
+      }
+      if (await callBackMenu(index, fromHistory: true)) {
+        _history.removeLast();
+        if (mounted) setState(() {});
+      }
+      return;
+    }
+  }
+
+  /// Affiche le menu d'index [indexContent] ; `false` si le garde-fou de
+  /// l'écran courant a refusé de le quitter. [fromHistory] : retour
+  /// navigateur, le menu quitté n'est pas ajouté à l'historique.
+  Future<bool> callBackMenu(int indexContent,
+      {bool fromHistory = false}) async {
+    final String target = menuItems[indexContent]!['name'];
     final Future<bool> Function()? guard = _leaveGuard;
-    if (guard != null && menuItems[indexContent]!['name'] != selectedMenu) {
-      if (!await guard() || !mounted) return;
+    if (guard != null && target != selectedMenu) {
+      if (!await guard() || !mounted) return false;
       _leaveGuard = null;
+    }
+    if (!fromHistory && target != selectedMenu) {
+      _history.add(selectedMenu);
+      if (_history.length > _historyMax) _history.removeAt(0);
     }
     if (kDebugMode) {
       print("###DEBUG###");
@@ -243,6 +278,7 @@ class MySinglePageState extends State<MySinglePage> {
         checkForNewRefunds();
       }
     });
+    return true;
   }
 
   Widget _buildMenu() {
@@ -340,6 +376,18 @@ class MySinglePageState extends State<MySinglePage> {
 
   Widget _buildScaffold(BuildContext context) {
     final bool desktop = Responsive.isDesktop(context);
+    // Retour navigateur : tant qu'il reste un menu précédent, on y revient ;
+    // historique vide, le retour quitte le back-office comme avant.
+    return PopScope(
+      canPop: _history.isEmpty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
+      },
+      child: _scaffold(context, desktop),
+    );
+  }
+
+  Widget _scaffold(BuildContext context, bool desktop) {
     return Scaffold(
       key: _drawerKey,
       drawer: desktop ? null : Drawer(width: kSidebarWidth, child: _buildMenu()),
@@ -369,6 +417,10 @@ class MySinglePageState extends State<MySinglePage> {
   bool get _isFullHeight => menuItems.values.any(
       (item) => item['name'] == selectedMenu && item['fullHeight'] == true);
 
+  /// Le menu affiché a un grand tableau : largeur de contenu élargie.
+  bool get _isWide => menuItems.values
+      .any((item) => item['name'] == selectedMenu && item['wide'] == true);
+
   /// Marges du contenu ; chaque écran affiche son propre [ArcPageHeader].
   static const EdgeInsets _contentPadding = EdgeInsets.fromLTRB(40, 36, 40, 48);
 
@@ -384,7 +436,8 @@ class MySinglePageState extends State<MySinglePage> {
         child: Align(
           alignment: Alignment.topLeft,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+            constraints: BoxConstraints(
+                maxWidth: _isWide ? kContentWideMaxWidth : kContentMaxWidth),
             child: content,
           ),
         ),

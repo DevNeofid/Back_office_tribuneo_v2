@@ -335,11 +335,9 @@ class _OrderFormState extends State<OrderForm> {
   String expiryDate = "";
   DateTime selectedExpiryDate = DateTime.now().add(const Duration(days: 365));
   _selectExpiryDate(BuildContext context) async {
-    // Couleurs du sélecteur : thème « Arc » global.
-    final DateTime? selected = await showDatePicker(
-      fieldHintText: "Jour/Mois/Année",
-      locale: const Locale("fr", "FR"),
-      context: context,
+    final DateTime? selected = await showArcDatePicker(
+      context,
+      helpText: 'Date de validité',
       initialDate: selectedExpiryDate,
       firstDate: DateTime(2010),
       lastDate: DateTime(3000),

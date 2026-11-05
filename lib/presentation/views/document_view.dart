@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/core/notifiers/screen_open_requests.dart';
 
@@ -9,6 +11,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/invoice_download.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/local_search.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/hold_refund_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
@@ -36,6 +39,15 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
 
   ScreenOpenRequests? _openRequests;
 
+  // Recherche : l'API ne filtre pas, tous les documents de l'onglet sont
+  // chargés à la première recherche puis filtrés ici (10 par page).
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  String _query = '';
+  int _searchOffset = 0;
+
+  bool get _searching => _query.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +60,8 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
   @override
   void dispose() {
     _openRequests?.removeListener(_handleOpenRequest);
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -58,10 +72,76 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
   }
 
   void _selectTab(int index) {
-    setState(() => _selectedButtonIndex = index);
+    setState(() {
+      _selectedButtonIndex = index;
+      _searchOffset = 0;
+    });
     final _InvoicePage page = _pages[index];
     if (!page.loaded && !page.isLoading) _loadPage(page, 0);
+    if (_searching) _ensureAllLoaded(page);
   }
+
+  void _onSearchChanged(String text) {
+    _searchDebounce?.cancel();
+    _searchDebounce =
+        Timer(const Duration(milliseconds: 300), () => _search(text.trim()));
+  }
+
+  void _search(String query) {
+    if (!mounted) return;
+    setState(() {
+      _query = query;
+      _searchOffset = 0;
+    });
+    if (_searching) _ensureAllLoaded(_pages[_selectedButtonIndex]);
+  }
+
+  void _ensureAllLoaded(_InvoicePage page) {
+    if (page.all == null && !page.isLoadingAll) _loadAll(page);
+  }
+
+  Future<void> _loadAll(_InvoicePage page) async {
+    final int request = ++page.allRequest;
+    setState(() {
+      page.isLoadingAll = true;
+      page.allFailed = false;
+    });
+    List<InvoiceModel>? all;
+    try {
+      all = await fetchAllPages<InvoiceModel>((limit, offset) =>
+          _documentUseCase.getInvoices(page.type,
+              limit: limit, offset: offset));
+    } catch (_) {
+      all = null;
+    }
+    if (!mounted || request != page.allRequest) return;
+    setState(() {
+      page.isLoadingAll = false;
+      page.all = all;
+      page.allFailed = all == null;
+    });
+  }
+
+  /// N° de facture / transaction / commande, client ou commerçant, montant,
+  /// date d'émission.
+  bool _matches(InvoiceModel invoice) => matchesSearch(_query, [
+        invoice.invoiceNumber,
+        invoice.transactionNumber,
+        invoice.orderNumber,
+        invoice.entityName,
+        invoice.entityCode,
+        invoice.giftFrom,
+        invoice.giftReason,
+        if (invoice.totalAmountInvoice != null) ...[
+          formatEuro(invoice.totalAmountInvoice),
+          invoice.totalAmountInvoice!.toStringAsFixed(2),
+        ],
+        formatFrenchDate(invoice.createdDate),
+        invoice.createdDate,
+      ]);
+
+  List<InvoiceModel> _searchResults(_InvoicePage page) =>
+      (page.all ?? const <InvoiceModel>[]).where(_matches).toList();
 
   Future<void> _loadPage(_InvoicePage page, int startIndex) async {
     final int request = ++page.request;
@@ -154,57 +234,108 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
           ],
         ),
         ArcTableCard(
-          footer: ArcPagination(
-            label: page.items.isEmpty
-                ? '0 sur ${page.total}'
-                : '${page.offset + 1}–${page.offset + page.items.length} sur ${page.total}',
-            onPrevious: page.isLoading || page.offset == 0
-                ? null
-                : () => _loadPage(page, page.offset - _pageSize),
-            onNext: page.isLoading || page.offset + _pageSize >= page.total
-                ? null
-                : () => _loadPage(page, page.offset + _pageSize),
+          toolbar: Align(
+            alignment: Alignment.centerLeft,
+            child: ArcSearchField(
+              controller: _searchController,
+              hint: page.type == 'fees'
+                  ? 'N° de facture ou de transaction, commerçant, montant…'
+                  : 'N° de facture ou de commande, client, montant…',
+              semanticLabel: 'Rechercher un document',
+              width: 420,
+              onChanged: _onSearchChanged,
+            ),
           ),
-          child: _buildContent(page),
+          footer: _searching ? _searchFooter(page) : _pageFooter(page),
+          child: _searching
+              ? _buildSearchContent(page)
+              : _buildContent(page,
+                  items: page.items,
+                  isLoading: page.isLoading,
+                  failed: page.failed,
+                  onRetry: () => _loadPage(page, page.offset)),
         ),
       ],
     );
   }
 
-  Widget _buildContent(_InvoicePage page) {
+  Widget _pageFooter(_InvoicePage page) => ArcPagination(
+        label: page.items.isEmpty
+            ? '0 sur ${page.total}'
+            : '${page.offset + 1}–${page.offset + page.items.length} sur ${page.total}',
+        onPrevious: page.isLoading || page.offset == 0
+            ? null
+            : () => _loadPage(page, page.offset - _pageSize),
+        onNext: page.isLoading || page.offset + _pageSize >= page.total
+            ? null
+            : () => _loadPage(page, page.offset + _pageSize),
+      );
+
+  Widget _searchFooter(_InvoicePage page) {
+    final int count = page.isLoadingAll ? 0 : _searchResults(page).length;
+    final int end = (_searchOffset + _pageSize).clamp(0, count);
+    return ArcPagination(
+      leading: Text('Recherche « $_query »',
+          overflow: TextOverflow.ellipsis, style: ArcText.small()),
+      label: count == 0 ? '0 résultat' : '${_searchOffset + 1}–$end sur $count',
+      onPrevious: _searchOffset == 0
+          ? null
+          : () => setState(() => _searchOffset -= _pageSize),
+      onNext: end >= count
+          ? null
+          : () => setState(() => _searchOffset += _pageSize),
+    );
+  }
+
+  Widget _buildSearchContent(_InvoicePage page) {
+    return _buildContent(page,
+        items: _searchResults(page).skip(_searchOffset).take(_pageSize).toList(),
+        isLoading: page.isLoadingAll,
+        failed: page.allFailed,
+        onRetry: () => _loadAll(page),
+        emptyTitle: 'Aucun document ne correspond à « $_query »');
+  }
+
+  Widget _buildContent(
+    _InvoicePage page, {
+    required List<InvoiceModel> items,
+    required bool isLoading,
+    required bool failed,
+    required VoidCallback onRetry,
+    String? emptyTitle,
+  }) {
     final bool fees = page.type == 'fees';
 
-    if (page.isLoading && page.items.isEmpty) {
+    if (isLoading && items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 60),
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (page.failed) {
+    if (failed) {
       return _TableMessage(
         icon: Icons.error_outline_rounded,
         tone: ArcTone.danger,
         title: 'Impossible de charger les documents.',
         action: OutlinedButton.icon(
-          onPressed: () => _loadPage(page, page.offset),
+          onPressed: onRetry,
           icon: const Icon(Icons.refresh_rounded, size: 18),
           label: const Text('Réessayer'),
         ),
       );
     }
-    if (page.items.isEmpty) {
+    if (items.isEmpty) {
       return _TableMessage(
         icon: Icons.description_outlined,
-        title: fees
-            ? 'Aucune facture de frais de gestion'
-            : 'Aucune facture',
+        title: emptyTitle ??
+            (fees ? 'Aucune facture de frais de gestion' : 'Aucune facture'),
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (page.isLoading)
+        if (isLoading)
           const LinearProgressIndicator(minHeight: 2)
         else
           const SizedBox(height: 2),
@@ -230,7 +361,7 @@ class _DocumentsContentViewState extends State<DocumentsContentView> {
                       headingRowAlignment: MainAxisAlignment.end),
                 ],
                 rows: [
-                  for (final InvoiceModel invoice in page.items)
+                  for (final InvoiceModel invoice in items)
                     _buildRow(invoice, fees),
                 ],
               ),
@@ -295,6 +426,13 @@ class _InvoicePage {
   bool loaded = false;
   bool failed = false;
   int request = 0;
+
+  /// Tous les documents de l'onglet (recherche), `null` tant qu'ils ne sont
+  /// pas chargés.
+  List<InvoiceModel>? all;
+  bool isLoadingAll = false;
+  bool allFailed = false;
+  int allRequest = 0;
 }
 
 /// Message à la place du tableau (chargement en échec, liste vide).

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/accounting_entries_config_exception.dart';
@@ -9,6 +11,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/file_downloader.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/local_search.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/accounting_entries_config_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/hold_refund_dialog.dart';
@@ -40,12 +43,82 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
   bool _pageFailed = false;
   int _pageRequest = 0;
 
+  // Recherche : l'API ne filtre pas, tout l'historique est chargé à la
+  // première recherche puis filtré ici (10 résultats par page).
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  String _query = '';
+  List<AccountingEntriesModel>? _allEntries;
+  bool _isLoadingAll = false;
+  bool _allFailed = false;
+  int _allRequest = 0;
+  int _searchOffset = 0;
+
+  bool get _searching => _query.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
     _timeNow();
     _loadPage(0);
   }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String text) {
+    _searchDebounce?.cancel();
+    _searchDebounce =
+        Timer(const Duration(milliseconds: 300), () => _search(text.trim()));
+  }
+
+  void _search(String query) {
+    if (!mounted) return;
+    setState(() {
+      _query = query;
+      _searchOffset = 0;
+    });
+    if (_searching && _allEntries == null && !_isLoadingAll) _loadAll();
+  }
+
+  Future<void> _loadAll() async {
+    final int request = ++_allRequest;
+    setState(() {
+      _isLoadingAll = true;
+      _allFailed = false;
+    });
+    List<AccountingEntriesModel>? all;
+    try {
+      all = await fetchAllPages<AccountingEntriesModel>((limit, offset) =>
+          _accountingEntriesUseCase.getAccountingEntries(
+              limit: limit, offset: offset));
+    } catch (_) {
+      all = null;
+    }
+    if (!mounted || request != _allRequest) return;
+    setState(() {
+      _isLoadingAll = false;
+      _allEntries = all;
+      _allFailed = all == null;
+    });
+  }
+
+  /// Nom du fichier, période couverte et date de génération.
+  bool _matches(AccountingEntriesModel entry) => matchesSearch(_query, [
+        entry.filename,
+        _EntriesPeriod.tryParse(entry.filename)?.label,
+        formatFrenchDate(entry.createdDate),
+        entry.createdDate,
+      ]);
+
+  List<AccountingEntriesModel> get _searchResults =>
+      (_allEntries ?? const <AccountingEntriesModel>[])
+          .where(_matches)
+          .toList();
 
   _timeNow() {
     today = DateTime.now().subtract(const Duration(days: 1));
@@ -142,7 +215,13 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       navigatorKey.currentState?.pop();
     }
 
-    if (failure == null) return;
+    if (failure == null) {
+      // Un nouveau fichier existe : la liste chargée pour la recherche est périmée.
+      if (!mounted) return;
+      _allEntries = null;
+      if (_searching) _loadAll();
+      return;
+    }
 
     if (failure is AccountingEntriesConfigException) {
       if (!mounted) return;
@@ -184,59 +263,117 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
           ],
         ),
         ArcTableCard(
-          toolbar: Row(children: [
-            Text('Fichiers générés',
-                style: ArcText.cardTitle().copyWith(fontSize: 16)),
-            if (_lastKnownTotal > 0) ...[
-              const SizedBox(width: 10),
-              ArcCount('$_lastKnownTotal'),
+          toolbar: Wrap(
+            spacing: 16,
+            runSpacing: 12,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('Fichiers générés',
+                    style: ArcText.cardTitle().copyWith(fontSize: 16)),
+                if (_lastKnownTotal > 0) ...[
+                  const SizedBox(width: 10),
+                  ArcCount('$_lastKnownTotal'),
+                ],
+              ]),
+              ArcSearchField(
+                controller: _searchController,
+                hint: 'Fichier, période, date…',
+                semanticLabel: 'Rechercher une écriture comptable',
+                width: 320,
+                onChanged: _onSearchChanged,
+              ),
             ],
-          ]),
-          footer: ArcPagination(
-            label: _entries.isEmpty
-                ? '0 sur $_lastKnownTotal'
-                : '${_offset + 1}–${_offset + _entries.length} sur $_lastKnownTotal',
-            onPrevious: _isLoadingPage || _offset == 0
-                ? null
-                : () => _loadPage(_offset - _pageSize),
-            onNext: _isLoadingPage || _offset + _pageSize >= _lastKnownTotal
-                ? null
-                : () => _loadPage(_offset + _pageSize),
           ),
-          child: _buildContent(),
+          footer: _searching ? _searchFooter() : _pageFooter(),
+          child: _searching ? _buildSearchContent() : _buildPageContent(),
         ),
       ],
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoadingPage && _entries.isEmpty) {
+  Widget _pageFooter() => ArcPagination(
+        label: _entries.isEmpty
+            ? '0 sur $_lastKnownTotal'
+            : '${_offset + 1}–${_offset + _entries.length} sur $_lastKnownTotal',
+        onPrevious: _isLoadingPage || _offset == 0
+            ? null
+            : () => _loadPage(_offset - _pageSize),
+        onNext: _isLoadingPage || _offset + _pageSize >= _lastKnownTotal
+            ? null
+            : () => _loadPage(_offset + _pageSize),
+      );
+
+  Widget _searchFooter() {
+    final int count = _isLoadingAll ? 0 : _searchResults.length;
+    final int end = (_searchOffset + _pageSize).clamp(0, count);
+    return ArcPagination(
+      leading: Text('Recherche « $_query »',
+          overflow: TextOverflow.ellipsis, style: ArcText.small()),
+      label: count == 0 ? '0 résultat' : '${_searchOffset + 1}–$end sur $count',
+      onPrevious: _searchOffset == 0
+          ? null
+          : () => setState(() => _searchOffset -= _pageSize),
+      onNext: end >= count
+          ? null
+          : () => setState(() => _searchOffset += _pageSize),
+    );
+  }
+
+  Widget _buildPageContent() => _buildContent(
+        entries: _entries,
+        isLoading: _isLoadingPage,
+        failed: _pageFailed,
+        onRetry: () => _loadPage(_offset),
+        emptyTitle: 'Aucune écriture comptable générée',
+      );
+
+  Widget _buildSearchContent() {
+    final List<AccountingEntriesModel> results = _searchResults;
+    return _buildContent(
+      entries: results.skip(_searchOffset).take(_pageSize).toList(),
+      isLoading: _isLoadingAll,
+      failed: _allFailed,
+      onRetry: _loadAll,
+      emptyTitle: 'Aucune écriture ne correspond à « $_query »',
+    );
+  }
+
+  Widget _buildContent({
+    required List<AccountingEntriesModel> entries,
+    required bool isLoading,
+    required bool failed,
+    required VoidCallback onRetry,
+    required String emptyTitle,
+  }) {
+    if (isLoading && entries.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 60),
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (_pageFailed) {
+    if (failed) {
       return _TableMessage(
         icon: Icons.error_outline_rounded,
         tone: ArcTone.danger,
         title: 'Impossible de charger les écritures comptables.',
         action: OutlinedButton.icon(
-          onPressed: () => _loadPage(_offset),
+          onPressed: onRetry,
           icon: const Icon(Icons.refresh_rounded, size: 18),
           label: const Text('Réessayer'),
         ),
       );
     }
-    if (_entries.isEmpty) {
-      return const _TableMessage(
+    if (entries.isEmpty) {
+      return _TableMessage(
         icon: Icons.table_chart_outlined,
-        title: 'Aucune écriture comptable générée',
+        title: emptyTitle,
       );
     }
 
     final List<_EntriesPeriod?> periods = [
-      for (final entry in _entries) _EntriesPeriod.tryParse(entry.filename),
+      for (final entry in entries) _EntriesPeriod.tryParse(entry.filename),
     ];
     final bool anyPeriod = periods.any((period) => period != null);
     final int longest = periods.fold<int>(
@@ -245,7 +382,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (_isLoadingPage)
+        if (isLoading)
           const LinearProgressIndicator(minHeight: 2)
         else
           const SizedBox(height: 2),
@@ -272,8 +409,8 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
                       headingRowAlignment: MainAxisAlignment.end),
                 ],
                 rows: [
-                  for (int i = 0; i < _entries.length; i++)
-                    _buildRow(_entries[i], periods[i], anyPeriod, longest),
+                  for (int i = 0; i < entries.length; i++)
+                    _buildRow(entries[i], periods[i], anyPeriod, longest),
                 ],
               ),
             ),

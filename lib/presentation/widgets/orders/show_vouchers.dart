@@ -373,18 +373,20 @@ class ShowVouchersState extends State<ShowVouchers> {
     return DataTable2(
       columnSpacing: 16,
       horizontalMargin: 28,
-      minWidth: 980,
+      // Bénéficiaire (nom + e-mail) prend le reste : ~360 px à pleine
+      // largeur, assez pour un e-mail sur une ligne sans défiler.
+      minWidth: 1240,
       headingRowHeight: 44,
       dataRowHeight: 60,
       showCheckboxColumn: false,
       columns: [
         _column('Bon', fixedWidth: 120),
         _column('Bénéficiaire', size: ColumnSize.L),
-        _column('Téléphone', fixedWidth: 120),
+        _column('Téléphone', fixedWidth: 140),
         _column('Montant', fixedWidth: 96, numeric: true),
         _column('Restant', fixedWidth: 96, numeric: true),
-        _column('Expiration', fixedWidth: 100),
-        _column('État', fixedWidth: 190),
+        _column('Expiration', fixedWidth: 110),
+        _column('État', fixedWidth: 250),
         _column('Action', fixedWidth: 64, numeric: true),
       ],
       rows: [for (final voucher in _vouchers) _buildRow(voucher)],
@@ -405,7 +407,7 @@ class ShowVouchersState extends State<ShowVouchers> {
       },
       child: OrderSheet(
         semanticLabel: 'Bons de la commande',
-        width: 900,
+        width: 1400,
         scrollBody: false,
         header: OrderSheetHeader(
           eyebrow:

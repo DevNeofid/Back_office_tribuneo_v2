@@ -4,6 +4,7 @@ library;
 
 export 'package:back_office_tribuneo_v2/presentation/utils/arc_theme.dart';
 export 'arc_controls.dart';
+export 'arc_date_picker.dart';
 export 'arc_dialog.dart';
 export 'arc_layout.dart';
 export 'arc_logo.dart';

@@ -345,6 +345,118 @@ abstract final class ArcTheme {
         linearTrackColor: kNavy100,
         circularTrackColor: kNavy100,
       ),
+      scrollbarTheme: scrollbarTheme,
+      datePickerTheme: datePickerTheme(),
+    );
+  }
+
+  /// Barres de défilement toujours affichées (pas seulement au survol) et
+  /// assez épaisses pour être attrapées à la souris ; un clic dans la
+  /// glissière fait défiler d'une page.
+  static final ScrollbarThemeData scrollbarTheme = ScrollbarThemeData(
+    thumbVisibility: const WidgetStatePropertyAll(true),
+    trackVisibility: const WidgetStatePropertyAll(true),
+    interactive: true,
+    thickness: WidgetStateProperty.resolveWith((states) =>
+        states.contains(WidgetState.hovered) ||
+                states.contains(WidgetState.dragged)
+            ? 10
+            : 8),
+    radius: const Radius.circular(999),
+    crossAxisMargin: 2,
+    mainAxisMargin: 2,
+    minThumbLength: 40,
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.dragged)) return kNavy600;
+      if (states.contains(WidgetState.hovered)) return kNavy400;
+      return kNavy300;
+    }),
+    trackColor: const WidgetStatePropertyAll(kNavy50),
+    trackBorderColor: const WidgetStatePropertyAll(Colors.transparent),
+  );
+
+  /// Sélecteur de date « Arc » : en-tête navy, jour choisi en orange.
+  /// Utilisé par `showArcDatePicker` et par tout `showDatePicker` restant.
+  static DatePickerThemeData datePickerTheme() {
+    final ButtonStyle actionStyle = TextButton.styleFrom(
+      foregroundColor: kNavy600,
+      minimumSize: const Size(64, kControlHeightCompact),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kRadiusSm)),
+      textStyle: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+    );
+    OutlineInputBorder border(Color color, [double width = 1.5]) =>
+        OutlineInputBorder(
+            borderRadius: BorderRadius.circular(kRadiusSm),
+            borderSide: BorderSide(color: color, width: width));
+    return DatePickerThemeData(
+      backgroundColor: kSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      shadowColor: const Color(0x4D1F2240),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(kRadiusLg)),
+      headerBackgroundColor: kNavy900,
+      headerForegroundColor: Colors.white,
+      headerHeadlineStyle: ArcText.dialogTitle(color: Colors.white)
+          .copyWith(fontSize: 28),
+      headerHelpStyle: ArcText.label(color: kNavy300)
+          .copyWith(letterSpacing: 0.9),
+      weekdayStyle: ArcText.label(color: kText3),
+      dayStyle: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500),
+      dayShape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+      dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return kNavy200;
+        if (states.contains(WidgetState.selected)) return kNavy900;
+        return kInk;
+      }),
+      dayBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected) ? kOrange : null),
+      dayOverlayColor: const WidgetStatePropertyAll(kNavy50),
+      todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return kNavy900;
+        if (states.contains(WidgetState.disabled)) return kNavy200;
+        return kNavy600;
+      }),
+      todayBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected) ? kOrange : null),
+      todayBorder: const BorderSide(color: kNavy600, width: 1.5),
+      yearStyle: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+      yearShape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+      yearForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) return kNavy200;
+        if (states.contains(WidgetState.selected)) return kNavy900;
+        return kInk;
+      }),
+      yearBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected) ? kOrange : null),
+      yearOverlayColor: const WidgetStatePropertyAll(kNavy50),
+      dividerColor: kNavy100,
+      cancelButtonStyle: actionStyle,
+      confirmButtonStyle: actionStyle.copyWith(
+        backgroundColor: const WidgetStatePropertyAll(kOrange),
+        foregroundColor: const WidgetStatePropertyAll(kNavy900),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: kSurface,
+        isDense: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        labelStyle: GoogleFonts.poppins(fontSize: 14, color: kText2),
+        floatingLabelStyle: GoogleFonts.poppins(
+            fontSize: 13, fontWeight: FontWeight.w500, color: kNavy700),
+        hintStyle: GoogleFonts.poppins(fontSize: 14, color: kText3),
+        errorStyle: ArcText.small(color: kDangerText),
+        border: border(kBorderStrong),
+        enabledBorder: border(kBorderStrong),
+        focusedBorder: border(kNavy600, 2),
+        errorBorder: border(kDanger),
+        focusedErrorBorder: border(kDanger, 2),
+      ),
     );
   }
 }
