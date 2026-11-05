@@ -90,6 +90,9 @@ const kControlHeightCompact = 36.0;
 const kSidebarWidth = 248.0;
 const kContentMaxWidth = 1280.0;
 
+/// Marges du contenu d'un écran (les écrans `fullHeight` les posent eux-mêmes).
+const kPageContentPadding = EdgeInsets.fromLTRB(40, 36, 40, 48);
+
 /// Largeur maximale des écrans à grand tableau (Commandes).
 const kContentWideMaxWidth = 1760.0;
 

@@ -164,6 +164,79 @@ void main() {
     });
   });
 
+  testWidgets('ArcSearchField : cadre de 40 px même si le texte est plus bas',
+      (tester) async {
+    // Texte réduit : contenu < 40 px, comme Poppins dans le navigateur
+    // (le cadre ne faisait alors que 31–34 px, plus bas que les listes).
+    await tester.pumpWidget(MaterialApp(
+      theme: ArcTheme.light(),
+      home: const MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(0.5)),
+        child: Scaffold(body: Wrap(children: [ArcSearchField(width: 300)])),
+      ),
+    ));
+    final RenderBox border = tester.renderObject(find
+        .descendant(
+            of: find.byType(InputDecorator), matching: find.byType(CustomPaint))
+        .last);
+    expect(border.size.height, 40);
+  });
+
+  group('ArcTableCard scrollable (liste des clients)', () {
+    // Même structure que l'écran Clients : carte bornée + fiche à droite.
+    Widget layout(int rows) => MaterialApp(
+          theme: ArcTheme.light(),
+          home: Scaffold(
+            body: SizedBox(
+              height: 700,
+              child:
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                  child: ArcTableCard(
+                    scrollable: true,
+                    toolbar: const Text('barre'),
+                    footer: const Text('pied'),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('en-tête'),
+                      Flexible(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: rows,
+                          itemBuilder: (_, i) =>
+                              SizedBox(height: 60, child: Text('client $i')),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+                const SizedBox(width: 380, height: 300, child: Text('fiche')),
+              ]),
+            ),
+          ),
+        );
+
+    testWidgets('longue liste : défile dans la carte, la fiche ne bouge pas',
+        (tester) async {
+      await tester.pumpWidget(layout(100));
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(ArcTableCard)).height,
+          lessThanOrEqualTo(700));
+      final Offset sheet = tester.getTopLeft(find.text('fiche'));
+      await tester.drag(find.text('client 3'), const Offset(0, -1500));
+      await tester.pumpAndSettle();
+      expect(find.text('client 3'), findsNothing);
+      expect(find.text('barre'), findsOneWidget);
+      expect(find.text('pied'), findsOneWidget);
+      expect(tester.getTopLeft(find.text('fiche')), sheet);
+    });
+
+    testWidgets('liste courte : la carte garde sa hauteur naturelle',
+        (tester) async {
+      await tester.pumpWidget(layout(3));
+      expect(tester.getSize(find.byType(ArcTableCard)).height, lessThan(400));
+    });
+  });
+
   test('thème : barres de défilement toujours visibles et interactives', () {
     final ScrollbarThemeData theme = ArcTheme.light().scrollbarTheme;
     expect(theme.thumbVisibility?.resolve({}), isTrue);

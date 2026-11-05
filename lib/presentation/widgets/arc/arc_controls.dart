@@ -138,7 +138,12 @@ class ArcSearchField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       style: ArcText.body(),
+      textAlignVertical: TextAlignVertical.center,
       decoration: InputDecoration(
+        // Non « dense » : le cadre remplit alors toute la hauteur (40 px)
+        // au lieu de suivre celle du texte (34 px avec Poppins), et s'aligne
+        // sur les listes déroulantes voisines.
+        isDense: false,
         hintText: hint,
         prefixIcon: const Icon(Icons.search_rounded, size: 20),
         prefixIconConstraints: const BoxConstraints(minWidth: 40),

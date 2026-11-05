@@ -214,9 +214,14 @@ class ShowVouchersState extends State<ShowVouchers> {
         )),
         DataCell(SelectableText(mobile,
             style: ArcText.data(color: kText2).copyWith(fontSize: 12))),
+        // Sur une ligne : le « € » ne doit jamais passer en dessous.
         DataCell(Text(formatEuro(voucher.amount),
+            maxLines: 1,
+            softWrap: false,
             style: ArcText.data(fontWeight: FontWeight.w500))),
         DataCell(Text(formatEuro(voucher.remainingAmount),
+            maxLines: 1,
+            softWrap: false,
             style: ArcText.data(color: kText2))),
         DataCell(Text(formatFrenchDate(voucher.expiryDate),
             style: ArcText.body(color: kText2).copyWith(fontSize: 13))),
@@ -375,7 +380,7 @@ class ShowVouchersState extends State<ShowVouchers> {
       horizontalMargin: 28,
       // Bénéficiaire (nom + e-mail) prend le reste : ~360 px à pleine
       // largeur, assez pour un e-mail sur une ligne sans défiler.
-      minWidth: 1240,
+      minWidth: 1300,
       headingRowHeight: 44,
       dataRowHeight: 60,
       showCheckboxColumn: false,
@@ -383,8 +388,9 @@ class ShowVouchersState extends State<ShowVouchers> {
         _column('Bon', fixedWidth: 120),
         _column('Bénéficiaire', size: ColumnSize.L),
         _column('Téléphone', fixedWidth: 140),
-        _column('Montant', fixedWidth: 96, numeric: true),
-        _column('Restant', fixedWidth: 96, numeric: true),
+        // « 100 000,00 € » tient sur une ligne.
+        _column('Montant', fixedWidth: 130, numeric: true),
+        _column('Restant', fixedWidth: 130, numeric: true),
         _column('Expiration', fixedWidth: 110),
         _column('État', fixedWidth: 250),
         _column('Action', fixedWidth: 64, numeric: true),

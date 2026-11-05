@@ -99,6 +99,8 @@ class MySinglePageState extends State<MySinglePage> {
       "short": "Clients",
       "content": CustomersContentView(),
       "icon": Icons.people_alt_outlined,
+      // La liste défile dans sa carte, la fiche client reste visible à droite.
+      "fullHeight": true,
     },
     2: {
       "name": "orders",
@@ -422,7 +424,7 @@ class MySinglePageState extends State<MySinglePage> {
       .any((item) => item['name'] == selectedMenu && item['wide'] == true);
 
   /// Marges du contenu ; chaque écran affiche son propre [ArcPageHeader].
-  static const EdgeInsets _contentPadding = EdgeInsets.fromLTRB(40, 36, 40, 48);
+  static const EdgeInsets _contentPadding = kPageContentPadding;
 
   Widget _buildContent(BuildContext context, bool desktop) {
     final Widget body;

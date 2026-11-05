@@ -104,7 +104,17 @@ class ArcTableCard extends StatelessWidget {
   final Widget? toolbar;
   final Widget child;
   final Widget? footer;
-  const ArcTableCard({super.key, this.toolbar, required this.child, this.footer});
+
+  /// Hauteur bornée par le parent : la carte ne dépasse pas la place
+  /// disponible, barre d'outils et pied restent visibles et seul [child]
+  /// défile (il doit alors savoir défiler, ex. `ListView(shrinkWrap: true)`).
+  final bool scrollable;
+  const ArcTableCard(
+      {super.key,
+      this.toolbar,
+      required this.child,
+      this.footer,
+      this.scrollable = false});
 
   @override
   Widget build(BuildContext context) {
@@ -121,15 +131,17 @@ class ArcTableCard extends StatelessWidget {
         children: [
           if (toolbar != null) ...[
             Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: toolbar),
             const Divider(),
           ],
-          child,
+          if (scrollable) Flexible(child: child) else child,
           if (footer != null) ...[
             const Divider(),
             Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: footer),
           ],
         ],
@@ -145,7 +157,10 @@ class ArcSectionTitle extends StatelessWidget {
   final ArcTone tone;
   final List<Widget> trailing;
   const ArcSectionTitle(this.title,
-      {super.key, this.count, this.tone = ArcTone.info, this.trailing = const []});
+      {super.key,
+      this.count,
+      this.tone = ArcTone.info,
+      this.trailing = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -205,9 +220,10 @@ class ArcPagination extends StatelessWidget {
           iconSize: 18,
           style: IconButton.styleFrom(
             minimumSize: const Size(32, 32),
-            side: BorderSide(color: onPressed == null ? kBorder : kBorderStrong),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
+            side:
+                BorderSide(color: onPressed == null ? kBorder : kBorderStrong),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             disabledForegroundColor: kNavy300,
           ),
           onPressed: onPressed,
@@ -279,7 +295,9 @@ class ArcAvatar extends StatelessWidget {
         .toList();
     if (words.isEmpty) return '?';
     if (words.length == 1) {
-      return words.first.substring(0, words.first.length < 2 ? 1 : 2).toUpperCase();
+      return words.first
+          .substring(0, words.first.length < 2 ? 1 : 2)
+          .toUpperCase();
     }
     return (words[0][0] + words[1][0]).toUpperCase();
   }
@@ -335,15 +353,14 @@ class ArcEmptyState extends StatelessWidget {
           child: Icon(icon, color: tone.text),
         ),
         const SizedBox(height: 12),
-        Text(title,
-            textAlign: TextAlign.center,
-            style: ArcText.cardTitle()),
+        Text(title, textAlign: TextAlign.center, style: ArcText.cardTitle()),
         if (message != null) ...[
           const SizedBox(height: 4),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Text(message!,
-                textAlign: TextAlign.center, style: ArcText.small(color: kText3)),
+                textAlign: TextAlign.center,
+                style: ArcText.small(color: kText3)),
           ),
         ],
         if (action != null) ...[const SizedBox(height: 16), action!],

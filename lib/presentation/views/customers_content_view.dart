@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/config/size_config.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/customer_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/my_single_page.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/addresses/address_form.dart';
@@ -62,7 +64,8 @@ class CustomersContentViewState extends State<CustomersContentView> {
 
   void _onSearchChanged(String text) {
     _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 500), () => search(text));
+    _searchDebounce =
+        Timer(const Duration(milliseconds: 500), () => search(text));
   }
 
   Future<void> _refreshCustomers({bool withDelay = false}) async {
@@ -464,28 +467,88 @@ class CustomersContentViewState extends State<CustomersContentView> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     final EntityModel? selected = _isLoading ? null : _selected;
+    final Widget header = ArcPageHeader(
+      eyebrow: 'Réseau',
+      title: 'Clients',
+      actions: [
+        OutlinedButton.icon(
+          onPressed: () =>
+              MySinglePage.maybeOf(context)?.openMenu('merchantImport'),
+          icon: const Icon(Icons.upload_file_outlined, size: 18),
+          label: const Text('Importer'),
+        ),
+        FilledButton.icon(
+          onPressed: () => _askCustomerType(),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('Ajouter un client'),
+        ),
+      ],
+    );
+
+    // Écran « pleine hauteur » de MySinglePage : marges et largeur posées ici.
+    return LayoutBuilder(builder: (context, constraints) {
+      final double contentWidth = math.min(
+          constraints.maxWidth - kPageContentPadding.horizontal,
+          kContentMaxWidth);
+      final bool fixed = constraints.hasBoundedHeight &&
+          constraints.maxHeight >= 560 &&
+          contentWidth >= 920;
+      Widget frame(Widget child) => Align(
+            alignment: Alignment.topLeft,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: kContentMaxWidth),
+              child: child,
+            ),
+          );
+
+      if (fixed) {
+        // La liste défile dans sa carte : la fiche client reste visible.
+        return Padding(
+          padding: kPageContentPadding,
+          child: frame(Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              header,
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _buildTableCard(scrollable: true)),
+                    if (selected != null) ...[
+                      const SizedBox(width: 20),
+                      SizedBox(
+                        width: 380,
+                        // Défile seulement si la fenêtre est très basse ; pas
+                        // de découpe pour garder l'ombre de la fiche.
+                        child: SingleChildScrollView(
+                          clipBehavior: Clip.none,
+                          child: _buildSheet(selected),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          )),
+        );
+      }
+
+      // Fenêtre étroite ou basse : tableau puis fiche, la page défile.
+      return SingleChildScrollView(
+        padding: kPageContentPadding,
+        child: frame(_scrollingBody(header, selected)),
+      );
+    });
+  }
+
+  Widget _scrollingBody(Widget header, EntityModel? selected) {
     return SizedBox(
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ArcPageHeader(
-            eyebrow: 'Réseau',
-            title: 'Clients',
-            actions: [
-              OutlinedButton.icon(
-                onPressed: () =>
-                    MySinglePage.maybeOf(context)?.openMenu('merchantImport'),
-                icon: const Icon(Icons.upload_file_outlined, size: 18),
-                label: const Text('Importer'),
-              ),
-              FilledButton.icon(
-                onPressed: () => _askCustomerType(),
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text('Ajouter un client'),
-              ),
-            ],
-          ),
+          header,
           LayoutBuilder(builder: (context, constraints) {
             final Widget table = _buildTableCard();
             if (selected == null) return table;
@@ -513,9 +576,12 @@ class CustomersContentViewState extends State<CustomersContentView> {
   // ---------------------------------------------------------------------------
   // Tableau
 
-  Widget _buildTableCard() {
+  /// [scrollable] : hauteur bornée, les lignes défilent sous l'en-tête du
+  /// tableau (barre de recherche, lettres et pied restent visibles).
+  Widget _buildTableCard({bool scrollable = false}) {
     final int count = _customers.length;
     return ArcTableCard(
+      scrollable: scrollable,
       toolbar: Wrap(
         spacing: 12,
         runSpacing: 12,
@@ -535,15 +601,12 @@ class CustomersContentViewState extends State<CustomersContentView> {
           ),
         ],
       ),
-      footer: ArcPagination(
-        leading: Text(
-          _lastSearch.isNotEmpty
-              ? 'Recherche « $_lastSearch »'
-              : 'Lettre ${_filter.toUpperCase()}',
-          overflow: TextOverflow.ellipsis,
-          style: ArcText.small(),
-        ),
-        label: count == 0 ? '0 sur 0' : '1–$count sur $count',
+      // Simple compteur : l'API renvoie tous les clients, pas de pagination.
+      footer: Text(
+        '${_lastSearch.isNotEmpty ? 'Recherche « $_lastSearch »' : 'Lettre ${_filter.toUpperCase()}'}'
+        ' · ${_isLoading ? '…' : plural(count, 'client')}',
+        overflow: TextOverflow.ellipsis,
+        style: ArcText.small(),
       ),
       child: _isLoading
           ? const Padding(
@@ -561,13 +624,32 @@ class CustomersContentViewState extends State<CustomersContentView> {
                         : null,
                   ),
                 )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _tableHeader(),
-                    for (final customer in _customers) _tableRow(customer),
-                  ],
-                ),
+              : scrollable
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _tableHeader(),
+                        Flexible(
+                          child: ListView.builder(
+                            // Nouvelle lettre ou recherche : retour en haut.
+                            key: ValueKey('$_filter|$_lastSearch'),
+                            shrinkWrap: true,
+                            padding: EdgeInsets.zero,
+                            itemCount: _customers.length,
+                            itemBuilder: (context, i) =>
+                                _tableRow(_customers[i]),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _tableHeader(),
+                        for (final customer in _customers) _tableRow(customer),
+                      ],
+                    ),
     );
   }
 
@@ -657,8 +739,7 @@ class CustomersContentViewState extends State<CustomersContentView> {
                           minimumSize: const Size(32, 32),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8))),
-                      onPressed: () =>
-                          _addOrder(customer.id!, customer.name!),
+                      onPressed: () => _addOrder(customer.id!, customer.name!),
                       icon: const Icon(Icons.post_add_rounded),
                     ),
                   ),
@@ -715,7 +796,8 @@ class CustomersContentViewState extends State<CustomersContentView> {
   Widget _buildSheet(EntityModel customer) {
     final String siret = customer.siret ?? '';
     final String editLabel = switch (neoCurrentIndex) {
-      1 => customer.address != null ? 'Modifier l\'adresse' : 'Ajouter l\'adresse',
+      1 =>
+        customer.address != null ? 'Modifier l\'adresse' : 'Ajouter l\'adresse',
       2 => customer.bankInformations != null ? 'Modifier' : 'Ajouter',
       _ => 'Modifier',
     };
@@ -726,8 +808,8 @@ class CustomersContentViewState extends State<CustomersContentView> {
     };
     final ButtonStyle compact = ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size(0, 40)),
-      padding: const WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: 12)),
+      padding:
+          const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
       textStyle: WidgetStatePropertyAll(
           GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
     );
@@ -797,8 +879,8 @@ class CustomersContentViewState extends State<CustomersContentView> {
               style: compact,
               onPressed: () => _addOrder(customer.id!, customer.name!),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Nouvelle commande',
-                  maxLines: 1, softWrap: false),
+              label:
+                  const Text('Nouvelle commande', maxLines: 1, softWrap: false),
             ),
             const SizedBox(height: 8),
             OutlinedButton(
@@ -832,8 +914,10 @@ class CustomersContentViewState extends State<CustomersContentView> {
       ('Code postal', _value(address.zip, mono: true)),
       ('Ville', _value(address.city)),
       ('Pays', _value(address.country)),
-      if (address.lat != null) ('Latitude', _value('${address.lat}', mono: true)),
-      if (address.lng != null) ('Longitude', _value('${address.lng}', mono: true)),
+      if (address.lat != null)
+        ('Latitude', _value('${address.lat}', mono: true)),
+      if (address.lng != null)
+        ('Longitude', _value('${address.lng}', mono: true)),
     ]);
   }
 

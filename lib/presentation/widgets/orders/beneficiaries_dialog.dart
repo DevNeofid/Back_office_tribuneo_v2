@@ -253,7 +253,9 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1080, maxHeight: 900),
+          // Assez large pour que montants, e-mails et mobiles tiennent sur
+          // une ligne sans être tronqués.
+          constraints: const BoxConstraints(maxWidth: 1400, maxHeight: 900),
           child: SizedBox.expand(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -393,8 +395,9 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
   }
 
   /// Proportions des colonnes ; leur somme est la largeur minimale du tableau.
+  /// Reste : « 100 000,00 € » sur une ligne même à la largeur minimale.
   static const List<double> _columnFlex = [
-    120, 120, 190, 130, 110, 80, 120, 190
+    120, 120, 260, 150, 110, 130, 120, 190
   ];
   static final double _tableMinWidth =
       _columnFlex.fold<double>(0, (sum, width) => sum + width);
@@ -499,6 +502,8 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
         lockedTooltip,
         Text(row.isNew ? '—' : formatEuro(original!.remainingAmount),
             textAlign: TextAlign.right,
+            maxLines: 1,
+            softWrap: false,
             style: ArcText.data(color: kText2).copyWith(
                 decoration: row.removed ? TextDecoration.lineThrough : null)),
       ),
