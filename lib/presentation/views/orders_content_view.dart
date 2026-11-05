@@ -1290,6 +1290,10 @@ class ShowPaymentState extends State<ShowPayment> {
                           // Affiche la date retenue : cliquer dessus la modifie.
                           text: paymentDateController.text,
                           backgroundColor: kBlue,
+                          // Texte blanc : le navy par défaut ne se lit pas
+                          // sur ce fond.
+                          textColor: Colors.white,
+                          foregroundColor: Colors.white,
                           onPressed: () => _selectDate(context),
                         ),
                       ),
