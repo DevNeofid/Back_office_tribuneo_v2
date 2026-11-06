@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
 import 'package:back_office_tribuneo_v2/presentation/utils/_global.dart';
@@ -189,7 +190,7 @@ class SectorActivityViewState extends State<SectorActivityView> {
           ? const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: kNavy600))
+              child: TribuneoLoader())
           : const Icon(Icons.add_rounded, size: 18),
       label: const Text('Ajouter'),
     );
@@ -214,7 +215,7 @@ class SectorActivityViewState extends State<SectorActivityView> {
     final Widget body;
     if (_loadingList) {
       body = const SizedBox(
-          height: 160, child: Center(child: CircularProgressIndicator()));
+          height: 160, child: Center(child: TribuneoLoader()));
     } else if (_loadFailed) {
       body = Padding(
         padding: const EdgeInsets.all(20),

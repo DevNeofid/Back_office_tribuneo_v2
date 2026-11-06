@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -611,7 +612,7 @@ class CustomersContentViewState extends State<CustomersContentView> {
       child: _isLoading
           ? const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: TribuneoLoader()),
             )
           : _customers.isEmpty
               ? Padding(

@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/models/bank_account_model.dart';
@@ -386,7 +387,7 @@ class _NextTransferViewState extends State<NextTransferView> {
       body = const [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 80),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(child: TribuneoLoader()),
         ),
       ];
     } else if (_errorMessage != null || preview == null) {
@@ -394,9 +395,9 @@ class _NextTransferViewState extends State<NextTransferView> {
     } else {
       body = [
         if (_isLoading)
-          const LinearProgressIndicator(minHeight: 3)
+          const TribuneoLoadingProgress()
         else
-          const SizedBox(height: 3),
+          const SizedBox(height: 24),
         const SizedBox(height: 8),
         _buildSummary(preview),
         const SizedBox(height: 24),

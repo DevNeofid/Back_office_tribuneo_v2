@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:back_office_tribuneo_v2/presentation/views/_base_view.dart';
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_function.dart';
@@ -272,8 +273,7 @@ class _LoginViewState extends BaseStatefulWidget<LoginView> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: kNavy600),
+                        child: TribuneoLoader(),
                       )
                     : const Text('Se connecter'),
               ),

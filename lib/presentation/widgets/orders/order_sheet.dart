@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -361,7 +362,7 @@ class OrderButtonSpinner extends StatelessWidget {
   Widget build(BuildContext context) => const SizedBox(
       width: 18,
       height: 18,
-      child: CircularProgressIndicator(strokeWidth: 2.2, color: kNavy600));
+      child: TribuneoLoader());
 }
 
 // ---------------------------------------------------------------------------

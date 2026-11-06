@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
@@ -263,7 +264,7 @@ class _TranferOrderViewState extends State<TranferOrderView> {
     if (_isLoadingBankAccounts || (_isLoadingPage && _orders.isEmpty)) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 60),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: TribuneoLoader()),
       );
     }
     if (_pageFailed) {
@@ -301,9 +302,9 @@ class _TranferOrderViewState extends State<TranferOrderView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_isLoadingPage)
-          const LinearProgressIndicator(minHeight: 2)
+          const TribuneoLoadingProgress()
         else
-          const SizedBox(height: 2),
+          const SizedBox(height: 24),
         LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             scrollDirection: Axis.horizontal,

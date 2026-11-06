@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import '../merchant_enrichment/research_actions.dart';
 
 import 'package:flutter/material.dart';
@@ -332,93 +332,32 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-/// Bulle « trois points » pendant l'attente de la réponse.
-class AssistantTypingIndicator extends StatefulWidget {
+/// Bulle d’attente de la réponse, avec le loader commun Tribuneo.
+class AssistantTypingIndicator extends StatelessWidget {
   const AssistantTypingIndicator({super.key});
 
   @override
-  State<AssistantTypingIndicator> createState() =>
-      _AssistantTypingIndicatorState();
-}
-
-class _AssistantTypingIndicatorState extends State<AssistantTypingIndicator>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1000),
-  );
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // L'animation ne tourne que tant que la bulle est affichée.
-    if (MediaQuery.of(context).disableAnimations) {
-      _controller.stop();
-    } else if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: "L'assistant écrit",
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const TribuneoMascot(
-              width: 120,
-              mood: TribuneoMascotMood.thinking,
+  Widget build(BuildContext context) => Semantics(
+    label: "L'assistant écrit",
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const TribuneoMascot(width: 120, mood: TribuneoMascotMood.thinking),
+          const SizedBox(width: _avatarGap),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: kSurface,
+              border: Border.all(color: kBorder),
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(width: _avatarGap),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: kSurface,
-                border: Border.all(color: kBorder),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) => Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (int i = 0; i < 3; i++)
-                      Padding(
-                        padding: EdgeInsets.only(left: i == 0 ? 0 : 4),
-                        child: Opacity(
-                          opacity: _dotOpacity(i),
-                          child: Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                                color: kNavy600, shape: BoxShape.circle),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+            child: const ExcludeSemantics(child: TribuneoLoader(size: 28)),
+          ),
+        ],
       ),
-    );
-  }
-
-  /// Chaque point s'allume à son tour.
-  double _dotOpacity(int index) {
-    if (!_controller.isAnimating) return 0.6;
-    final double phase = (_controller.value - index / 3) * 2 * math.pi;
-    return 0.3 + 0.7 * (0.5 + 0.5 * math.cos(phase));
-  }
+    ),
+  );
 }

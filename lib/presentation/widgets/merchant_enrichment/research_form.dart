@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import '../../../domain/errors/merchant_enrichment_messages.dart';
 import 'ui/enrichment_dialog.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,7 @@ class _ResearchFormState extends State<ResearchForm> {
                 if (loading || sending) ...[
                   ClipRRect(
                       borderRadius: BorderRadius.circular(999),
-                      child: const LinearProgressIndicator(minHeight: 4)),
+                      child: const TribuneoLoadingProgress()),
                   const SizedBox(height: 12),
                 ],
                 LayoutBuilder(builder: (context, constraints) {
@@ -160,7 +161,7 @@ class _ResearchFormState extends State<ResearchForm> {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
+                          child: TribuneoLoader())
                       : const Icon(Icons.refresh_rounded, size: 18),
                   const SizedBox(width: 8),
                   const Flexible(child: Text('Relancer la recherche')),

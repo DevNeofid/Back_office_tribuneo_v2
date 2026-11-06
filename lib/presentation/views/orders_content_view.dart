@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:convert';
 
 import 'package:data_table_2/data_table_2.dart';
@@ -549,7 +550,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                   rowsPerPage: 50,
                   showCheckboxColumn: false,
                   loading: const Center(
-                    child: CircularProgressIndicator(color: kBlue),
+                    child: TribuneoLoader(),
                   ),
                   columns: const [
                     // Largeurs fixes : le n° de commande et les montants ne
@@ -1338,8 +1339,7 @@ class ShowPaymentState extends State<ShowPayment> {
                                   child: SizedBox(
                                     height: 24,
                                     width: 24,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2.5, color: kOrange),
+                                    child: TribuneoLoader(),
                                   ),
                                 ),
                               )

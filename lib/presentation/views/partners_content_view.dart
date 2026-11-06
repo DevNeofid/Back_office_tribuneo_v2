@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -714,7 +715,7 @@ class PartnersContentViewState extends State<PartnersContentView> {
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: TribuneoLoader()),
             )
           else if (partners.isEmpty)
             ArcEmptyState(

@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
@@ -308,7 +309,7 @@ class _MerchantImportViewState extends State<MerchantImportView> {
     if (_isLoading) {
       return const Padding(
         padding: EdgeInsets.all(40),
-        child: Center(child: CircularProgressIndicator(color: kBlue)),
+        child: Center(child: TribuneoLoader()),
       );
     }
     if (_loadError != null) {
@@ -420,7 +421,7 @@ class _MerchantImportViewState extends State<MerchantImportView> {
           const SizedBox(height: 12),
           Center(
             child: _isLoadingMore
-                ? const CircularProgressIndicator(color: kBlue)
+                ? const TribuneoLoader()
                 : TextButton(
                     onPressed: _loadMore,
                     child: const Text('Afficher plus de lots'),

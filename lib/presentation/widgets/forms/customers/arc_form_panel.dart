@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -298,7 +299,7 @@ class ArcToggleCard extends StatelessWidget {
   }
 }
 
-/// Action principale (orange) ; une roue remplace le libellé pendant
+/// Action principale (orange) ; le loader Tribuneo remplace le libellé pendant
 /// l'enregistrement.
 class ArcSubmitButton extends StatelessWidget {
   final String label;
@@ -319,7 +320,7 @@ class ArcSubmitButton extends StatelessWidget {
           ? const SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2.4),
+              child: TribuneoLoader(),
             )
           : Text(label),
     );

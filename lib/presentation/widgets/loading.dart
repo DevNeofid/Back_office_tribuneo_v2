@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 
 class LoadingDialog extends StatelessWidget {
@@ -28,7 +29,7 @@ class LoadingDialog extends StatelessWidget {
     return AlertDialog(
       content: Row(
         children: <Widget>[
-          const CircularProgressIndicator(),
+          const TribuneoLoader(),
           const SizedBox(width: 20),
           Text(loadingText),
         ],

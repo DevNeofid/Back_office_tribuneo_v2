@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:back_office_tribuneo_v2/data/local/storage_service.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
@@ -242,7 +243,7 @@ class ShowVouchersState extends State<ShowVouchers> {
                   child: SizedBox(
                       height: 18,
                       width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                      child: TribuneoLoader()),
                 )
               : _actionsMenu(voucher,
                   canDisable: canDisable,
@@ -361,7 +362,7 @@ class ShowVouchersState extends State<ShowVouchers> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: TribuneoLoader());
     }
     if (_vouchers.isEmpty) {
       return const Padding(

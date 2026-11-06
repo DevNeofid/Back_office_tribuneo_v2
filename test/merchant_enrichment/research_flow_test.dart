@@ -392,7 +392,9 @@ void main() {
     expect(transport.posts, 0);
     await tester.enterText(find.byKey(const ValueKey('research-zip')), '04000');
     await tester.tap(find.text('Relancer la recherche'));
-    await tester.pumpAndSettle();
+    // La tâche est en attente : le loader tourne jusqu'à sa réponse.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(transport.posts, 1);
     expect(enrichment.job!.id, nextJob);
     expect(find.textContaining('En attente'), findsWidgets);
@@ -424,7 +426,9 @@ void main() {
     expect(find.byKey(const ValueKey('research-name')), findsOneWidget);
     expect(transport.posts, 0);
     await tester.tap(find.text('Relancer la recherche'));
-    await tester.pumpAndSettle();
+    // La tâche est en attente : le loader tourne jusqu'à sa réponse.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(transport.posts, 1);
     expect(find.text('Retour au choix manuel'), findsNothing);
     expect(transport.calls.where((c) => c.path.contains('/apply')), isEmpty);

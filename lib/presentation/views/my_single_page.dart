@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -429,7 +430,7 @@ class MySinglePageState extends State<MySinglePage> {
   Widget _buildContent(BuildContext context, bool desktop) {
     final Widget body;
     if (!loadedData) {
-      body = const Center(child: CircularProgressIndicator());
+      body = const Center(child: TribuneoLoader());
     } else if (_isFullHeight) {
       body = content;
     } else {

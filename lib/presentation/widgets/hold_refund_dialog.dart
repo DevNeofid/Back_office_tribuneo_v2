@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/transfer_order_usecase.dart';
@@ -122,7 +123,7 @@ class _HoldRefundDialogState extends State<HoldRefundDialog> {
                 child: SizedBox(
                     height: 22,
                     width: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2.5)),
+                    child: TribuneoLoader()),
               )
             : FilledButton(
                 onPressed: _submit,

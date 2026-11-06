@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import '../../../domain/errors/merchant_enrichment_messages.dart';
 import 'ui/enrichment_dialog.dart';
 import 'research_form.dart';
@@ -323,7 +324,7 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                            if (s.busy) const LinearProgressIndicator(),
+                            if (s.busy) const TribuneoLoadingProgress(),
                             if (s.message != null)
                               Padding(
                                   padding:
@@ -346,8 +347,8 @@ class _EnrichmentPanelState extends State<EnrichmentPanel> {
                                         (widget.scopeActive?.call() ?? true)),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(999),
-                                child: LinearProgressIndicator(
-                                    minHeight: 6,
+                                child: TribuneoLoadingProgress(
+                                    animate: job.active,
                                     value: job.total == 0
                                         ? 0
                                         : (job.done / job.total).clamp(0, 1)),
@@ -1033,7 +1034,7 @@ class _CandidateReviewState extends State<_CandidateReview> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (_chained) _chainHeader(row),
-                    if (_advancing) const LinearProgressIndicator(),
+                    if (_advancing) const TribuneoLoadingProgress(),
                     if (p.candidates.length > 1) _candidatePicker(),
                     Wrap(spacing: 6, runSpacing: 6, children: [
                       EnrichmentChip('SIRET ${c.siret ?? 'non attribué'}',

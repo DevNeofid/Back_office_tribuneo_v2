@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -722,7 +723,7 @@ class _LoadingCard extends StatelessWidget {
       child: const SizedBox(
           width: 24,
           height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2.5)),
+          child: TribuneoLoader()),
     );
   }
 }
@@ -778,7 +779,7 @@ class _PanelLoading extends StatelessWidget {
           child: SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2.5))),
+              child: TribuneoLoader())),
     );
   }
 }

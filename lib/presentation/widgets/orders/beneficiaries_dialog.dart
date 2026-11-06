@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -317,7 +318,7 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: TribuneoLoader());
     }
     if (_loadError != null) {
       return Center(
@@ -642,7 +643,7 @@ class _BeneficiariesDialogState extends State<BeneficiariesDialog> {
                   child: SizedBox(
                       height: 18,
                       width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                      child: TribuneoLoader()),
                 )
               : ArcIconAction(
                   icon: Icons.forward_to_inbox_outlined,

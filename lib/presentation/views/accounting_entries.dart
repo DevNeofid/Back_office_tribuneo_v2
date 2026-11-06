@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -350,7 +351,7 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
     if (isLoading && entries.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 60),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: TribuneoLoader()),
       );
     }
     if (failed) {
@@ -383,9 +384,9 @@ class _AccountingEntriesViewState extends State<AccountingEntriesView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (isLoading)
-          const LinearProgressIndicator(minHeight: 2)
+          const TribuneoLoadingProgress()
         else
-          const SizedBox(height: 2),
+          const SizedBox(height: 24),
         LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             scrollDirection: Axis.horizontal,

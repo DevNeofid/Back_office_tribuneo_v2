@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/partner_usecase.dart';
@@ -143,7 +144,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
               if (!_sectorsLoaded)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: LinearProgressIndicator(),
+                  child: TribuneoLoadingProgress(),
                 )
               else
                 Wrap(
@@ -190,7 +191,7 @@ class SectorCreationFormState extends State<SectorCreationForm> {
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: TribuneoLoader(),
                           )
                         : const Text('Créer'),
                   ),

@@ -1,4 +1,4 @@
-import 'package:back_office_tribuneo_v2/presentation/utils/common.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'package:flutter/material.dart';
 
 import 'export_to_csv_helper_web.dart';
@@ -58,7 +58,7 @@ class _ExportToCsvButtonState extends State<ExportToCsvButton> {
           ? const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(color: kNavy600, strokeWidth: 2))
+              child: TribuneoLoader())
           : const Icon(Icons.download_rounded, size: 18),
       label: const Text('Exporter en CSV'),
     );

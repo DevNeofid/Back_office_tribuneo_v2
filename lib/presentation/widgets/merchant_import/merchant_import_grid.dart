@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import '../merchant_enrichment/ui/enrichment_dialog.dart';
 import 'dart:async';
 
@@ -1044,7 +1045,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: kBlue));
+      return const Center(child: TribuneoLoader());
     }
     if (_loadError != null) {
       return Center(
@@ -1336,7 +1337,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           const SizedBox(
               height: 14,
               width: 14,
-              child: CircularProgressIndicator(strokeWidth: 2, color: kBlue)),
+              child: TribuneoLoader()),
           const SizedBox(width: 8),
           Text('Enregistrement… ($active)',
               style: style.copyWith(color: kBlue)),
@@ -2128,7 +2129,7 @@ class MerchantImportGridState extends State<MerchantImportGrid> {
           child: SizedBox(
               height: 12,
               width: 12,
-              child: CircularProgressIndicator(strokeWidth: 1.5, color: kBlue)),
+              child: TribuneoLoader()),
         );
       case RowEditState.failed:
         return Positioned(

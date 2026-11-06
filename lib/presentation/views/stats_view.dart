@@ -1,3 +1,4 @@
+import 'package:back_office_tribuneo_v2/presentation/widgets/tribuneo_loader.dart';
 import 'dart:math' as math;
 
 import 'package:data_table_2/data_table_2.dart';
@@ -627,7 +628,7 @@ class StatsContentViewState extends State<StatsContentView> {
         final Widget child;
         if (snapshot.connectionState == ConnectionState.waiting) {
           child = const SizedBox(
-              height: 160, child: Center(child: CircularProgressIndicator()));
+              height: 160, child: Center(child: TribuneoLoader()));
         } else if (snapshot.hasError) {
           child = Padding(
             padding: const EdgeInsets.all(20),
