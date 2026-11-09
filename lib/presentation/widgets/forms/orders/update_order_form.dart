@@ -3,6 +3,7 @@ import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/order_error_messages.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_restriction_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
 import 'package:back_office_tribuneo_v2/domain/usecases/orders_usecase.dart';
@@ -13,6 +14,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/beneficiaries_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_restriction_section.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 
 /// Modification d'une commande (`PUT /order/{id}`).
@@ -31,7 +33,15 @@ class UpdateOrderForm extends StatefulWidget {
   /// l'API tranche (ses refus sont affichés).
   final OrderBeneficiariesModel? orderStatus;
 
-  const UpdateOrderForm({Key? key, required this.orderItem, this.orderStatus})
+  /// Ouvert depuis « Commerçants acceptés » : la section de la liste est
+  /// amenée à l'écran.
+  final bool focusRestriction;
+
+  const UpdateOrderForm(
+      {Key? key,
+      required this.orderItem,
+      this.orderStatus,
+      this.focusRestriction = false})
       : super(key: key);
 
   @override
@@ -59,6 +69,10 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
   late bool _imported;
   late bool _fromShop;
 
+  /// Liste de commerçants de la commande (badge), `null` : valable partout.
+  OrderRestrictionSummary? _restriction;
+  final GlobalKey _restrictionKey = GlobalKey();
+
   /// Montants et quantités non modifiables : on renvoie les lignes telles quelles.
   bool get _linesLocked => _invoiced || _imported || _fromShop;
 
@@ -69,6 +83,16 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
     _invoiced = widget.orderStatus?.invoiced ?? false;
     _imported = widget.orderStatus?.isImported ?? false;
     _fromShop = widget.orderStatus?.isFromShop ?? false;
+    _restriction = modifyItem.restriction;
+    if (widget.focusRestriction) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final BuildContext? section = _restrictionKey.currentContext;
+        if (section != null) {
+          Scrollable.ensureVisible(section,
+              duration: const Duration(milliseconds: 250));
+        }
+      });
+    }
 
     _initialExpiryDate = DateTime.tryParse(modifyItem.fundExpiryDate?.date ?? '');
     _selectedExpiryDate = _initialExpiryDate;
@@ -352,6 +376,12 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
                 ? null
                 : OrderSheetEyebrow(eyebrow, data: true),
             title: 'Modifier la commande',
+            below: _restriction == null
+                ? null
+                : Align(
+                    alignment: Alignment.centerLeft,
+                    child: OrderRestrictionBadge(_restriction!),
+                  ),
             trailing: [
               OrderSheetCloseButton(onPressed: _isSaving ? null : _close),
             ],
@@ -361,7 +391,22 @@ class _UpdateOrderFormState extends State<UpdateOrderForm> {
             children: [
               ..._notices(),
               _buildFields(),
-              const SizedBox(height: 18),
+              const SizedBox(height: 22),
+              // Modifiable quel que soit l'état de la commande, facturée
+              // comprise : enregistré à part (`PUT /order/{id}/restriction`).
+              OrderRestrictionSection(
+                key: _restrictionKey,
+                order: modifyItem,
+                orderStatus: widget.orderStatus,
+                onChanged: (restriction) {
+                  setState(() {
+                    _restriction = restriction;
+                    modifyItem.restriction = restriction;
+                    _hasChanged = true;
+                  });
+                },
+              ),
+              const SizedBox(height: 22),
               _buildLines(),
             ],
           ),

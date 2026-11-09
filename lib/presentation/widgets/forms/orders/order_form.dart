@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:back_office_tribuneo_v2/core/utils/idempotency_key.dart';
 import 'package:back_office_tribuneo_v2/domain/errors/api_exception.dart';
+import 'package:back_office_tribuneo_v2/domain/errors/order_error_messages.dart';
 import 'package:back_office_tribuneo_v2/domain/models/entity_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/urssaf_model.dart';
@@ -20,6 +21,7 @@ import 'package:back_office_tribuneo_v2/presentation/utils/formatters.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/arc/arc.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/forms/neo_row.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/merchant_picker.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 
 class OrderForm extends StatefulWidget {
@@ -71,6 +73,11 @@ class _OrderFormState extends State<OrderForm> {
   /// Clé d'idempotence de la dernière saisie manuelle non aboutie : renvoyée
   /// tant que la commande saisie est identique (coupure réseau, double clic).
   final PendingIdempotencyKey _orderKey = PendingIdempotencyKey();
+
+  /// « Seulement chez certains commerçants » : la commande part avec une liste.
+  bool _restricted = false;
+  final RestrictionDraft _restrictionDraft = RestrictionDraft();
+  final RestrictionPartners _restrictionPartners = RestrictionPartners();
 
   String? fileName;
   String fileBase64 = '';
@@ -146,6 +153,17 @@ class _OrderFormState extends State<OrderForm> {
       return;
     }
 
+    if (_restricted) {
+      final String? problem = _restrictionDraft.validate();
+      if (problem != null) {
+        snackbarKey.currentState?.showSnackBar(SnackBar(
+          content: Text(problem),
+          backgroundColor: Colors.red,
+        ));
+        return;
+      }
+    }
+
     if (widget.idEntity != -1) {
       entityId = widget.idEntity;
       setState(() {
@@ -208,6 +226,7 @@ class _OrderFormState extends State<OrderForm> {
           ? funds.map((item) => OrderSendItems.fromJson(item)).toList()
           : null,
       idEntity: entityId,
+      restriction: _restricted ? _restrictionDraft.toInput() : null,
     );
 
     setState(() {
@@ -242,6 +261,12 @@ class _OrderFormState extends State<OrderForm> {
         content: Text(e.message),
         backgroundColor: Colors.red,
       ));
+      if (e.code == OrderErrorMessages.restrictionUnknownEntities) {
+        // Commerçants sortis du réseau : décochés, et liste rechargée.
+        _restrictionDraft
+            .deselectAll(OrderErrorMessages.unknownEntityIds(e.details));
+        _restrictionPartners.load(force: true);
+      }
       if (e.code == 'IDEMPOTENCY_REQUEST_IN_PROGRESS') {
         // Le premier envoi est encore traité : on ne renvoie pas, on ferme le
         // formulaire après quelques secondes pour que la liste soit rechargée.
@@ -326,6 +351,8 @@ class _OrderFormState extends State<OrderForm> {
     _selectedCustomerValue.dispose();
     _showHint.dispose();
     searchController.dispose();
+    _restrictionDraft.dispose();
+    _restrictionPartners.dispose();
     super.dispose();
   }
 
@@ -373,6 +400,8 @@ class _OrderFormState extends State<OrderForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildMainFields(),
+            const SizedBox(height: 22),
+            _buildRestrictionSection(),
             const SizedBox(height: 22),
             _buildVouchersSection(),
           ],
@@ -592,6 +621,51 @@ class _OrderFormState extends State<OrderForm> {
                 : const SizedBox.shrink();
           },
         ),
+      ],
+    );
+  }
+
+  /// Où les chèques sont acceptés : partout (par défaut) ou chez une liste de
+  /// commerçants, en saisie manuelle comme en import par fichier.
+  Widget _buildRestrictionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Où les chèques sont acceptés', style: ArcText.cardTitle()),
+        const SizedBox(height: 4),
+        RadioGroup<bool>(
+          groupValue: _restricted,
+          onChanged: (value) {
+            setState(() => _restricted = value ?? false);
+            if (_restricted) _restrictionPartners.load();
+          },
+          child: Column(
+            children: [
+              RadioListTile<bool>(
+                value: false,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text('Chez tous les commerçants du réseau',
+                    style: ArcText.body()),
+              ),
+              RadioListTile<bool>(
+                value: true,
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text('Seulement chez certains commerçants',
+                    style: ArcText.body()),
+              ),
+            ],
+          ),
+        ),
+        if (_restricted) ...[
+          const SizedBox(height: 8),
+          RestrictionEditor(
+            draft: _restrictionDraft,
+            partners: _restrictionPartners,
+            enabled: !_isLoading,
+          ),
+        ],
       ],
     );
   }

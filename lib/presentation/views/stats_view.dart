@@ -538,6 +538,7 @@ class StatsContentViewState extends State<StatsContentView> {
             dataRowHeight: _rowHeight,
             columnSpacing: 20,
             horizontalMargin: 20,
+            loading: const Center(child: TribuneoLoader()),
             empty: Center(
               child: Text('Aucune donnée pour ce rapport.',
                   style: ArcText.small(color: kText3)),

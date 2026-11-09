@@ -1,5 +1,6 @@
 import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_restriction_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
@@ -36,6 +37,19 @@ class OrderUseCase {
   Future<BeneficiariesUpdateResult> updateBeneficiaries(
       int idOrder, List<Map<String, dynamic>> beneficiaries) async {
     return await orderRepository.updateBeneficiaries(idOrder, beneficiaries);
+  }
+
+  Future<OrderRestrictionModel?> getOrderRestriction(int idOrder) async {
+    return await orderRepository.getOrderRestriction(idOrder);
+  }
+
+  Future<OrderRestrictionModel?> updateOrderRestriction(
+      int idOrder, OrderRestrictionInput restriction) async {
+    return await orderRepository.updateOrderRestriction(idOrder, restriction);
+  }
+
+  Future<void> deleteOrderRestriction(int idOrder) async {
+    return await orderRepository.deleteOrderRestriction(idOrder);
   }
 
   Future<String?> resendGiftMail(int idQrCode) async {

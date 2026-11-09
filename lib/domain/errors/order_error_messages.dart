@@ -56,8 +56,44 @@ class OrderErrorMessages {
       case 'INSUFFICIENT_PRIVILEGES':
         return 'Vous n\'avez pas accès à cette ressource.';
       default:
+        return restrictionMessageForCode(code);
+    }
+  }
+
+  /// Codes des commerçants refusés par `RESTRICTION_UNKNOWN_ENTITIES`.
+  static const String restrictionUnknownEntities =
+      'RESTRICTION_UNKNOWN_ENTITIES';
+
+  /// Messages des refus liés à la liste de commerçants d'une commande (spec
+  /// commandes restreintes du 28/10/2026, section 6), `null` pour tout autre code.
+  static String? restrictionMessageForCode(String? code) {
+    switch (code) {
+      case 'RESTRICTION_LABEL_REQUIRED':
+        return 'Donnez un nom à la liste.';
+      case 'RESTRICTION_LABEL_TOO_LONG':
+        return 'Le nom de la liste ne doit pas dépasser 60 caractères.';
+      case 'RESTRICTION_EMPTY':
+        return 'Sélectionnez au moins un commerçant.';
+      case restrictionUnknownEntities:
+        return 'Certains commerçants ne font plus partie du réseau. Rechargez '
+            'la liste et vérifiez votre sélection.';
+      default:
         return null;
     }
+  }
+
+  /// Message de `ORDER_NOT_FOUND` sur les routes de la liste de commerçants.
+  static const String restrictionOrderNotFound =
+      "Cette commande n'existe plus.";
+
+  /// Ids refusés par `RESTRICTION_UNKNOWN_ENTITIES` (`details.entity_ids`).
+  static List<int> unknownEntityIds(Map<String, dynamic> details) {
+    final dynamic ids = details['entity_ids'];
+    if (ids is! List) return const [];
+    return ids
+        .map((id) => id is int ? id : int.tryParse(id?.toString() ?? ''))
+        .whereType<int>()
+        .toList();
   }
 
   static num? _num(dynamic value) {

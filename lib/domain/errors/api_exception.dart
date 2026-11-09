@@ -5,7 +5,10 @@ class ApiException implements Exception {
   /// autrement qu'en affichant le message (ex. recharger les comptes bancaires).
   final String? code;
 
-  ApiException(this.message, {this.code});
+  /// `error.details` de l'API (ex. `entity_ids` refusés), vide si absent.
+  final Map<String, dynamic> details;
+
+  ApiException(this.message, {this.code, this.details = const {}});
 
   @override
   String toString() => message;

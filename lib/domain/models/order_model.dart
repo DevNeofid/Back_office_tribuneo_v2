@@ -1,3 +1,5 @@
+import 'package:back_office_tribuneo_v2/domain/models/order_restriction_model.dart';
+
 class OrderModel {
   int? id;
   String? orderNumber;
@@ -14,6 +16,10 @@ class OrderModel {
   FundDate? createdDate;
   FundDate? updatedDate;
 
+  /// Liste de commerçants à laquelle la commande est restreinte, `null` si ses
+  /// chèques sont valables chez tous les commerçants du réseau.
+  OrderRestrictionSummary? restriction;
+
   OrderModel({
     this.id,
     this.orderNumber,
@@ -29,6 +35,7 @@ class OrderModel {
     this.fundExpiryDate,
     this.createdDate,
     this.updatedDate,
+    this.restriction,
   });
 
   OrderModel.fromJson(Map<String, dynamic> json)
@@ -45,7 +52,8 @@ class OrderModel {
         orderItems = _parseOrderItems(json['order_items']),
         fundExpiryDate = _parseFundDate(json['fund_expiry_date']),
         createdDate = _parseFundDate(json['created_date']),
-        updatedDate = _parseFundDate(json['updated_date']);
+        updatedDate = _parseFundDate(json['updated_date']),
+        restriction = OrderRestrictionSummary.tryParse(json['restriction']);
 
   static FundDate? _parseFundDate(dynamic value) {
     if (value == null) {
@@ -99,6 +107,7 @@ class OrderModel {
     if (updatedDate != null) {
       data['updated_date'] = updatedDate!.toJson();
     }
+    data['restriction'] = restriction?.toJson();
     return data;
   }
 }
@@ -163,6 +172,9 @@ class OrderSendModel {
   List<OrderSendItems>? orderItems;
   int? idEntity;
 
+  /// `null` : commande valable chez tous les commerçants (champ non envoyé).
+  OrderRestrictionInput? restriction;
+
   OrderSendModel(
       {this.id,
       this.giftFrom,
@@ -171,7 +183,8 @@ class OrderSendModel {
       this.fundQuantity,
       this.fundExpiryDate,
       this.orderItems,
-      this.idEntity});
+      this.idEntity,
+      this.restriction});
 
   OrderSendModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -201,6 +214,11 @@ class OrderSendModel {
       data['order_items'] = orderItems!.map((v) => v.toJson()).toList();
     }
     data['id_entity'] = idEntity;
+    // Envoyé seulement s'il y a une liste : sans elle, le corps reste celui
+    // d'avant la fonctionnalité.
+    if (restriction != null) {
+      data['restriction'] = restriction!.toJson();
+    }
     return data;
   }
 }

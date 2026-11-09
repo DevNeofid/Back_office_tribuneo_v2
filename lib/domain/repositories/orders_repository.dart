@@ -8,6 +8,7 @@ import 'package:back_office_tribuneo_v2/config/neo_encrypt.dart';
 import 'package:back_office_tribuneo_v2/data/remote/api_client.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_beneficiaries_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_model.dart';
+import 'package:back_office_tribuneo_v2/domain/models/order_restriction_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_update_results_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/order_voucher_model.dart';
 import 'package:back_office_tribuneo_v2/domain/models/paginated_result.dart';
@@ -132,9 +133,19 @@ class OrderRepository extends BaseRepository {
 
         if (response.statusCode == 201 || response.statusCode == 200) {
           return true;
-        } else {
-          return false;
         }
+        // Refus de la liste de commerçants : message précis (et ids refusés),
+        // les autres échecs gardent le message générique de l'appelant.
+        final Map<String, dynamic>? error = decodeApiError(response.data);
+        final String? code = apiErrorCode(error);
+        final String? message = OrderErrorMessages.restrictionMessageForCode(code);
+        if (message != null) {
+          throw ApiException(message,
+              code: code, details: apiErrorDetails(error));
+        }
+        return false;
+      } on ApiException {
+        rethrow;
       } catch (e) {
         if (kDebugMode) {
           print('###DEBUG### Error: $e');
@@ -170,9 +181,71 @@ class OrderRepository extends BaseRepository {
     throw ApiException(
         idempotencyMessageForCode(code) ??
             tenantErrorMessageForCode(code) ??
+            OrderErrorMessages.restrictionMessageForCode(code) ??
             fallback,
-        code: code);
+        code: code,
+        details: apiErrorDetails(error));
   }
+
+  /// Liste de commerçants de la commande, `null` si elle est valable partout.
+  Future<OrderRestrictionModel?> getOrderRestriction(int idOrder) async {
+    const String fallback = 'Impossible de charger la liste des commerçants.';
+    final String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.get('$suffixe/$idOrder/restriction',
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) print('###DEBUG### Error: $e');
+      throw ApiException(fallback);
+    }
+    if (response.statusCode == 200) {
+      return OrderRestrictionModel.fromData(_dataOf(response));
+    }
+    _throwOrderError(response, fallback, overrides: _restrictionOverrides);
+  }
+
+  /// Crée ou remplace entièrement la liste de la commande (autorisé quel que
+  /// soit son état : payée, facturée, distribuée).
+  Future<OrderRestrictionModel?> updateOrderRestriction(
+      int idOrder, OrderRestrictionInput restriction) async {
+    const String fallback =
+        "Erreur lors de l'enregistrement de la liste des commerçants.";
+    final String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.put('$suffixe/$idOrder/restriction',
+          jsonEncode(restriction.toJson()),
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) print('###DEBUG### Error: $e');
+      throw ApiException(fallback);
+    }
+    if (response.statusCode == 200) {
+      return OrderRestrictionModel.fromData(_dataOf(response));
+    }
+    _throwOrderError(response, fallback, overrides: _restrictionOverrides);
+  }
+
+  /// Retire la liste : la commande redevient valable chez tous les commerçants.
+  Future<void> deleteOrderRestriction(int idOrder) async {
+    const String fallback = 'Erreur lors du retrait de la liste des commerçants.';
+    final String tenant = await getTenantForCurrentNetwork();
+    dynamic response;
+    try {
+      response = await _remoteData.delete('$suffixe/$idOrder/restriction', null,
+          overrideTenant: tenant);
+    } catch (e) {
+      if (kDebugMode) print('###DEBUG### Error: $e');
+      throw ApiException(fallback);
+    }
+    if (response.statusCode == 200) return;
+    _throwOrderError(response, fallback, overrides: _restrictionOverrides);
+  }
+
+  static const Map<String, String> _restrictionOverrides = {
+    'ORDER_NOT_FOUND': OrderErrorMessages.restrictionOrderNotFound,
+  };
 
   /// Modifie une commande saisie à la main. Les bons ne sont plus recréés : l'API
   /// applique l'écart de quantité par montant (bons créés avec lien QR, ou retrait
@@ -321,7 +394,7 @@ class OrderRepository extends BaseRepository {
         (response.statusCode == 403
             ? "Vous n'avez pas accès à cette ressource."
             : fallback);
-    throw ApiException(message, code: code);
+    throw ApiException(message, code: code, details: apiErrorDetails(error));
   }
 
   Future<bool> deleteOrder(int id) async {

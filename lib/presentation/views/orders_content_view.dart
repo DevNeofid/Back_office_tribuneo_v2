@@ -24,6 +24,7 @@ import 'package:back_office_tribuneo_v2/presentation/widgets/forms/orders/update
 import 'package:back_office_tribuneo_v2/presentation/widgets/loading.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/beneficiaries_dialog.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_expiry_date.dart';
+import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_restriction_section.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/show_vouchers.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/orders/order_sheet.dart';
 import 'package:back_office_tribuneo_v2/presentation/widgets/neo_button.dart';
@@ -40,7 +41,7 @@ enum SampleItem {
   itemEight
 }
 
-enum SampleItem2 { itemOne, itemTwo, itemThree }
+enum SampleItem2 { itemOne, itemTwo, itemThree, itemFour }
 
 class OrdersContentView extends StatefulWidget {
   const OrdersContentView({super.key});
@@ -71,6 +72,7 @@ class _OrdersContentViewState extends State<OrdersContentView> {
       onShowVouchers: _showVouchers,
       onShowBeneficiaries: _showBeneficiaries,
       onEdit: _editOrder,
+      onShowRestriction: (order) => _editOrder(order, focusRestriction: true),
       onChangeExpiryDate: _changeExpiryDate,
       onDelete: _deleteOrder,
     );
@@ -115,7 +117,8 @@ class _OrdersContentViewState extends State<OrdersContentView> {
 
   /// Le statut de la commande (facturée, importée, boutique) est lu avant
   /// d'ouvrir le formulaire, pour n'y proposer que ce qui est modifiable.
-  Future<void> _editOrder(OrderModel order) async {
+  Future<void> _editOrder(OrderModel order,
+      {bool focusRestriction = false}) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -138,7 +141,10 @@ class _OrdersContentViewState extends State<OrdersContentView> {
         useSafeArea: true,
         context: context,
         builder: (context) {
-          return UpdateOrderForm(orderItem: order, orderStatus: status);
+          return UpdateOrderForm(
+              orderItem: order,
+              orderStatus: status,
+              focusRestriction: focusRestriction);
         });
     if (changed == true) {
       _dataSource.refreshDatasource();
@@ -556,7 +562,8 @@ class _OrdersContentViewState extends State<OrdersContentView> {
                     // Largeurs fixes : le n° de commande et les montants ne
                     // doivent jamais passer sur deux lignes.
                     DataColumn2(
-                      fixedWidth: 130,
+                      // Place du cadenas des commandes restreintes.
+                      fixedWidth: 152,
                       label: Expanded(
                           child: Center(
                               child: Text('N°', textAlign: TextAlign.center))),
@@ -646,6 +653,7 @@ class OrderDataSource extends AsyncDataTableSource {
   final void Function(OrderModel) onShowVouchers;
   final void Function(OrderModel) onShowBeneficiaries;
   final void Function(OrderModel) onEdit;
+  final void Function(OrderModel) onShowRestriction;
   final void Function(OrderModel) onChangeExpiryDate;
   final void Function(int) onDelete;
   List<OrderModel> _cachedOrders = [];
@@ -665,6 +673,7 @@ class OrderDataSource extends AsyncDataTableSource {
     required this.onShowVouchers,
     required this.onShowBeneficiaries,
     required this.onEdit,
+    required this.onShowRestriction,
     required this.onChangeExpiryDate,
     required this.onDelete,
   }) : _orderUseCase = orderUseCase;
@@ -695,7 +704,8 @@ class OrderDataSource extends AsyncDataTableSource {
             .where((o) =>
                 (o.orderNumber?.toLowerCase().contains(query) ?? false) ||
                 (o.giftFrom?.toLowerCase().contains(query) ?? false) ||
-                (o.giftReason?.toLowerCase().contains(query) ?? false))
+                (o.giftReason?.toLowerCase().contains(query) ?? false) ||
+                (o.restriction?.label.toLowerCase().contains(query) ?? false))
             .toList();
 
     final List<OrderModel> pageItems =
@@ -715,10 +725,33 @@ class OrderDataSource extends AsyncDataTableSource {
             : WidgetStateProperty.all(kSurface2),
         cells: [
           DataCell(Center(
-              child: SelectableText(order.orderNumber ?? '',
-                  maxLines: 1,
-                  style: ArcText.data(color: kNavy900),
-                  textAlign: TextAlign.center))),
+              child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: SelectableText(order.orderNumber ?? '',
+                    maxLines: 1,
+                    style: ArcText.data(color: kNavy900),
+                    textAlign: TextAlign.center),
+              ),
+              // Commande restreinte à une liste de commerçants.
+              if (order.restriction != null) ...[
+                const SizedBox(width: 4),
+                Tooltip(
+                  message: restrictionTooltip(order.restriction!),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: () => onShowRestriction(order),
+                    child: const Padding(
+                      padding: EdgeInsets.all(2),
+                      child: Icon(Icons.lock_outline_rounded,
+                          size: 16, color: kNavy600),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ))),
           DataCell(Center(
             child: SizedBox(
               width: cellWidth,
@@ -857,6 +890,8 @@ class OrderDataSource extends AsyncDataTableSource {
                     onDelete(order.id!);
                   } else if (item == SampleItem2.itemThree) {
                     onChangeExpiryDate(order);
+                  } else if (item == SampleItem2.itemFour) {
+                    onShowRestriction(order);
                   }
                 },
                 itemBuilder: (BuildContext context) =>
@@ -870,6 +905,12 @@ class OrderDataSource extends AsyncDataTableSource {
                   const PopupMenuItem<SampleItem2>(
                     value: SampleItem2.itemThree,
                     child: Text('Changer la date de validité'),
+                  ),
+                  const PopupMenuDivider(),
+                  // Disponible quel que soit l'état de la commande.
+                  const PopupMenuItem<SampleItem2>(
+                    value: SampleItem2.itemFour,
+                    child: Text('Commerçants acceptés'),
                   ),
                   const PopupMenuDivider(),
                   const PopupMenuItem<SampleItem2>(
