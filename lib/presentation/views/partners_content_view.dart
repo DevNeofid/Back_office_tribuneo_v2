@@ -182,42 +182,31 @@ class PartnersContentViewState extends State<PartnersContentView> {
     return parts.join(' ');
   }
 
-  Future<void> _getPartnerReceiptQR(EntityModel partner) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Génération du QR Code...');
-      },
-    );
-    String? name = partner.name;
-    name = name!.replaceAll(' ', '_');
-    await _partnerUseCase.createQRCodeReceipt(partner.id!).then((value) {
-      List<dynamic> listDynamic = value;
-      FileDownloader.downloadLargeFile(
-          listDynamic, '${name}_qr_code', 'application/pdf',
-          fileExtension: 'pdf');
-      Navigator.of(context, rootNavigator: true).pop();
-    });
-  }
+  Future<void> _getPartnerReceiptQR(EntityModel partner) => _downloadPartnerQR(
+      partner, () => _partnerUseCase.createQRCodeReceipt(partner.id!));
 
-  Future<void> _getPartnerQR(EntityModel partner) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return const LoadingDialog(loadingText: 'Génération du QR Code...');
-      },
-    );
-    String? name = partner.name;
-    name = name!.replaceAll(' ', '_');
-    await _partnerUseCase.createQRCode(partner.id!).then((value) {
-      List<dynamic> listDynamic = value;
-      FileDownloader.downloadLargeFile(
-          listDynamic, '${name}_qr_code', 'application/pdf',
-          fileExtension: 'pdf');
-      Navigator.of(context, rootNavigator: true).pop();
-    });
+  Future<void> _getPartnerQR(EntityModel partner) => _downloadPartnerQR(
+      partner, () => _partnerUseCase.createQRCode(partner.id!));
+
+  Future<void> _downloadPartnerQR(
+      EntityModel partner, Future<dynamic> Function() generate) async {
+    try {
+      await LoadingDialog.run(context, 'Génération du QR Code...', () async {
+        final List<dynamic> data = await generate();
+        if (!mounted) return;
+        final name = (partner.name ?? 'partenaire').replaceAll(' ', '_');
+        FileDownloader.downloadLargeFile(
+            data, '${name}_qr_code', 'application/pdf',
+            fileExtension: 'pdf');
+      });
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Impossible de générer le QR Code : '
+            '${error.toString().replaceFirst('Exception: ', '')}'),
+        backgroundColor: kDangerText,
+      ));
+    }
   }
 
   Future<void> _getPartnerLink(EntityModel partner) async {
