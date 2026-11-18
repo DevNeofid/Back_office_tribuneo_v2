@@ -4,9 +4,11 @@
 
 Voir, avant un virement, quelles demandes de remboursement des partenaires
 seront payées, pour quel montant, et lesquelles seront écartées. L'écran est
-le menu **Prochain virement** (icône €). Une pastille rouge sur ce menu
-signale qu'au moins une demande est prête à être payée ; elle disparaît quand
-vous ouvrez l'écran.
+le menu **Prochain virement**, dans le groupe **FINANCE** du menu de gauche.
+Une pastille orange « 1 » sur ce menu signale qu'au moins une demande est
+prête à être payée ; elle disparaît quand vous ouvrez l'écran. À l'accueil, la
+carte **PROCHAIN VIREMENT** et son bouton **Préparer le virement** y mènent
+aussi.
 
 ## D'où viennent les demandes
 
@@ -24,16 +26,21 @@ lieu : la demande attend encore l'ordre de virement généré par le réseau.
 ## Étapes
 
 1. Ouvrez **Prochain virement**.
-2. Lisez l'en-tête : **Demandes faites jusqu'au JJ/MM/AAAA inclus**, le
-   **Compte payeur** et quatre compteurs : **Demandes à payer**,
-   **Commerçants**, **Montant à virer** et **Demandes écartées**.
-3. Section **À payer** : une ligne par commerçant (code — nom, nombre de
-   demandes, net total). Cliquez sur la ligne pour la déplier.
+2. Lisez la carte du haut : **PÉRIMÈTRE** (**Demandes faites jusqu'au
+   JJ/MM/AAAA inclus**), **COMPTE PAYEUR** et quatre tuiles :
+   **Demandes à payer**, **Commerçants**, **Montant à virer** et
+   **Demandes écartées**.
+3. Section **À payer** : une carte par commerçant (initiales, nom, code en
+   dessous, nombre de demandes, net total). Cliquez sur la carte pour la
+   déplier ou la replier.
 4. Pour chaque demande dépliée : **Date**, **Numéro**, **Montant**, **Frais**,
-   **Net**. Une icône de document, avec l'info-bulle **Documents déjà émis**,
-   indique que le justificatif et la facture de frais existent déjà.
-5. Section **Écartées** (si elle existe) : **Date**, **Numéro**,
-   **Commerçant**, **Montant** et **Motifs**. Voir la fiche
+   **Net**, **Justificatifs** et **Action**. Dans **Justificatifs**, la
+   pastille verte **Déjà émis**, avec l'info-bulle **Documents déjà émis**,
+   indique que le justificatif et la facture de frais existent déjà ;
+   **À émettre** indique qu'ils n'existent pas encore.
+5. Section **Écartées** : **Date**, **Numéro**, **Commerçant**, **Montant**,
+   **Motifs** (en pastilles) et **Actions**. Sans demande écartée, elle
+   affiche **Aucune demande écartée**. Voir la fiche
    [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md).
 
 Sans demande, l'écran affiche **Aucune demande de remboursement en attente.**

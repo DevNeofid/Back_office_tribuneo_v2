@@ -12,8 +12,10 @@ et [Générer le QR code de réception d'un partenaire](generer-qr-reception-par
 
 ## Étapes
 
-1. Ouvrez **Commandes**, écran **Liste des commandes**, puis retrouvez la
-   commande et vérifiez son numéro.
+1. Ouvrez **Commandes** (anciennement **Liste des commandes**), puis
+   retrouvez la commande avec la recherche
+   **Rechercher par numéro de commande, offert par, etc.** et vérifiez son
+   numéro.
 2. Ouvrez l'icône de la colonne **Gestion**, puis choisissez
    **Générer les QR Code** une seule fois. **Cette sélection lance directement
    la génération, sans confirmation.**

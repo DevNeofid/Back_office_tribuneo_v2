@@ -3,8 +3,8 @@
 ## Objectif et prérequis
 
 Inscrire un commerce comme partenaire du réseau courant depuis **Partenaires**,
-écran **Liste des magasins partenaires**. Munissez-vous de son SIRET (14
-chiffres), de son nom, de son e-mail et de son téléphone. Disposez des droits
+écran **Magasins partenaires** (anciennement **Liste des magasins partenaires**).
+Munissez-vous de son SIRET (14 chiffres), de son nom, de son e-mail et de son téléphone. Disposez des droits
 d'administration du réseau.
 
 L'ajout commence toujours par une recherche du SIRET dans les entités déjà
@@ -13,35 +13,40 @@ reprenez l'entité trouvée pour lui donner le rôle partenaire dans ce réseau.
 
 ## Étapes
 
-1. Sous **Ajouter un partenaire**, cliquez sur le bouton orange **+**.
-2. La boîte **Rechercher un SIRET** s'ouvre. Saisissez le SIRET dans
+1. Cliquez sur **Ajouter un partenaire**, le bouton orange en haut à droite de
+   l'écran.
+2. La boîte **Rechercher un SIRET** s'ouvre (« Avant de créer une fiche, on
+   vérifie qu'elle n'existe pas déjà. »). Saisissez le SIRET dans
    **Entrer le SIRET** (chiffres seulement, 14 au maximum), puis cliquez sur
    **Suivant**. **Annuler** ferme sans rien créer ; un clic à l'extérieur ne
    ferme pas cette boîte.
-3. Si aucune entité n'a ce SIRET, le formulaire **Ajouter un partenaire**
-   s'ouvre avec le SIRET prérempli. Passez à « Nouvelle fiche ».
+3. Si aucune entité n'a ce SIRET, le panneau **Ajouter un partenaire**
+   s'ouvre à droite avec le SIRET prérempli. Passez à « Nouvelle fiche ».
 4. Si une entité existe déjà, la boîte **Fiche existante** affiche :
    **Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?**
    avec son nom, son e-mail, son téléphone et son SIRET. Passez à « Reprise ».
 
 ### Nouvelle fiche
 
-1. Renseignez **Nom du partenaire**, **Email du partenaire**,
-   **Siret du partenaire** et **Téléphone du partenaire**.
+1. Dans la section **Informations du partenaire**, renseignez
+   **Nom du partenaire**, **Email du partenaire**, **Siret du partenaire** et
+   **Téléphone du partenaire**.
 2. **Code du partenaire** est facultatif : il peut servir à identifier le
    partenaire dans vos systèmes internes. Sans code, l'API en génère un.
-3. Cochez **Accepte la dématérialisation** si c'est le cas ; la case est
-   décochée par défaut.
-4. Cliquez sur **Enregistrer**. **Annuler** ferme sans créer.
+3. Activez l'interrupteur **Accepte la dématérialisation** si le magasin
+   accepte les bons sur mobile ; il est désactivé par défaut.
+4. Cliquez sur **Ajouter le partenaire**. **Annuler**, le bouton ✕ **Fermer**
+   ou un clic en dehors du panneau ferment sans créer.
 5. Le message **Inscription du partenaire réussie** confirme l'ajout ; la liste
    se recharge ensuite.
 
 ### Reprise d'une entité existante
 
-- **Oui** demande le rôle partenaire pour l'entité trouvée, avec ses
-  informations actuelles. Le message attendu est
+- **Oui, utiliser cette fiche** demande le rôle partenaire pour l'entité
+  trouvée, avec ses informations actuelles. Le message attendu est
   **Partenaire ajouté avec succès !**.
 - **Non** abandonne et affiche **Ajout annulé**. Aucune donnée n'est envoyée.
+- **Modifier le SIRET** revient à la saisie du SIRET, sans rien envoyer.
 
 L'entité trouvée peut être un client de ce réseau ou une entité d'un autre
 réseau : la recherche ne filtre ni par rôle ni par réseau. La boîte
@@ -91,8 +96,8 @@ ensuite [l'adresse](renseigner-adresse-partenaire.md),
   tentative, recherchez le partenaire par son nom dans la liste, puis refaites
   la recherche par SIRET ; ne créez pas de doublon.
 
-Le bouton **Importer des commerçants** ouvre un import assisté distinct, qui
-n'est pas décrit dans cette fiche.
+Le bouton **Importer des commerçants**, en haut à droite, ouvre l'écran
+**Import**, un import assisté distinct qui n'est pas décrit dans cette fiche.
 
 ## Portée de l'aide Néo
 

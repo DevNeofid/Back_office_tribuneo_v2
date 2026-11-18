@@ -8,6 +8,10 @@ de secret. Cette aide concerne uniquement un problème d'accès au back-office.
 
 ## Selon le message affiché
 
+Après un clic sur **Se connecter**, les refus s'affichent dans un bandeau rose
+au-dessus des champs ; **Entrez un identifiant valide** apparaît sous le champ
+**Nom d'utilisateur**.
+
 | Message | Démarche |
 | --- | --- |
 | **Entrez un identifiant valide** | Renseignez **Nom d'utilisateur** : la validation locale vérifie seulement qu'il n'est pas vide. |

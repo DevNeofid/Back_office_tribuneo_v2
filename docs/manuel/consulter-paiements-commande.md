@@ -65,8 +65,8 @@ Si nécessaire, utilisez la fiche [Rechercher une commande](rechercher-commande.
 
 ## Écran concerné
 
-Menu **Commandes**, écran **Liste des commandes**, colonne **Gestion**, entrée
-**Paiements**, fenêtre **Paiements**.
+Menu **Commandes**, écran **Commandes** (anciennement **Liste des commandes**),
+colonne **Gestion**, entrée **Paiements**, fenêtre **Paiements**.
 
 ## Avec Néo
 

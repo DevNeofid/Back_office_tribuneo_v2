@@ -10,7 +10,8 @@ possible après facturation. Il ne crée pas un nouveau bon.
 ## Parcours depuis les bénéficiaires importés
 
 1. Dans **Commandes**, retrouvez la commande, puis ouvrez
-   **Gestion → Bénéficiaires (commande importée)** : voir
+   **Gestion → Bénéficiaires (commande importée)** ; la fenêtre
+   **Bénéficiaires** s'ouvre. Voir
    [Consulter les bénéficiaires](consulter-beneficiaires-commande-importee.md).
 2. Repérez la ligne du bon avec le nom, **E-mail**, **Montant** et **Statut**.
    Pour un bon **En attente** ayant un e-mail enregistré, la colonne **Actions**
@@ -28,16 +29,17 @@ possible après facturation. Il ne crée pas un nouveau bon.
 
 ## Autre entrée et disponibilité
 
-**Gestion → Gestion des bons** comporte aussi une icône **Renvoyer l'e-mail**.
-Elle est proposée pour un bon non désactivé, hors donation, lorsque l'e-mail
-affiché est non vide. Cette fenêtre affiche les contacts du compte consommateur
-associé ; elle peut donc proposer le bouton pour un bon déjà attribué, que
-le serveur refusera. Pour les contacts d'import et un bon en attente, privilégiez
+**Gestion → Gestion des bons** ouvre le panneau **Bons de la commande**, qui
+propose aussi **Renvoyer l'e-mail** dans le menu **…** (infobulle
+**Actions du bon**) de chaque ligne. Ce choix est disponible pour un bon non
+désactivé, hors donation, lorsque l'e-mail affiché est non vide. Ce panneau
+affiche les contacts du compte consommateur associé ; il peut donc proposer
+ce choix pour un bon déjà attribué, que le serveur refusera. Pour les contacts d'import et un bon en attente, privilégiez
 la fenêtre **Bénéficiaires (commande importée)**.
 
-Une infobulle **Aucune adresse e-mail pour ce bon** dans **Gestion des bons**
-ne prouve pas l'absence d'e-mail d'import : elle sert aussi lorsque le bon est
-désactivé ou une donation. Vérifiez les bénéficiaires de la commande importée.
+La mention **Aucune adresse e-mail pour ce bon**, sous ce choix grisé dans
+**Bons de la commande**, ne prouve pas l'absence d'e-mail d'import : elle
+s'affiche aussi lorsque le bon est désactivé ou une donation. Vérifiez les bénéficiaires de la commande importée.
 
 ## Messages et difficultés
 

@@ -14,8 +14,8 @@ pour agir, suivez le renvoi indiqué.
   encaisse. Voir [Rechercher et filtrer un client](rechercher-client.md).
 - **« Offert par »** : texte enregistré sur la commande et imprimé sur les
   chèques. Il reprend en général le nom du client, mais
-  **Personnalisation offert par (optionnel)** peut le remplacer sans changer le
-  client rattaché. La recherche des commandes porte sur ce texte, pas sur le nom
+  **Personnalisation « offert par » (optionnel)** peut le remplacer sans
+  changer le client rattaché. La recherche des commandes porte sur ce texte, pas sur le nom
   de la fiche client.
 - **Bénéficiaire** : personne destinataire d'un bon. Elle n'a de fiche ni dans
   **Clients** ni dans **Partenaires**. Ses coordonnées peuvent être enregistrées
@@ -27,7 +27,8 @@ pour agir, suivez le renvoi indiqué.
   [Statistiques : Comptes utilisateurs](statistiques-comptes-utilisateurs.md).
 - **Partenaire (commerçant)** : commerce qui a le rôle partenaire dans le
   réseau. Il dispose d'un compte d'application, d'un **Solde Tribuneo** et peut
-  être remboursé. Il se gère dans **Partenaires**. Voir
+  être remboursé. Il se gère dans **Partenaires** (écran
+  **Magasins partenaires**). Voir
   [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md).
 - **Entité commune** : une même entité peut être cliente et partenaire, et
   exister dans plusieurs réseaux. Nom, e-mail, téléphone, SIRET, adresse,
@@ -35,8 +36,9 @@ pour agir, suivez le renvoi indiqué.
   rôles. **Dupliquer** ajoute un rôle à cette même entité, sans copie
   indépendante. Voir [Dupliquer un client en partenaire](dupliquer-client-en-partenaire.md)
   et [Dupliquer un partenaire en client](dupliquer-partenaire-en-client.md).
-- **Réseau** : nom affiché en haut de page. Ce n'est ni un sélecteur ni la
-  preuve d'un paramétrage complet. Voir
+- **Réseau** : nom affiché dans la carte en bas du menu latéral et dans
+  « Bonjour … » à l'accueil. Ce n'est ni un sélecteur ni la preuve d'un
+  paramétrage complet ; un clic sur cette carte déconnecte. Voir
   [Comprendre la configuration du réseau](comprendre-configuration-reseau.md).
 
 ## Commandes et bons
@@ -55,18 +57,21 @@ pour agir, suivez le renvoi indiqué.
 - **Bon, chèque, coupon** : chaque chèque d'une commande correspond à un bon.
   Les lignes parlent de chèques, la gestion des bons de bons, le récapitulatif
   (**N° Coupon**) et certains rapports de coupons. Chaque bon a un montant, un
-  **Montant restant**, sa propre date d'expiration et peut être désactivé.
+  **Montant restant** (colonne **Restant** de **Gestion des bons**), sa propre
+  date d'expiration et peut être désactivé.
 - **Bon attribué** : bon rattaché à un compte consommateur, par exemple après
   avoir été scanné ou utilisé. Il empêche la suppression de la commande, la
   désactivation du bon et l'avancement de sa date ; une modification de la
   commande ne le retire jamais.
-- **Donation** : marquage **Oui** ou **Non** d'un bon dans les tableaux. Ce
+- **Donation** : marquage d'un bon, pastille **Don** dans **Gestion des bons**
+  et **Oui** ou **Non** dans le rapport **Statut des QR codes par client**. Ce
   n'est pas une action.
 - **Validité de la commande et expiration d'un bon** : la colonne **Expiration**
   de la liste concerne toute la commande ; un bon peut avoir sa propre date.
   Voir [Changer la date de validité d'une commande](changer-validite-commande.md)
   et [Changer la date d'expiration d'un bon](changer-expiration-bon.md).
-- **Désactiver un bon** : renseigne sa date de **Suppression** ; aucune
+- **Désactiver un bon** : renseigne sa date de désactivation (pastille
+  **Désactivé** dans **Gestion des bons**, date en infobulle) ; aucune
   réactivation n'est proposée. Voir [Désactiver un bon](desactiver-bon.md).
 - **QR codes** : trois parcours distincts. Le ZIP des QR des bons d'une
   commande ([fiche](generer-qr-codes-commande.md)), le QR de réception d'un
@@ -85,12 +90,15 @@ pour agir, suivez le renvoi indiqué.
   facture. Voir [Enregistrer un paiement](enregistrer-paiement-commande.md) et
   [Consulter les paiements](consulter-paiements-commande.md).
 - **Payé** et **Montant payé:** : cumul des paiements enregistrés sur la commande.
-- **Reste à payer (solde de la commande)** : total moins cumul payé. La liste ne
-  l'affiche pas directement. Voir
+- **Reste à payer (solde de la commande)** : total moins cumul payé. La colonne
+  **Paiement** de la liste le traduit en pastille : **Payée** (soldé),
+  **Non payée** (rien de payé), **Écart −x €** (reste x €) ou **Écart +x €**
+  (trop payé). Voir
   [Vérifier le solde et le statut payé](verifier-solde-commande.md).
 - **Indicateur « payée »** : état enregistré séparément, mis à jour lors de
   l'ajout ou de la suppression d'un paiement, mais pas lors d'un changement du
-  total. En cas de désaccord, les montants font foi.
+  total. En cas de désaccord, les montants font foi ; la pastille **Payée** de
+  la colonne **Paiement** est calculée sur les montants, pas sur cet indicateur.
 - **Compte encaisseur** : compte bancaire du réseau sur lequel un paiement de
   commande a été encaissé.
 - **Facture de commande** : document numéroté, unique pour une commande, créé
@@ -107,9 +115,10 @@ pour agir, suivez le renvoi indiqué.
   ordre de virement, du montant de ses demandes de remboursement. Aucune
   procédure de remboursement d'un client acheteur n'est décrite ; supprimer un
   paiement n'est pas un remboursement.
-- **Solde Tribuneo** : montant du partenaire dans le réseau, affiché sur sa
-  carte. La création d'une demande de remboursement en retire ce qui est
-  remboursable. Un solde non nul empêche la désactivation du partenaire.
+- **Solde Tribuneo** : montant du partenaire dans le réseau, affiché à droite
+  de sa carte sous **SOLDE TRIBUNEO**. La création d'une demande de
+  remboursement en retire ce qui est remboursable. Un solde non nul empêche
+  la désactivation du partenaire.
 - **Demande de remboursement** : demande créée côté partenaire, depuis
   l'application commerçant ou par un traitement automatique, jamais depuis le
   back-office. Elle apparaît dans **Prochain virement** à partir du lendemain.

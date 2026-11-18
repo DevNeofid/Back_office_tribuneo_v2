@@ -2,8 +2,8 @@
 
 ## Objectif et prérequis
 
-Utiliser l'action **Désactiver ce client** de **Clients**, écran
-**Liste des clients**, après avoir identifié sans ambiguïté la fiche concernée.
+Utiliser l'action **Désactiver ce client** de l'écran **Clients**,
+après avoir identifié sans ambiguïté la fiche concernée.
 Cette action exige des droits de gestion et peut être refusée si des commandes
 associées sont marquées non payées.
 
@@ -16,12 +16,12 @@ avant de confirmer, notamment si l'entité existe dans d'autres réseaux.
 ## Étapes
 
 1. Dans **Clients**, retrouvez le client et contrôlez son nom et ses informations.
-2. Ouvrez le menu d'actions à trois points dans l'en-tête, puis choisissez
-   **Désactiver ce client**.
+2. Sur la ligne du client, ouvrez le menu **…** (**Plus d'actions**), puis
+   choisissez **Désactiver ce client** (dernière entrée, en rouge).
 3. Le dialogue est titré **Désactiver le client** et pose la question
    **Êtes-vous sûr de vouloir désactiver ce client ?**.
-4. Choisissez **Annuler** pour fermer sans opération. **Désactiver** envoie la
-   demande réelle ; ne l'utilisez pas pour une recette documentaire.
+4. Choisissez **Annuler** pour fermer sans opération. Le bouton rouge
+   **Désactiver** envoie la demande réelle ; ne l'utilisez pas pour une recette documentaire.
 5. Après **Client désactivé avec succès !**, vérifiez l'état des données avant
    de considérer l'action terminée. La seule disparition d'une fiche ne
    prouve pas sa suppression ni l'état d'un éventuel partenaire.

@@ -8,24 +8,28 @@ les droits d'administration du réseau.
 
 ## Étapes
 
-1. Ouvrez **Commandes**, écran **Liste des commandes**, et retrouvez la commande
-   avec **Rechercher** : voir [Rechercher une commande](rechercher-commande.md).
+1. Ouvrez **Commandes** et retrouvez la commande avec la recherche
+   **Rechercher par numéro de commande, offert par, etc.** : voir
+   [Rechercher une commande](rechercher-commande.md).
 2. Sur sa ligne, ouvrez l'icône de la colonne **Gestion**, puis **Gestion des bons**.
-3. Attendez le chargement de **Gestion des bons - Commande …** et vérifiez le
-   numéro de commande dans le titre.
+3. Le panneau **Bons de la commande** s'ouvre à droite (anciennement
+   **Gestion des bons - Commande …**). Attendez le chargement et vérifiez le
+   numéro de commande affiché au-dessus du titre, suivi de l'offrant et de
+   l'occasion. Une pastille indique le nombre de bons et leur montant total.
 4. Lisez les colonnes ci-dessous. Si nécessaire, faites défiler le tableau
-   horizontalement pour atteindre **Expiration**, **Suppression** et **Action**.
-5. Utilisez **Fermer** pour revenir aux commandes.
+   horizontalement pour atteindre **Expiration**, **État** et **Action**.
+5. Fermez le panneau avec le bouton ✕ **Fermer** en haut à droite, ou cliquez
+   en dehors du panneau, pour revenir aux commandes.
 
 | Colonne | Lecture |
 |---|---|
-| **ID** | Identifiant composé du réseau, du bon et de la commande. Il diffère du numéro commercial de commande. |
+| **Bon** | Identifiant composé du réseau, du bon et de la commande. Il diffère du numéro commercial de commande. |
+| **Bénéficiaire** | Nom et e-mail du compte consommateur associé, lorsqu'il est retrouvé ; sans e-mail, **Aucune adresse e-mail pour ce bon** s'affiche. Ces coordonnées ne reprennent pas celles d'import d'un bon encore non attribué. |
+| **Téléphone** | Téléphone de ce même compte associé, s'il est renseigné. |
 | **Montant** | Valeur du bon. |
-| **Montant restant** | Reste enregistré pour ce bon. Ce chiffre ne garantit pas à lui seul que le bon est encore utilisable : regardez aussi son expiration et sa suppression. |
-| **Donation** | **Oui** si le bon est marqué comme donation, **Non** sinon. Ce n'est pas un bouton pour faire un don. |
-| **Nom**, **Email**, **Téléphone** | Coordonnées du compte consommateur associé, lorsqu'il est retrouvé. Elles ne reprennent pas les coordonnées d'import d'un bon encore non attribué. |
-| **Expiration** | Date propre à ce bon ; un tiret est affiché si la date est absente. |
-| **Suppression** | Date de désactivation lorsqu'elle est renseignée ; un tiret sinon. Les bons désactivés peuvent rester visibles dans ce tableau. |
+| **Restant** | Reste enregistré pour ce bon (anciennement **Montant restant**). Ce chiffre ne garantit pas à lui seul que le bon est encore utilisable : regardez aussi son expiration et son état. |
+| **Expiration** | Date propre à ce bon ; la case reste vide si la date est absente. |
+| **État** | **Désactivé** si le bon a une date de désactivation (l'infobulle la donne : « Désactivé le … ») ; sinon **Associé à un utilisateur** dès qu'un nom, un e-mail ou un téléphone est affiché, ou **Actif**. Les bons désactivés peuvent rester visibles dans ce tableau. Une pastille **Don** s'ajoute si le bon est marqué comme donation (anciennement colonne **Donation**) ; ce n'est pas un bouton pour faire un don. |
 
 ## Bénéficiaire et limites de lecture
 
@@ -37,7 +41,7 @@ n'ont donc pas nécessairement le même nombre de lignes.
 
 **Aucun bon associé à cette commande.** peut aussi apparaître après un échec de
 lecture, car cette vue reçoit alors une liste vide. Vérifiez la commande,
-fermez puis rouvrez la fenêtre ; si le doute persiste, faites vérifier le
+fermez puis rouvrez le panneau ; si le doute persiste, faites vérifier le
 chargement avant de conclure qu'il n'existe aucun bon. Ce tableau ne constitue
 pas un historique exhaustif des bons du réseau.
 
@@ -48,9 +52,12 @@ globales, voir [Changer la validité d'une commande](changer-validite-commande.m
 
 ## Autres actions et aide Néo
 
-La colonne **Action** propose, selon le bon, la
-[désactivation](desactiver-bon.md), le changement d'expiration et le
-[renvoi d'e-mail cadeau](renvoyer-cadeau-beneficiaire.md).
+Dans la colonne **Action**, le bouton **…** (infobulle **Actions du bon**)
+propose **Renvoyer l'e-mail**
+([renvoi d'e-mail cadeau](renvoyer-cadeau-beneficiaire.md)),
+**Modifier la date d'expiration** et **Désactiver le bon**
+([désactivation](desactiver-bon.md)). Un choix indisponible reste visible,
+grisé, avec sa raison en dessous.
 
 Demandez à Néo : « Où consulter le montant restant d'un bon de commande ? ».
 Néo explique les colonnes et le parcours ; ses outils actuels ne lisent pas

@@ -10,7 +10,7 @@ l'existence des autres.
 
 | Élément | Créé par | Où le lire | Ce qu'il établit | Ce qu'il ne prouve pas |
 | --- | --- | --- | --- | --- |
-| **Commande** | **Commandes**, saisie manuelle ou import ; boutique en ligne | **Liste des commandes** | Un achat de bons enregistré pour un client, avec son total | Ni paiement, ni facture |
+| **Commande** | **Commandes**, saisie manuelle ou import ; boutique en ligne | Écran **Commandes** | Un achat de bons enregistré pour un client, avec son total | Ni paiement, ni facture |
 | **Paiement** | **Gestion → Paiements**, puis **Valider** | Fenêtre **Paiements** ; colonne **Payé** | Un règlement enregistré dans Tribuneo | Ni facture, ni opération bancaire déclenchée |
 | **Facture de commande** | **Gestion → Générer la Facture** | **Documents → Factures** | Un numéro de facture attribué à la commande | Ni paiement, ni envoi au client |
 | **Remboursement d'un partenaire** | Demande créée côté partenaire, puis ordre de virement généré dans le back-office | **Prochain virement**, **Virements** | Selon l'étape : voir plus bas | Aucune étape ne prouve seule le virement exécuté |
@@ -27,11 +27,11 @@ Pour lire chaque élément, voir
 | --- | --- | --- |
 | **Total** | Colonne **Montant total** ; second montant de **Montant payé:** | Somme des lignes. Ce montant ne prouve pas qu'une facture existe. |
 | **Payé** | Colonne **Payé** ; premier montant de **Montant payé:** | Cumul des paiements enregistrés. |
-| **Reste à payer** | À calculer : **Montant total** moins **Payé** | La liste ne l'affiche pas. Vert : soldé ; rouge : montants différents. |
-| **Indicateur « payée »** | Lu par Néo et par certains contrôles | Non recalculé après un changement du total : les montants font foi. |
+| **Reste à payer** | Colonne **Paiement** ; sinon **Montant total** moins **Payé** | Pastille **Payée** : soldé ; **Non payée** : rien de payé ; **Écart −x €** : reste x € ; **Écart +x €** : trop payé. |
+| **Indicateur « payée »** | Lu par Néo et par certains contrôles | Non recalculé après un changement du total : les montants font foi. La pastille **Payée** ne le lit pas. |
 
-Si **Payé** dépasse **Montant total**, le total a pu être diminué après des
-paiements. Ne corrigez pas l'écart au hasard : voir
+Si **Payé** dépasse **Montant total** (pastille **Écart +x €**), le total a pu
+être diminué après des paiements. Ne corrigez pas l'écart au hasard : voir
 [Vérifier le solde et le statut payé](verifier-solde-commande.md).
 
 ## Règlement et facturation sont indépendants

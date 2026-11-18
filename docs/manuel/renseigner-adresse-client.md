@@ -2,8 +2,8 @@
 
 ## Objectif et prérequis
 
-Compléter l'adresse d'un client existant depuis **Clients**, écran
-**Liste des clients**. Disposez des droits de gestion des adresses et vérifiez
+Compléter l'adresse d'un client existant depuis l'écran **Clients**.
+Disposez des droits de gestion des adresses et vérifiez
 l'identité de la fiche avant toute modification.
 
 Une adresse renseignée est nécessaire au parcours de facturation : les champs
@@ -13,15 +13,20 @@ fiche [Générer la facture d'une commande](generer-facture-commande.md).
 
 ## Étapes
 
-1. Dans **Clients**, retrouvez la fiche et consultez l'onglet **Adresse**.
-2. Ouvrez le menu d'édition dans l'en-tête de la fiche et choisissez
-   **Editer l'adresse**.
-3. La fenêtre porte le titre **Indiquer l'adresse**. Si une adresse existe,
-   les champs sont préremplis ; sinon le formulaire permet son ajout.
+1. Dans **Clients**, sélectionnez le client et consultez l'onglet **Adresse**
+   de sa fiche, à droite.
+2. Cliquez sur le bouton **Ajouter l'adresse** (ou **Modifier l'adresse** si
+   une adresse existe) en bas de la fiche. Autre accès : sur la ligne du
+   client, menu **…** (**Plus d'actions**), puis **Editer l'adresse**.
+3. Le panneau s'ouvre à droite, avec la rubrique **AJOUTER L'ADRESSE** ou
+   **MODIFIER L'ADRESSE**, le nom du client pour titre (anciennement
+   **Indiquer l'adresse**, qui ne s'affiche plus que si le nom est vide) et
+   la section **Adresse du client**. Si une adresse existe, les champs sont
+   préremplis ; sinon le formulaire permet son ajout.
 4. Renseignez **Adresse**, **Code postal**, **Ville** et **Pays**.
-5. Cliquez sur **Enregistrer** pour envoyer l'ajout ou la modification. Pour
-   abandonner, fermez sans enregistrer, notamment par clic à l'extérieur de la
-   boîte de dialogue ; aucun bouton **Annuler** n'est prévu dans ce formulaire.
+5. Cliquez sur le bouton orange **Enregistrer** pour envoyer l'ajout ou la
+   modification. Pour abandonner sans enregistrer, cliquez sur **Annuler**,
+   sur ✕ **Fermer** ou en dehors du panneau.
 6. Après **Ajout de l'adresse réussi** ou **Modification de l'adresse réussie**,
    contrôlez l'onglet **Adresse** de la fiche actualisée.
 

@@ -25,18 +25,19 @@ tous ses bons, y compris lorsque la commande est déjà facturée.
    demain si cette date est antérieure à demain. Les dates antérieures à
    demain ne peuvent pas être choisies.
 4. Choisissez la nouvelle date. L'icône en forme de crayon du calendrier permet
-   aussi de saisir la date au format **Jour/Mois/Année**.
-5. Validez le calendrier. **Aucune confirmation supplémentaire n'est
+   aussi de saisir la date au format **JJ/MM/AAAA**.
+5. Cliquez sur **Valider**. **Aucune confirmation supplémentaire n'est
    demandée** : la date est envoyée dès la validation du calendrier. Pour
-   renoncer, utilisez le bouton d'annulation du calendrier ou cliquez en dehors
-   de celui-ci : rien n'est alors envoyé.
+   renoncer, cliquez sur **Annuler** ou en dehors du calendrier : rien n'est
+   alors envoyé.
 6. Le message **Mise à jour de la date de validité...** s'affiche pendant
    l'envoi. En cas de succès, le message **Date de validité mise à jour pour**
    indique le nombre de bons concernés, et la liste se recharge.
 7. Contrôlez la colonne **Expiration** de la commande.
 
-Pour une commande facturée, le formulaire **Edition → Modifier** propose aussi
-un bouton **Changer la date de validité**, qui ouvre ce même calendrier.
+Pour une commande facturée, le panneau **Edition → Modifier** propose aussi,
+dans son encart orange, un bouton **Changer la date de validité**, qui ouvre ce
+même calendrier.
 
 ## Règles
 

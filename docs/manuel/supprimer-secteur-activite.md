@@ -10,13 +10,15 @@ du réseau affiché, bloque la suppression côté API.
 ## Étapes
 
 1. Ouvrez **Secteurs**, écran **Secteurs d'activité**, et identifiez précisément
-   la ligne dans **Nom du secteur**.
-2. Dans **Actions**, cliquez sur l'icône de corbeille dont l'infobulle est
-   **Supprimer**.
-3. Lisez la confirmation : **Attention, il est possible que ce secteur
-   d'activité soit associé à des partenaires. Voulez-vous vraiment le supprimer ?**
-4. Cliquez sur **Annuler** pour abandonner. Cliquez sur **Confirmer** uniquement
-   si vous souhaitez réellement supprimer ce secteur.
+   le secteur dans la liste **Secteurs** (ordre alphabétique, deux colonnes).
+2. À droite de son nom, cliquez sur l'icône de corbeille rouge dont
+   l'infobulle est **Supprimer** suivi du nom du secteur.
+3. Lisez la confirmation, titrée **Supprimer « … » ?** avec le nom du secteur :
+   **Attention, il est possible que ce secteur d'activité soit associé à des
+   partenaires. Voulez-vous vraiment le supprimer ?**
+4. Cliquez sur **Annuler** pour abandonner. Cliquez sur le bouton rouge
+   **Supprimer** (anciennement **Confirmer**) uniquement si vous souhaitez
+   réellement supprimer ce secteur.
 5. Après **Le secteur d’activité a été supprimé avec succès**, contrôlez sa
    disparition de la liste.
 
@@ -30,9 +32,11 @@ partenaires visibles ou actifs du réseau courant.
 
 En cas de **Erreur lors de la suppression du secteur d’activité**, un lien
 existant peut expliquer le refus, mais le message BO est générique et ne le
-prouve pas. Vérifiez la liste avant de recommencer : une suppression réussie
-suivie d'un échec de rechargement peut aussi afficher ce message. Une liste
-vide ou ancienne ne constitue pas à elle seule une preuve de suppression.
+prouve pas. Vérifiez la liste avant de recommencer. Si la suppression réussit
+mais que le rechargement de la liste échoue, le message de réussite s'affiche
+et la liste indique **Impossible de charger les secteurs d'activité.** :
+cliquez sur **Réessayer** pour contrôler. Une liste vide ou ancienne ne
+constitue pas à elle seule une preuve de suppression.
 Le rechargement peut notamment échouer après la suppression du dernier secteur.
 
 Si le secteur est encore utilisé, faites examiner son usage avant de décider

@@ -13,30 +13,34 @@ montant et date.
 
 ## Étapes
 
-1. Dans le menu latéral, ouvrez **Documents**.
-2. Sélectionnez **Factures** si cet onglet n'est pas déjà actif.
-3. Retrouvez la facture avec **Numéro de facture**, **Nom**,
-   **Montant total (EUR)** et **Date de creation**. Parcourez les pages du tableau
-   si nécessaire ; la liste affiche initialement 10 lignes par page.
+1. Dans le menu latéral (groupe **FINANCE**), ouvrez **Documents**.
+2. En haut à droite, sélectionnez l'onglet **Factures** s'il n'est pas déjà
+   actif (l'autre onglet est **Frais de gestion**).
+3. Retrouvez la facture avec le champ de recherche
+   **N° de facture ou de commande, client, montant…**, ou avec les colonnes
+   **N° de facture**, **Client**, **Montant TTC** et **Émise le**. Parcourez
+   les pages du tableau si nécessaire ; la liste affiche 10 lignes par page.
 4. Sur la ligne de la facture, cliquez sur l'icône de téléchargement dans la
-   colonne **Actions**. Son infobulle est **Télécharger**.
+   colonne **PDF**. Son infobulle est **Télécharger**.
 5. Attendez la préparation du document. Le navigateur prend en charge le
    téléchargement du fichier PDF.
 
 ## Lire les informations affichées
 
-- **Numéro de facture** identifie la facture ; ce n'est pas le numéro commercial
-  de la commande.
-- **Nom**, **Montant total (EUR)** et **Date de creation** permettent de vérifier
-  que la bonne ligne a été choisie.
-- Le bouton **Frais de gestion** affiche une autre liste. Pour une facture de
+- La colonne **N° de facture** identifie la facture ; ce n'est pas le numéro
+  commercial de la commande.
+- **Client**, **Montant TTC** et **Émise le** (anciennement **Nom**,
+  **Montant total (EUR)** et **Date de creation**) permettent de vérifier que
+  la bonne ligne a été choisie.
+- L'onglet **Frais de gestion** affiche une autre liste. Pour une facture de
   commande, restez dans **Factures**.
 
 ## Règles et limites
 
-- Cette vue ne propose pas de champ de recherche ni de filtre par numéro de
-  commande. Utilisez les informations visibles et la pagination pour retrouver
-  la facture.
+- La recherche porte sur toutes les factures de l'onglet actif, pas seulement
+  sur la page affichée : numéro de facture ou de commande, client, montant ou
+  date d'émission notamment. Les résultats s'affichent 10 par page ; sans
+  résultat, **Aucun document ne correspond à « … »** s'affiche.
 - Le parcours **Documents → Factures → Télécharger** part d'une facture existante.
   Tant qu'elle existe toujours, son numéro est réutilisé pour préparer le PDF.
   Le document téléchargé ne constitue pas une nouvelle numérotation.
@@ -49,7 +53,7 @@ montant et date.
 - Si la facture n'apparaît pas à l'écran, cela ne prouve pas qu'elle n'a pas été
   créée ou enregistrée : elle peut se trouver sur une autre page, vous pouvez
   être sur le mauvais onglet, ou un problème de chargement peut masquer la liste.
-  Vérifiez **Factures**, la pagination et le chargement pour la retrouver.
+  Vérifiez **Factures**, la recherche, la pagination et le chargement pour la retrouver.
   Ne lancez pas une nouvelle facturation uniquement pour contourner une erreur
   de téléchargement.
 - Le menu **Commandes → Gestion → Générer la Facture** correspond à une autre
@@ -67,12 +71,12 @@ Il ne précise pas la cause du problème.
 3. Si le problème persiste, signalez-le à votre interlocuteur Tribuneo avec le
    numéro de facture concerné, sans communiquer de mot de passe ni de jeton.
 
-Une liste vide peut également résulter d'une erreur de chargement. Elle ne
+Une liste vide (**Aucune facture**) peut également résulter d'une erreur de chargement. Elle ne
 prouve pas à elle seule qu'aucune facture n'existe pour le réseau.
 
 ## Écran concerné
 
-Menu **Documents**, onglet **Factures**, colonne **Actions**, icône
+Menu **Documents**, onglet **Factures**, colonne **PDF**, icône
 **Télécharger**.
 
 ## Avec Néo

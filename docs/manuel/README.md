@@ -3,6 +3,27 @@
 Le manuel est construit progressivement à partir du code de l'interface. Les
 fiches sont organisées par tâche et servent aussi de source à l'aide de Néo.
 
+## Lot 12 — import de commerçants et commerçants acceptés, 18 novembre 2026
+
+Deux nouvelles fiches : [Importer des commerçants depuis un fichier](importer-commercants.md)
+(menu **Import**, lots, grille **Relecture du lot**, import des lignes validées) et
+[Restreindre une commande à certains commerçants](restreindre-commande-commercants.md)
+(**Commerçants acceptés**). Le catalogue de Néo passe à 81 sujets. Provenance
+dans le dépôt Néo, `docs/livrables/M12/lot-12/`. Recette non exécutée.
+
+## Lot 11 — interface « Arc », 18 novembre 2026
+
+La nouvelle présentation du back-office (branche `feat/design-arc`) est décrite
+dans 78 fiches sur 79 : menu latéral bleu marine groupé en **RÉSEAU**,
+**FINANCE** et **ANALYSE**, titres courts, boutons d'en-tête, panneaux latéraux,
+fiche client à onglets **Général** / **Adresse** / **Banque**, cartes partenaires
+à déplier, pastille **Paiement** des commandes, catalogue des statistiques,
+déconnexion depuis la carte du réseau et nouveau tableau de bord. Les règles
+métier, refus et liens restent identiques ; les anciens libellés utiles sont
+cités « (anciennement … ) ». 79 sujets et alias conservés. Provenance et
+résultat dans le dépôt Néo, `docs/livrables/M12/lot-11/`. Recette visuelle
+lot 11 non exécutée.
+
 ## Lot 10 — saisie des paiements et code client, 2 novembre 2026
 
 M15E accepte la virgule ou le point décimal, refuse explicitement un montant

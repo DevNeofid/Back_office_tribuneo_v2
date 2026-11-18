@@ -9,7 +9,8 @@ transaction enregistrée. Le parcours commun est décrit dans
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Partenaires sans transactions**.
+1. Ouvrez **Statistiques**, puis cliquez sur **Partenaires sans transactions**
+   dans le catalogue des rapports (groupe **PARTENAIRES**).
 2. Lisez le tableau, dix lignes par page, trié par nom.
 3. Cliquez sur **Exporter en CSV** : fichier `partenaires_sans_activite.csv`.
 
@@ -23,7 +24,7 @@ quelle que soit leur date, sont prises en compte.
 | **Nom** | `nom` | Nom du partenaire. |
 | **ID** | absent du CSV | Identifiant interne de la fiche partenaire. |
 | **Email** | `email` | E-mail enregistré sur la fiche partenaire. |
-| **Téléphone** | `tel` | Téléphone enregistré sur la fiche partenaire. |
+| **Téléphone** | `tel` | Téléphone enregistré sur la fiche partenaire, masqué par défaut à l'écran (**Afficher les numéros**), complet dans le CSV. |
 
 La colonne **ID** n'est pas exportée : notez-la depuis l'écran si besoin.
 

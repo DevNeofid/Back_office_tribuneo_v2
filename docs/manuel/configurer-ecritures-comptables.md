@@ -75,9 +75,13 @@ vérifiez l'historique avant tout nouveau déclenchement.
 
 ## Écran concerné et aide Néo
 
-Le menu **Écritures** ouvre **Écritures comptables**. La fenêtre de configuration
-apparaît uniquement après certains refus du déclenchement ; ce n'est pas un
-formulaire de modification et elle ne comporte qu'un bouton **Fermer**.
+Le menu **Écritures** (groupe **FINANCE**) ouvre **Écritures comptables** ; le
+bouton **Déclencher les écritures comptables** est en haut à droite. La fenêtre
+de configuration apparaît uniquement après certains refus du déclenchement ;
+ce n'est pas un formulaire de modification et elle ne comporte qu'un bouton
+**Fermer**. Le tableau vide de l'écran affiche le même texte, « Aucune
+écriture comptable générée », quand aucun fichier n'est listé : ce n'est pas
+cette fenêtre.
 
 Néo explique ces prérequis et les messages documentés. Il ne modifie ni les
 paramètres ni les comptes et ne choisit aucune valeur comptable pour vous.

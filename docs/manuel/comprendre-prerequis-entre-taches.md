@@ -53,7 +53,7 @@ et générer la facture dans l'ordre utile au réseau.
 
 | Pour… | Il faut… | Niveau | Fiche |
 | --- | --- | --- | --- |
-| Renvoyer l'e-mail cadeau | Bon non annulé, non attribué, avec un e-mail enregistré | Serveur ; le bouton peut être proposé à tort dans **Gestion des bons** | [Renvoyer](renvoyer-cadeau-beneficiaire.md) |
+| Renvoyer l'e-mail cadeau | Bon non annulé, non attribué, avec un e-mail enregistré | Serveur ; le choix **Renvoyer l'e-mail** peut être proposé à tort dans **Gestion des bons** | [Renvoyer](renvoyer-cadeau-beneficiaire.md) |
 | Désactiver un bon | Bon non attribué et non déjà désactivé | Formulaire selon les contacts affichés, puis serveur | [Désactiver un bon](desactiver-bon.md) |
 | Avancer l'expiration d'un bon | Bon non désactivé et non attribué ; au plus tôt demain | Serveur | [Expiration d'un bon](changer-expiration-bon.md) |
 | Obtenir le ZIP des QR codes | Bons non annulés ; génération disponible pour le réseau | Serveur | [QR codes](generer-qr-codes-commande.md) |

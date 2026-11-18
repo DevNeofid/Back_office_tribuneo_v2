@@ -9,7 +9,8 @@ parcours commun est décrit dans
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Toutes les infos partenaires**.
+1. Ouvrez **Statistiques**, puis cliquez sur **Toutes les infos partenaires**
+   dans le catalogue des rapports (groupe **PARTENAIRES**).
 2. Faites défiler horizontalement : le tableau compte seize colonnes. Il
    affiche dix lignes par page, trié par nom.
 3. Cliquez sur **Exporter en CSV** : fichier `toutes_les_infos_partenaires.csv`.
@@ -24,7 +25,7 @@ Ce rapport n'a ni période ni filtre.
 | **Nom** | `nom` | Nom du partenaire. |
 | **Email** | `email` | E-mail de la fiche. |
 | **Siret** | `siret` | SIRET enregistré. |
-| **Téléphone** | `tel` | Téléphone de la fiche. |
+| **Téléphone** | `tel` | Téléphone de la fiche, masqué par défaut à l'écran (**Afficher les numéros**), complet dans le CSV. |
 | **Accepte démat.** | `accepte_demat` | `oui` ou `non`. |
 | **Adresse** | `rue` | Rue de l'adresse enregistrée. |
 | **Code postal** | `code_postal` | Code postal. |
@@ -49,8 +50,9 @@ apparaître plusieurs fois.
 
 ## Lecture et limites
 
-- **IBAN** et **BIC** sont affichés et exportés en clair. Aucun masquage n'est
-  appliqué : protégez ce fichier.
+- **IBAN** et **BIC** sont affichés et exportés en clair. Seuls les
+  téléphones sont masqués, à l'écran uniquement ; l'export est complet :
+  protégez ce fichier.
 - **Montant** est un état au moment de la lecture. Ce n'est ni le montant du
   prochain virement, ni une somme due établie. Pour les remboursements, voir
   [Consulter les demandes de remboursement](consulter-demandes-remboursement.md).

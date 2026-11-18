@@ -3,7 +3,8 @@
 ## Objectif et prérequis
 
 Retrouver un commerce partenaire du réseau courant et lire sa fiche depuis le
-menu **Partenaires**, écran **Liste des magasins partenaires**. La liste est
+menu **Partenaires**, écran **Magasins partenaires** (anciennement
+**Liste des magasins partenaires**). La liste est
 chargée pour le réseau sélectionné ; un partenaire d'un autre réseau n'y figure
 pas. Disposez des droits d'administration du réseau.
 
@@ -26,57 +27,71 @@ comptable) et ses secteurs d'activité sont alors communs aux deux rôles.
 
 ## Rechercher
 
-1. Ouvrez **Partenaires** dans le menu latéral.
-2. Saisissez une partie du nom dans **Rechercher...**. La liste se met à jour
-   après une courte pause de saisie, sans distinction de majuscules.
-3. Ou cliquez sur une lettre : seules les lettres qui ont au moins un partenaire
-   sont proposées. Cliquer une lettre vide le champ de recherche.
+1. Ouvrez **Partenaires** dans le menu latéral bleu marine (groupe **RÉSEAU**).
+2. Saisissez une partie du nom dans le champ **Nom du partenaire…**
+   (anciennement **Rechercher...**). La liste se met à jour environ une
+   demi-seconde après la frappe, sans distinction de majuscules.
+3. Ou cliquez sur une lettre de l'index alphabétique : seules les lettres qui
+   ont au moins un partenaire sont proposées. Cliquer une lettre vide le champ
+   de recherche.
+4. Affinez si besoin avec la liste des secteurs (**Tous les secteurs** par
+   défaut ; seuls les secteurs présents dans la liste sont proposés) et la
+   bascule **Tous** / **Dématérialisés** / **Papier seul**. Ces filtres
+   s'appliquent aussi aux résultats d'une recherche.
 
 La recherche porte uniquement sur le nom, dans la liste déjà chargée. Elle ne
 cherche ni par e-mail, ni par SIRET, ni par code, ni par nom d'utilisateur.
-Effacer la recherche ramène à la dernière lettre choisie.
+Effacer la recherche ramène à la dernière lettre choisie. Si aucun partenaire
+ne correspond, l'écran affiche **Aucun partenaire**.
 
 ## Lire la fiche
 
-Chaque carte affiche le nom, **Accepte la dématérialisation : Oui** ou **Non**,
-puis trois onglets :
+Chaque partenaire occupe une carte. Sa ligne affiche ses initiales, son nom,
+son code s'il en a un, ses secteurs d'activité, la pastille **Dématérialisé**
+ou **Papier seul**, la pastille orange **Aucun compte utilisateur** s'il n'a
+pas de nom d'utilisateur, et à droite son **SOLDE TRIBUNEO** en euros
+(anciennement **Solde Tribuneo actuel**).
 
-| Onglet | Contenu affiché |
+Cliquez sur la ligne ou sur le chevron **Déplier la fiche** pour afficher le
+détail ; une seule fiche est dépliée à la fois. Les trois rubriques sont côte
+à côte, sans onglets :
+
+| Rubrique | Contenu affiché |
 | --- | --- |
-| **Informations générales** | **Email**, **Tel**, **Siret**, **Nom d'utilisateur** ; **Secteurs d'activité** ; **Solde Tribuneo actuel** en euros |
-| **Adresse** | **Adresse**, **Code Postal**, **Ville**, **Pays** ; **Coordonnées GPS** (lat, long) |
-| **Informations bancaires** | **Iban**, **BIC**, **Clé RIB**, **Code établissement**, **Code Guichet**, **Numéro de compte**, **Numéro de comptabilité**, **Numéro intracommunautaire** |
+| **INFORMATIONS GÉNÉRALES** | **Email**, **Téléphone**, **SIRET**, **Utilisateur** (nom d'utilisateur de l'application) |
+| **ADRESSE** | adresse, code postal et ville, pays ; **Latitude**, **Longitude** |
+| **INFORMATIONS BANCAIRES** | **IBAN**, **BIC**, **Clé RIB**, **Code établ.**, **Code guichet**, **N° compte**, **N° compta.**, **N° intracom.** |
 
-**Filtres :** et ses trois icônes ne filtrent pas les partenaires : elles
-choisissent l'onglet ouvert sur toutes les cartes (informations générales,
-adresse, informations bancaires).
-
-Les textes **Pas de secteur d'activité pour le moment**,
-**Aucune adresse enregistrée pour le moment** et
-**Aucune information bancaire enregistrée pour le moment** indiquent ce que la
-liste a reçu. Le code du partenaire n'est pas affiché sur la carte.
+Une valeur absente est notée **Non renseigné**. Les textes
+**Pas de secteur d'activité**, **Aucune adresse enregistrée pour le moment**
+et **Aucune information bancaire enregistrée pour le moment** indiquent ce que
+la liste a reçu. L'ancienne rangée **Filtres :** n'existe plus.
 
 ## Actions disponibles depuis la carte
 
-- Icône QR, info-bulle **Menu Qrcode** : QR de réception, QR et lien de première
-  connexion. Chaque choix lance une génération ; ne l'ouvrez pas pour vérifier
-  un simple libellé.
-- Icône d'édition, info-bulle **Menu Edition** : informations générales,
-  secteurs d'activité, adresse, informations bancaires.
-- Menu à trois points, info-bulle **Afficher le Menu** :
+Les boutons sont à droite de la ligne, avant le chevron :
+
+- Icône QR, infobulle **QR code du magasin** (anciennement **Menu Qrcode**) :
+  QR de réception, QR et lien de première connexion. Chaque choix lance une
+  génération ; ne l'ouvrez pas pour vérifier un simple libellé.
+- Crayon, infobulle **Modifier le partenaire** (anciennement **Menu Edition**) :
+  informations générales, secteurs d'activité, adresse, informations bancaires.
+- Bouton **…**, infobulle **Plus d'actions** (anciennement **Afficher le Menu**) :
   **Dupliquer ce Partenaire en Client** et **Désactiver ce partenaire**.
 
 ## Limites
 
-- Une liste vide ou un partenaire absent ne prouve pas son inexistence : le
-  chargement peut avoir échoué sans message. Rouvrez **Partenaires** avant de
+- Une liste vide (**Aucun partenaire**) ou un partenaire absent ne prouve pas
+  son inexistence : le chargement peut avoir échoué sans message, ou un filtre
+  de secteur ou de dématérialisation peut le masquer. Remettez les filtres sur
+  **Tous les secteurs** et **Tous**, rouvrez **Partenaires** avant de
   conclure, et ne recréez pas un partenaire sans passer par la recherche par
   SIRET de l'ajout.
 - Un partenaire dont le nom commence par une lettre accentuée peut ne pas
-  apparaître sous une lettre : cherchez-le avec **Rechercher...**.
+  apparaître sous une lettre : cherchez-le avec **Nom du partenaire…**.
 - Un partenaire désactivé dans le réseau n'apparaît plus dans cette liste.
-- L'IBAN est affiché en clair sur la carte : ne le recopiez pas dans une
-  conversation.
+- L'IBAN est affiché en clair dans la fiche dépliée : ne le recopiez pas dans
+  une conversation.
 
 ## Portée de l'aide Néo
 

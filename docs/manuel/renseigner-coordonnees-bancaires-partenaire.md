@@ -3,19 +3,24 @@
 ## Objectif et prérequis
 
 Enregistrer ou corriger l'IBAN, le BIC et les informations comptables d'un
-partenaire depuis **Partenaires**, écran **Liste des magasins partenaires**.
-Ayez sous les yeux le RIB transmis par le commerçant et identifiez d'abord la
-bonne fiche dans l'onglet **Informations bancaires**.
+partenaire depuis **Partenaires**, écran **Magasins partenaires**. Ayez sous
+les yeux le RIB transmis par le commerçant, identifiez d'abord la bonne fiche
+et dépliez-la pour consulter sa rubrique **INFORMATIONS BANCAIRES**.
 
 L'IBAN, le BIC et les champs du RIB sont rattachés à l'entité, donc communs à
 ses autres rôles et réseaux. Le numéro comptable est propre au réseau courant.
 
 ## Étapes
 
-1. Sur la carte, ouvrez l'icône d'édition (**Menu Edition**), puis
+1. Sur la ligne du partenaire, cliquez sur le crayon **Modifier le partenaire**
+   (anciennement **Menu Edition**), puis sur
    **Editer informations bancaires**.
-2. Le formulaire est titré **Informations bancaires**. Sans informations
-   existantes, il est vide ; sinon, il est prérempli.
+2. Un panneau s'ouvre à droite, avec le nom du partenaire en titre
+   (anciennement **Informations bancaires**). Sans informations existantes, il
+   est vide et sa rubrique est **AJOUTER LES INFORMATIONS BANCAIRES** ; sinon,
+   il est prérempli et sa rubrique est **MODIFIER LES INFORMATIONS BANCAIRES**.
+   Les champs sont répartis en deux sections, **Coordonnées bancaires** et
+   **Comptabilité**.
 3. Saisissez l'**Iban**. Les espaces sont ajoutés automatiquement tous les
    quatre caractères.
 4. Lorsque l'IBAN complet est valide, **Code établissement**, **Code guichet**,
@@ -29,10 +34,11 @@ ses autres rôles et réseaux. Le numéro comptable est propre au réseau couran
 7. Cliquez sur **Enregistrer**. Les messages de réussite sont
    **Informations bancaires ajoutées avec succès** ou
    **Modification des informations bancaires réussie**.
-8. Contrôlez l'onglet **Informations bancaires** de la carte.
+8. Dépliez la fiche et contrôlez la rubrique **INFORMATIONS BANCAIRES**.
 
-Le formulaire n'a pas de bouton **Annuler** ; fermez-le par un clic à
-l'extérieur pour abandonner. Ce mode de fermeture n'a pas été vérifié en session.
+Pour abandonner, cliquez sur **Annuler** ou sur le bouton ✕ **Fermer** ; un
+clic en dehors du panneau le ferme aussi sans enregistrer. Ce mode de
+fermeture n'a pas été vérifié en session.
 
 ## Contrôles
 
@@ -68,7 +74,7 @@ payable, voir [Traiter les demandes de remboursement écartées](traiter-demande
 Les échecs affichent **Erreur lors de l'ajout des informations bancaires** ou
 **Erreur lors de la modification des informations bancaires**, sans la cause.
 En modification, l'API peut enregistrer les coordonnées puis échouer en relisant
-la fiche ; vérifiez l'onglet avant de recommencer. Effacer le numéro comptable
+la fiche ; vérifiez la rubrique avant de recommencer. Effacer le numéro comptable
 ne garantit pas sa suppression.
 
 ## Confidentialité et portée de l'aide Néo

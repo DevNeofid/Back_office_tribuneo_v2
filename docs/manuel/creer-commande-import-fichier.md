@@ -14,12 +14,15 @@ envois n'est proposé dans ce formulaire.
 
 ## Étapes
 
-1. Ouvrez **Commandes**, puis le bouton **+** sous **Ajouter une commande**.
+1. Ouvrez **Commandes**, puis cliquez sur le bouton orange
+   **Ajouter une commande**, en haut à droite. Le panneau
+   **Ajouter une commande** s'ouvre à droite.
 2. Vérifiez la **Date d'expiration**, préremplie à un an. Saisissez une date au
    format **JJ/MM/AAAA** ou utilisez **Choisir une date**. Choisissez au minimum
    le lendemain ; le serveur fixe l'expiration à 23:59:59.
-3. Cliquez sur **Importer un fichier**, puis **Importer CSV/XLSX**. Sélectionnez
-   un fichier **.csv** ou **.xlsx**. Vérifiez **Fichier sélectionné : …**.
+3. Dans la section **Bons cadeaux**, cliquez sur **Importer un fichier**, puis
+   sur **Importer CSV/XLSX** dans la zone en pointillés. Sélectionnez un fichier
+   **.csv** ou **.xlsx**. Vérifiez **Fichier sélectionné : …** sous le bouton.
    Ce libellé confirme seulement la sélection locale, pas la validité du contenu.
 4. Dans **Offert par**, choisissez le client existant. La liste propose
    **Rechercher une entité...** pour retrouver son nom.
@@ -29,13 +32,14 @@ envois n'est proposé dans ce formulaire.
    avant le traitement et l'envoi de la commande. Si la liste ne propose aucune
    occasion, interrompez la saisie et signalez le problème à votre interlocuteur
    Tribuneo.
-6. Si nécessaire, renseignez **Personnalisation offert par (optionnel)** :
+6. Si nécessaire, renseignez **Personnalisation « offert par » (optionnel)** :
    ce texte remplace « Offert par » sur le chèque, sans changer le client auquel
    la commande est rattachée. Les caractères `/` et `\` y sont remplacés par
    un tiret.
 7. Relisez le fichier dans votre tableur, le client, l'occasion et la date.
    Le formulaire ne propose ni aperçu des lignes ni contrôle détaillé avant
-   l'enregistrement. **Enregistrer** lance directement la création et les envois
+   l'enregistrement : en pied de panneau, **Total calculé depuis le fichier**
+   affiche seulement « — ». **Enregistrer** lance directement la création et les envois
    prévus : il n'y a pas de seconde confirmation dans ce parcours.
 8. Pour créer réellement la commande, cliquez sur **Enregistrer** une seule fois
    et attendez. Un indicateur d'attente remplace le bouton. **Ajout de la commande
@@ -96,8 +100,9 @@ messages techniques pour aider au diagnostic.
 
 ## Écran et portée de l'aide
 
-Écran **Liste des commandes**, formulaire **Ajouter une commande**, mode
-**Importer un fichier**. Si ce même formulaire a été ouvert depuis un client,
+Écran **Commandes** (anciennement **Liste des commandes**), panneau
+**Ajouter une commande**, section **Bons cadeaux**, mode **Importer un fichier**.
+Si ce même formulaire a été ouvert depuis un client,
 le client est déjà fixé et son nom est en lecture seule.
 
 Le [CSV d'exemple](exemples/commande-import-exemple.csv) est synthétique et

@@ -3,29 +3,34 @@
 ## Objectif et prérequis
 
 Ajouter ou corriger l'adresse postale et, si besoin, les coordonnées GPS d'un
-partenaire depuis **Partenaires**, écran **Liste des magasins partenaires**.
-Identifiez d'abord la fiche et consultez l'onglet **Adresse**.
+partenaire depuis **Partenaires**, écran **Magasins partenaires**. Identifiez
+d'abord la fiche, dépliez-la et consultez sa rubrique **ADRESSE**.
 
 L'adresse est rattachée à l'entité : si elle est aussi cliente ou partenaire
 d'un autre réseau, c'est la même adresse qui y est utilisée.
 
 ## Étapes
 
-1. Sur la carte, ouvrez l'icône d'édition (**Menu Edition**), puis
+1. Sur la ligne du partenaire, cliquez sur le crayon **Modifier le partenaire**
+   (anciennement **Menu Edition**), puis sur
    **Editer l'adresse**.
 2. Le BO choisit seul entre ajout et modification : sans adresse enregistrée,
-   le formulaire est vide ; sinon il est prérempli. Dans les deux cas, son
-   titre est **Indiquer l'adresse**.
+   le panneau est vide et sa rubrique est **AJOUTER L'ADRESSE** ; sinon il est
+   prérempli et sa rubrique est **MODIFIER L'ADRESSE**. Dans les deux cas, le
+   titre est le nom du partenaire (anciennement **Indiquer l'adresse**) et les
+   champs sont dans la section **Adresse du magasin**.
 3. Renseignez **Adresse**, **Code postal**, **Ville** et **Pays**.
 4. **Latitude** et **Longitude** sont facultatives. Saisissez-les avec un point
    comme séparateur décimal, par exemple `44.09` (valeur fictive).
 5. Cliquez sur **Enregistrer**. Les messages de réussite sont
    **Ajout de l'adresse réussi** ou **Modification de l'adresse réussie**.
-6. Contrôlez l'onglet **Adresse** : **Localisation:** et **Coordonnées GPS:**,
-   avec **Non renseigné** pour une coordonnée absente.
+6. Dépliez la fiche et contrôlez la rubrique **ADRESSE** : l'adresse, puis
+   **Latitude** et **Longitude**, avec **Non renseigné** pour une coordonnée
+   absente.
 
-Le formulaire n'a pas de bouton **Annuler** ; fermez-le par un clic à
-l'extérieur pour abandonner. Ce mode de fermeture n'a pas été vérifié en session.
+Pour abandonner, cliquez sur **Annuler** ou sur le bouton ✕ **Fermer** ; un
+clic en dehors du panneau le ferme aussi sans enregistrer. Ce mode de
+fermeture n'a pas été vérifié en session.
 
 ## Contrôles du formulaire
 
@@ -52,7 +57,7 @@ voir [Traiter les demandes de remboursement écartées](traiter-demandes-rembour
 
 Les échecs affichent **Erreur lors de l'ajout de l'adresse** ou
 **Erreur lors de la modification de l'adresse**, sans la cause. Avant de
-recommencer un ajout, rouvrez **Partenaires** et vérifiez l'onglet **Adresse** :
+recommencer un ajout, rouvrez **Partenaires** et vérifiez la rubrique **ADRESSE** :
 l'API n'empêche pas l'enregistrement d'une seconde adresse pour la même entité.
 
 ## Portée de l'aide Néo

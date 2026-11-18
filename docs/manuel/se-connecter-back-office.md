@@ -10,15 +10,20 @@ ordinaire de Néo suppose que vous êtes déjà dans votre espace de gestion.
 ## Étapes
 
 1. Ouvrez l'adresse du back-office qui vous a été communiquée. L'écran affiche
-   **Backoffice**.
+   un panneau bleu marine **BACKOFFICE** (à gauche, ou en haut sur un écran
+   étroit) et le formulaire « Connexion », « Réservée aux comptes
+   administrateurs. ».
 2. Renseignez **Nom d'utilisateur** avec l'identifiant de votre compte. Ce champ
    n'est pas intitulé « E-mail » : ne supposez pas que votre adresse e-mail
    constitue votre identifiant.
-3. Renseignez **Mot de passe**. L'icône en forme d'œil permet de rendre la
-   saisie visible ou de la masquer.
-4. Cliquez sur **Connexion** et attendez la fin du chargement.
-5. Vérifiez le nom du réseau en haut de page. Le dernier menu mémorisé peut
-   s'ouvrir ; **Accueil** permet de retrouver le tableau de bord.
+3. Renseignez **Mot de passe**. L'icône en forme d'œil,
+   **Afficher le mot de passe** ou **Masquer le mot de passe**, rend la
+   saisie visible ou la masque.
+4. Cliquez sur **Se connecter** (anciennement **Connexion**), ou appuyez sur
+   Entrée dans le champ **Mot de passe**, et attendez la fin du chargement.
+5. Vérifiez le nom du réseau dans la carte en bas du menu latéral, ou dans
+   « Bonjour … » sur l'accueil. Le dernier menu mémorisé peut s'ouvrir ;
+   **Accueil** permet de retrouver le tableau de bord.
 
 ## Contrôles et limites
 
@@ -29,9 +34,10 @@ d'un utilisateur non supprimé. Le back-office contrôle ensuite le statut de
 compte administrateur ; les actions protégées de l'API contrôlent aussi les
 droits et la session.
 
-Si **Accès refusé : votre compte n'est pas un compte administrateur.** apparaît,
-demandez à votre interlocuteur habituel de vérifier le type de compte. Ne
-cherchez pas à utiliser un compte partenaire pour administrer le réseau.
+Si **Accès refusé : votre compte n'est pas un compte administrateur.** apparaît
+dans le bandeau rose au-dessus des champs, demandez à votre interlocuteur
+habituel de vérifier le type de compte. Ne cherchez pas à utiliser un compte
+partenaire pour administrer le réseau.
 
 Une erreur de connexion, une session expirée ou un mot de passe oublié se
 traitent avec [Résoudre un problème de connexion](resoudre-probleme-connexion.md).

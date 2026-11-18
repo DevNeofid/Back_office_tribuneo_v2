@@ -4,7 +4,7 @@
 
 Ajouter un libellé au catalogue des secteurs, avec un compte administrateur.
 Ce catalogue est commun aux réseaux dans les sources vérifiées ; l'ajout ne
-concerne pas uniquement le réseau affiché en haut de page.
+concerne pas uniquement le réseau affiché en bas du menu.
 
 Créer un secteur ne l'attribue automatiquement à aucun partenaire. Pour
 l'attribution, utilisez la fiche existante
@@ -12,14 +12,17 @@ l'attribution, utilisez la fiche existante
 
 ## Étapes
 
-1. Ouvrez **Secteurs** dans le menu latéral. Le titre est **Secteurs d'activité**
-   et la liste comporte **Nom du secteur** et **Actions**.
-2. Vérifiez que le secteur recherché n'existe pas déjà. Si la liste semble
-   anormalement vide, ne supposez pas que le catalogue est vide : un échec de
-   chargement n'affiche pas de message dédié dans cette vue.
-3. Renseignez **Nouveau secteur d'activité** avec le libellé souhaité.
-4. Cliquez sur **Ajouter**. L'ajout part immédiatement, sans confirmation ;
-   un indicateur de chargement remplace temporairement le bouton.
+1. Ouvrez **Secteurs** dans le menu latéral (groupe **RÉSEAU**). Le titre est
+   **Secteurs d'activité**. Sous le champ d'ajout, la liste **Secteurs**
+   indique leur nombre et les classe par ordre alphabétique, sur deux colonnes.
+2. Vérifiez que le secteur recherché n'existe pas déjà. Un échec de chargement
+   affiche **Impossible de charger les secteurs d'activité.** avec un bouton
+   **Réessayer** ; un catalogue vide affiche **Aucun secteur d'activité**.
+3. Renseignez **Nouveau secteur d'activité** avec le libellé souhaité (exemple
+   affiché dans le champ : « Ex. Fromagerie »).
+4. Cliquez sur **Ajouter** ou appuyez sur Entrée. L'ajout part immédiatement,
+   sans confirmation ; pendant l'envoi, le bouton est désactivé et un
+   indicateur de chargement remplace son icône.
 5. Après **Le secteur d’activité a été ajouté**, contrôlez la présence du
    libellé dans la liste. Le champ est alors vidé.
 
@@ -37,11 +40,13 @@ base, pas un avertissement préalable du formulaire ; le schéma de la base en
 service n'a pas été interrogé.
 
 En cas de **Erreur lors de l’ajout du secteur d’activité**, vérifiez la liste
-avant de recommencer. L'ajout peut avoir réussi alors que le rechargement de
-la liste a échoué. Ce message ne permet pas de distinguer à lui seul un
-doublon, une limite de nom ou un problème technique.
+avant de recommencer. Ce message ne permet pas de distinguer à lui seul un
+doublon, une limite de nom ou un problème technique. Si l'ajout réussit mais
+que le rechargement de la liste échoue, le message de réussite s'affiche et la
+liste indique **Impossible de charger les secteurs d'activité.** : cliquez sur
+**Réessayer** pour contrôler la présence du libellé.
 
-Il existe aussi un bouton **Créer** dans la boîte des secteurs d'un partenaire :
+Il existe aussi un bouton **Créer** dans le panneau des secteurs d'un partenaire :
 il ajoute immédiatement au même catalogue, indépendamment de **Enregistrer**,
 et ne coche pas automatiquement le nouveau secteur. Son utilisation et
 l'attribution restent décrites dans la fiche partenaire citée plus haut.

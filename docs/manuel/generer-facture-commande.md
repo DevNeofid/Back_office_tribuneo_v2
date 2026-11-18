@@ -21,8 +21,9 @@ enregistrés figurent sur le document au moment de sa génération.
 
 ## Étapes
 
-1. Dans le menu latéral, ouvrez **Commandes**, puis retrouvez la commande avec
-   le champ **Rechercher** et la colonne **N°**.
+1. Dans le menu latéral (groupe **RÉSEAU**), ouvrez **Commandes**, puis
+   retrouvez la commande avec le champ de recherche
+   **Rechercher par numéro de commande, offert par, etc.** et la colonne **N°**.
 2. Sur la ligne de la commande, cliquez sur l'icône de la colonne **Gestion**.
 3. Choisissez **Générer la Facture**.
 4. Une fenêtre s'ouvre : **Voulez-vous ajouter des informations
@@ -64,8 +65,9 @@ renseignés dans sa fiche lors de la première génération.
   déjà enregistrée. Cliquer sur **Générer la facture** remplace cette référence
   par le contenu du champ, même vide. Pour récupérer le PDF sans rien modifier,
   passez par **Documents → Factures → Télécharger**.
-- Après facturation, le formulaire **Modifier** de la commande est en lecture
-  seule, à l'exception de la date de validité. Il indique : **Cette commande est
+- Après facturation, le panneau **Modifier la commande** (colonne **Edition**,
+  entrée **Modifier**) est en lecture seule, à l'exception de la date de
+  validité. Il indique, avec un bouton **Changer la date de validité** : **Cette commande est
   facturée : seule la date de validité peut encore être modifiée (et, pour une
   commande importée, le contact des bénéficiaires non attribués).**
 - La colonne **Montant total** de la liste affiche le montant total de la commande.
@@ -100,7 +102,8 @@ commande, sans communiquer de mot de passe ni de jeton.
 
 ## Écran concerné
 
-Menu **Commandes**, écran **Liste des commandes**, colonne **Gestion**, entrée
+Menu **Commandes**, écran **Commandes** (anciennement **Liste des commandes**),
+colonne **Gestion**, entrée
 **Générer la Facture**, puis fenêtre **Voulez-vous ajouter des informations
 supplémentaires ?**
 

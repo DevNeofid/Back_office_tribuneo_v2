@@ -12,7 +12,9 @@ utilise les bons ni le commerçant qui les encaisse.
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Montant total des bons par clients**.
+1. Ouvrez **Statistiques**, puis cliquez sur
+   **Montant total des bons par clients** dans le catalogue des rapports
+   (groupe **MONTANTS**).
 2. Lisez le tableau, dix lignes par page, trié du montant le plus élevé au
    plus faible puis par nom.
 3. Cliquez sur **Exporter en CSV** : fichier `montant_total_bons_clients.csv`.
@@ -24,7 +26,7 @@ Ce rapport n'a ni période ni filtre : il reflète l'état au moment de la lectu
 | Écran | En-tête CSV | Définition |
 |---|---|---|
 | **Nom** | `nom` | Nom du client de la commande. |
-| **Montant** | `montant_total_a_date` | Somme des montants restants supérieurs à zéro des bons de ses commandes non supprimées dont la date d'expiration de commande n'est pas encore passée, arrondie à deux décimales, sans symbole €. |
+| **Montant** | `montant_total_a_date` | Somme des montants restants supérieurs à zéro des bons de ses commandes non supprimées dont la date d'expiration de commande n'est pas encore passée, arrondie à deux décimales ; affichée en euros à l'écran, sans symbole € dans le CSV. |
 | **Date d'expiration** | `date_expiration` | Date d'expiration de commande reprise d'une des commandes retenues pour ce client. Affichée au format jj/mm/aaaa, écrite au format brut de la base dans le CSV. |
 
 ## Lecture et limites

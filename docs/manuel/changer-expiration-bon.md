@@ -10,19 +10,20 @@ Un changement global ultérieur peut remplacer la date choisie individuellement.
 ## Étapes
 
 1. Ouvrez **Commandes**, retrouvez la commande, puis choisissez
-   **Gestion → Gestion des bons**.
-2. Repérez précisément le bon par son **ID** et vérifiez sa colonne
-   **Expiration** : voir [Consulter les bons](consulter-bons-commande.md).
-3. Dans **Action**, cliquez sur l'icône calendrier dont l'infobulle est
-   **Modifier la date d'expiration**. Elle est désactivée pour un bon déjà
-   désactivé, avec l'infobulle **Bon déjà désactivé**.
-4. Choisissez la nouvelle date dans le calendrier. Il propose au plus tôt
-   demain et se positionne sur la date actuelle, ou sur demain si cette date
-   est antérieure. La saisie manuelle utilise **Jour/Mois/Année**.
-5. Validez le calendrier pour envoyer le changement. **Il n'y a pas de
-   confirmation supplémentaire.** Pour renoncer, annulez le calendrier.
+   **Gestion → Gestion des bons** : le panneau **Bons de la commande** s'ouvre.
+2. Repérez précisément le bon par son numéro (colonne **Bon**) et vérifiez sa
+   colonne **Expiration** : voir [Consulter les bons](consulter-bons-commande.md).
+3. Dans la colonne **Action**, cliquez sur **…** (infobulle **Actions du bon**),
+   puis sur **Modifier la date d'expiration** (icône calendrier). Ce choix est
+   grisé pour un bon déjà désactivé, avec la mention **Bon déjà désactivé**.
+4. Le calendrier **Date de validité** s'ouvre. Il propose au plus tôt demain et
+   se positionne sur la date actuelle, ou sur demain si cette date est
+   antérieure. La saisie au clavier utilise le format **JJ/MM/AAAA**.
+5. Cliquez sur **Valider** pour envoyer le changement. **Il n'y a pas de
+   confirmation supplémentaire.** Pour renoncer, cliquez sur **Annuler**.
 6. Après **Date d'expiration mise à jour au …**, contrôlez la colonne
-   **Expiration** dans le tableau rechargé, puis cliquez sur **Fermer**.
+   **Expiration** dans le tableau rechargé, puis fermez le panneau avec
+   ✕ **Fermer**.
 
 ## Règles appliquées
 
@@ -52,7 +53,7 @@ Un changement global ultérieur peut remplacer la date choisie individuellement.
 
 ## Écran et aide Néo
 
-Fenêtre **Gestion des bons - Commande …**, calendrier ouvert depuis la ligne
-du bon. Demandez à Néo : « Comment prolonger un seul bon de commande ? ».
+Panneau **Bons de la commande** (anciennement **Gestion des bons - Commande …**),
+calendrier ouvert depuis le menu **…** de la ligne du bon. Demandez à Néo : « Comment prolonger un seul bon de commande ? ».
 Néo explique le parcours et les refus ; il ne change aucune date et ne lit pas
 le détail de ces bons avec ses outils actuels.

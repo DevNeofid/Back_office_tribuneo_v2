@@ -14,16 +14,19 @@ n'apparaît pas.
 
 ## Retrouver les bons d'un bénéficiaire
 
-1. Ouvrez **Statistiques**, puis choisissez **Statut des QR codes par client**.
-   Les champs **Nom**, **Prénom**, **Email** et **Mobile** apparaissent avec
-   **Rechercher** et **Réinitialiser**.
+1. Ouvrez **Statistiques**, puis cliquez sur
+   **Statut des QR codes par client** dans le catalogue des rapports (groupe
+   **UTILISATEURS**). Les champs **Nom**, **Prénom**, **Email** et **Mobile**
+   apparaissent sous l'en-tête du rapport, avec **Rechercher** et
+   **Réinitialiser**.
 2. Renseignez un ou plusieurs champs. L'e-mail complet est le critère le plus
    discriminant.
 3. Cliquez sur **Rechercher**, ou appuyez sur Entrée dans l'un des champs.
    La saisie seule ne filtre pas le tableau.
 4. Vérifiez sur chaque ligne les colonnes **Email** et **Mobile** : la
    recherche accepte une correspondance partielle et peut ramener d'autres
-   personnes.
+   personnes. Le mobile est masqué par défaut : cliquez sur
+   **Afficher les numéros** pour le voir en entier.
 5. Lisez une ligne par bon, des commandes les plus récentes aux plus anciennes,
    dix lignes par page.
 6. Pour tout exporter, cliquez sur **Exporter en CSV** : fichier
@@ -53,7 +56,7 @@ n'apparaît pas.
 | **N° de commande** | `numéro_de_commande` | Numéro de la commande du bon. |
 | **Montant** | `montant` | Valeur du bon. |
 | **Montant restant** | `montant_restant` | Reste enregistré sur le bon. |
-| **Donation** | `donation` | **Oui** ou **Non**. |
+| **Donation** | `donation` | **Oui** (pastille) ou **Non**. |
 | **Date d'expiration** | `date_expiration` | Expiration propre au bon : jj/mm/aaaa à l'écran, format brut de la base dans le CSV. |
 | **Email**, **Prénom**, **Nom**, **Mobile** | `email`, `prenom`, `nom`, `mobile` | Coordonnées du compte utilisateur rattaché au bon. |
 
@@ -77,8 +80,8 @@ Le CSV contient toutes les lignes correspondant aux derniers filtres appliqués
 par **Rechercher**, Entrée ou **Réinitialiser**, pas seulement la page
 affichée. Un texte saisi sans avoir été validé n'est pas pris en compte :
 cliquez sur **Rechercher** avant d'exporter. Sans filtre, l'export contient
-les bons et coordonnées de tous les bénéficiaires du réseau ; aucun masquage
-n'est appliqué.
+les bons et coordonnées de tous les bénéficiaires du réseau ; l'export
+n'applique aucun masquage, même si les numéros sont masqués à l'écran.
 
 ## Ce que ce rapport n'est pas
 

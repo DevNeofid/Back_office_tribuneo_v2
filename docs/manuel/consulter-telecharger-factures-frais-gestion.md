@@ -12,29 +12,33 @@ Consulter la liste et télécharger un document sont deux actions différentes.
 
 ## Consulter la liste
 
-1. Ouvrez **Documents**.
-2. Choisissez **Frais de gestion**. L'autre bouton, **Factures**, affiche les
-   factures de commande.
-3. Identifiez la ligne avec **Numéro de transaction**, **Numéro de facture**,
-   **Destinataire**, **Montant total (€)** et **Date de création**. Le montant
-   est celui de la facture de frais, pas le montant net viré au partenaire.
-4. Utilisez la pagination du tableau, réglé sur dix lignes par page, pour
-   consulter les factures plus anciennes. Aucun filtre de recherche ou de
-   période n'est proposé dans cet onglet.
+1. Ouvrez **Documents** (groupe **FINANCE** du menu).
+2. En haut à droite, choisissez l'onglet **Frais de gestion**. L'autre onglet,
+   **Factures**, affiche les factures de commande.
+3. Identifiez la ligne avec **N° de transaction**, **N° de facture**,
+   **Commerçant**, **Montant des frais** et **Émise le**. Le montant est celui
+   de la facture de frais, pas le montant net viré au partenaire.
+4. Utilisez la pagination du tableau, réglé sur dix lignes par page, ou la
+   recherche **N° de facture ou de transaction, commerçant, montant…** pour
+   retrouver les factures plus anciennes. Aucun filtre de période n'est
+   proposé dans cet onglet.
 
 La liste présente les factures déjà liées à un justificatif de réception,
 classées par date de création décroissante. Cette lecture n'émet aucune
-nouvelle facture. Un tableau vide peut aussi résulter d'un refus ou d'une
-erreur de lecture : il ne prouve pas l'absence de facture ou de remboursement.
+nouvelle facture. Un tableau vide (**Aucune facture de frais de gestion**) peut
+aussi résulter d'un refus ou d'une erreur de lecture : il ne prouve pas
+l'absence de facture ou de remboursement.
 
 ## Télécharger une ligne
 
 1. Après avoir identifié la bonne facture dans **Frais de gestion**, utilisez
-   l'icône **Télécharger** de sa colonne **Actions** seulement si vous souhaitez
-   réellement obtenir le document.
+   l'icône **Télécharger** de sa colonne **PDF** seulement si vous souhaitez
+   réellement obtenir le document. Malgré le nom de la colonne, le fichier
+   reçu est un ZIP.
 2. Attendez la fermeture de **Génération du document...** et contrôlez le fichier
-   reçu. Le BO donne au fichier le nom du destinataire, espaces remplacés par
-   des traits de soulignement, ou `Frais` si le nom est absent.
+   reçu. Le BO donne au fichier le nom du commerçant (colonne **Commerçant**),
+   espaces remplacés par des traits de soulignement, ou `Frais` si le nom est
+   absent.
 3. En cas d'échec, vérifiez à nouveau la liste et la référence de transaction
    avant de recommencer ; transmettez le message à Neofid si nécessaire.
 

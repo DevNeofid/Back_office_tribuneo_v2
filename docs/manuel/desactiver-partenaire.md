@@ -4,8 +4,9 @@
 
 Retirer un commerce de la liste des partenaires du réseau courant avec l'action
 **Désactiver ce partenaire** de **Partenaires**, écran
-**Liste des magasins partenaires**. Identifiez sans ambiguïté la fiche et
-contrôlez son **Solde Tribuneo actuel** dans l'onglet **Informations générales** :
+**Magasins partenaires**. Identifiez sans ambiguïté la fiche et contrôlez son
+**SOLDE TRIBUNEO**, affiché à droite de sa ligne (anciennement
+**Solde Tribuneo actuel**) :
 l'API refuse la désactivation tant que le solde du commerçant dans le réseau
 n'est pas nul. Ce contrôle utilise une requête différente de celle de
 l'affichage ; le solde affiché est un repère, pas une garantie.
@@ -15,8 +16,8 @@ l'affichage ; le solde affiché est un repère, pas une garantie.
 1. Retrouvez le partenaire avec
    [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md)
    et vérifiez son nom et son SIRET.
-2. Ouvrez le menu à trois points (**Afficher le Menu**), puis
-   **Désactiver ce partenaire**.
+2. Ouvrez le bouton **…** **Plus d'actions** (anciennement
+   **Afficher le Menu**), puis **Désactiver ce partenaire**, écrit en rouge.
 3. La boîte **Désactiver le partenaire** demande :
    **Êtes-vous sûr de vouloir désactiver ce partenaire ?**
 4. **Annuler** ferme sans opération. **Désactiver** envoie la demande réelle ;

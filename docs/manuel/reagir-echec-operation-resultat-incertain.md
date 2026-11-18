@@ -40,20 +40,20 @@ si une demande a pu partir, vérifiez les paiements avant de recommencer.
 | --- | --- | --- | --- |
 | Générer la facture | Facture créée, PDF non reçu | **Documents → Factures** ; retéléchargez plutôt que régénérer | [Générer la facture](generer-facture-commande.md) |
 | Générer l'ordre de virement | Ordre enregistré avant ses fichiers, même avec **La génération a échoué. Aucun virement n'a été enregistré…** | **Prochain virement** puis **Virements** | [Générer l'ordre](generer-ordre-virement.md) |
-| Déclencher les écritures comptables | Lot enregistré avant l'envoi du ZIP | Historique de **Écritures**, après réouverture | [Générer les écritures](generer-ecritures-comptables.md) |
+| Déclencher les écritures comptables | Lot enregistré avant l'envoi du ZIP | Tableau **Fichiers générés** de **Écritures**, après réouverture | [Générer les écritures](generer-ecritures-comptables.md) |
 | Télécharger une facture de frais de gestion | Facture et justificatif numérotés avant l'échec du PDF | Liste **Documents → Frais de gestion** | [Factures de frais](consulter-telecharger-factures-frais-gestion.md) |
-| Créer une commande à la main | Commande enregistrée ; formulaire fermé sans message clair | **Liste des commandes** | [Saisie manuelle](creer-commande-manuelle.md) |
-| Importer une commande | Commande créée et e-mails envoyés ; aucune protection contre un second envoi | **Liste des commandes** avant tout nouvel import | [Import](creer-commande-import-fichier.md) |
+| Créer une commande à la main | Commande enregistrée ; formulaire fermé sans message clair | Écran **Commandes** | [Saisie manuelle](creer-commande-manuelle.md) |
+| Importer une commande | Commande créée et e-mails envoyés ; aucune protection contre un second envoi | Écran **Commandes** avant tout nouvel import | [Import](creer-commande-import-fichier.md) |
 | Enregistrer un paiement | Paiement enregistré ; le montant reste dans le champ | Lignes de **Paiements**, fenêtre rouverte | [Enregistrer un paiement](enregistrer-paiement-commande.md) |
 | Supprimer un paiement ou une commande | Suppression faite malgré un message ou une fenêtre restée ouverte | **Paiements** rouverte ; liste des commandes rechargée | [Paiement](supprimer-paiement-commande.md), [commande](supprimer-commande.md) |
 | Modifier une commande, changer une date | Changement enregistré ; la date part dès la validation du calendrier | Colonnes **Qté**, **Montant total**, **Expiration** ; **Gestion des bons** | [Modifier](modifier-commande.md), [validité](changer-validite-commande.md) |
-| Désactiver un bon | Bon désactivé | Colonne **Suppression** après réouverture | [Désactiver un bon](desactiver-bon.md) |
+| Désactiver un bon | Bon désactivé | Colonne **État** (**Désactivé**) de **Gestion des bons** après réouverture | [Désactiver un bon](desactiver-bon.md) |
 | Renvoyer l'e-mail cadeau | E-mail déjà parti | Faites vérifier l'envoi avant de renvoyer | [Renvoyer](renvoyer-cadeau-beneficiaire.md) |
 | Générer le ZIP des QR codes | Génération poursuivie côté serveur | Téléchargements du navigateur ; faites vérifier avant un nouveau lancement | [QR codes](generer-qr-codes-commande.md) |
 | Ajouter un client ou un partenaire | Fiche créée ; pour un partenaire, ajout partiel possible | Recherche par nom, puis par SIRET | [Client](ajouter-client-professionnel.md), [partenaire](ajouter-partenaire.md) |
 | Dupliquer un client en partenaire | Message de succès affiché avant la réponse du serveur | **Partenaires** et **Clients** | [Dupliquer](dupliquer-client-en-partenaire.md) |
-| Modifier coordonnées bancaires, adresse ou secteurs d'un partenaire | Coordonnées enregistrées puis erreur ; secteurs retirés puis non rajoutés ; un nouvel ajout d'adresse peut créer une seconde adresse | Onglets de la carte partenaire | [Coordonnées](renseigner-coordonnees-bancaires-partenaire.md), [adresse](renseigner-adresse-partenaire.md), [secteurs](attribuer-secteurs-partenaire.md) |
-| Ajouter ou supprimer un secteur | Opération faite, rechargement en échec | Liste **Secteurs d'activité** rouverte | [Créer](creer-secteur-activite.md), [supprimer](supprimer-secteur-activite.md) |
+| Modifier coordonnées bancaires, adresse ou secteurs d'un partenaire | Coordonnées enregistrées puis erreur ; secteurs retirés puis non rajoutés ; un nouvel ajout d'adresse peut créer une seconde adresse | Fiche dépliée du partenaire : **INFORMATIONS GÉNÉRALES**, **ADRESSE**, **INFORMATIONS BANCAIRES** ; secteurs sur sa ligne | [Coordonnées](renseigner-coordonnees-bancaires-partenaire.md), [adresse](renseigner-adresse-partenaire.md), [secteurs](attribuer-secteurs-partenaire.md) |
+| Ajouter ou supprimer un secteur | Opération faite alors que la liste affiche **Impossible de charger les secteurs d'activité.** | Liste **Secteurs d'activité** rechargée avec **Réessayer** ou rouverte | [Créer](creer-secteur-activite.md), [supprimer](supprimer-secteur-activite.md) |
 | Mettre en attente ou libérer une demande | Effet non précisé par le message d'erreur | Section de la demande dans **Prochain virement** rechargé | [Mise en attente](mettre-en-attente-liberer-demande-remboursement.md) |
 
 ## À ne pas faire pour compenser

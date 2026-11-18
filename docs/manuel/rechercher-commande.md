@@ -13,20 +13,23 @@ de la mention « Offert par » ou de son occasion.
 
 ## Étapes
 
-1. Dans le menu latéral, ouvrez **Commandes**. L'écran porte le titre
-   **Liste des commandes**.
-2. Repérez le champ **Rechercher**, dont l'indication est
-   **Rechercher par numéro de commande, offert par, etc.**
+1. Dans le menu latéral bleu marine, groupe **RÉSEAU**, ouvrez **Commandes**.
+   L'écran porte le titre **Commandes** (anciennement **Liste des commandes**).
+2. Repérez le champ de recherche marqué d'une loupe, au-dessus du tableau,
+   dont l'indication est **Rechercher par numéro de commande, offert par, etc.**
+   (anciennement champ **Rechercher**)
 3. Saisissez le numéro commercial de la commande, en entier ou en partie.
    Vous pouvez aussi saisir un texte présent dans **Offert par** ou **Occasion**.
 4. La liste se filtre pendant la saisie : il n'est pas nécessaire de valider
    avec la touche Entrée. Vérifiez la colonne **N°** et les informations de la
    ligne pour identifier la bonne commande.
-5. Si plusieurs commandes correspondent, parcourez les pages du tableau.
+5. Si plusieurs commandes correspondent, parcourez les pages avec les flèches
+   **Page précédente** et **Page suivante**, en bas à droite du tableau ; le
+   compteur voisin indique la plage affichée, par exemple « 1–50 sur 120 ».
    Si vous étiez sur une page avancée avant de rechercher, revenez à la première
    page des résultats.
-6. Pour retirer la recherche, effacez entièrement le contenu du champ
-   **Rechercher**. La liste des commandes chargées est de nouveau affichée.
+6. Pour retirer la recherche, effacez entièrement le contenu du champ de
+   recherche. La liste des commandes chargées est de nouveau affichée.
 
 ## Lire le résultat
 
@@ -37,22 +40,28 @@ de la mention « Offert par » ou de son occasion.
 - **Qté** : quantité de bons de la commande.
 - **Payé** : montant déjà payé.
 - **Montant total** : montant total de la commande affiché dans cette liste.
-- **Création** et **Expiration** : dates de création et de fin de validité.
+- **Paiement** : pastille **Payée** (verte), **Non payée** (rouge) ou
+  **Écart +x €** / **Écart −x €** (orange) ; voir
+  [Vérifier le solde d'une commande](verifier-solde-commande.md).
+- **Création** et **Expiration** : dates de création et de fin de validité ;
+  une date d'expiration passée est affichée en rouge.
 
-Les montants **Payé** et **Montant total** sont verts lorsque le montant payé est égal
-au total de la commande ; sinon, ils sont rouges. La seule présence d'un montant
-dans **Montant total** ne prouve pas qu'un document de facture a été généré.
+Un cadenas à côté du **N°** signale une commande réservée à une liste de
+commerçants ; son infobulle donne le nom de cette liste. La seule présence d'un
+montant dans **Montant total** ne prouve pas qu'un document de facture a été
+généré.
 
 ## Règles et limites
 
 - La recherche accepte une partie du texte et ne distingue pas les majuscules
   des minuscules. Si nécessaire, reprenez les accents du libellé recherché.
-- Les champs recherchés sont le numéro de commande, **Offert par** et
-  **Occasion**. La recherche de cette liste ne porte pas directement sur le nom
-  de la fiche client.
+- Les champs recherchés sont le numéro de commande, **Offert par**,
+  **Occasion** et le nom de la liste de commerçants d'une commande réservée.
+  La recherche de cette liste ne porte pas directement sur le nom de la fiche
+  client.
 - Cet écran ne propose pas de filtre de recherche par date ou par état payé/non
   payé. Ne cherchez pas un filtre qui n'y est pas affiché.
-- Le tableau affiche initialement 50 lignes par page.
+- Le tableau affiche 50 lignes par page.
 - La recherche porte sur les commandes chargées dans la liste. Une absence de
   résultat ne suffit pas à établir qu'une commande n'existe pas dans l'ensemble
   de l'historique du réseau.
@@ -66,14 +75,15 @@ dans **Montant total** ne prouve pas qu'un document de facture a été généré
 3. Si vous recherchez avec un nom de client, utilisez plutôt le numéro de la
    commande ou une mention effectivement présente dans **Offert par**.
 4. Si une commande connue reste absente, rechargez la page et refaites la
-   recherche. Un résultat vide peut aussi correspondre à un problème de
-   chargement ; cette vue ne fournit pas de message de recherche détaillé.
+   recherche. Un résultat vide (compteur **Aucun résultat**) peut aussi
+   correspondre à un problème de chargement ; cette vue ne fournit pas de
+   message de recherche détaillé.
 5. Si le problème persiste, signalez-le à votre interlocuteur Tribuneo avec
    le numéro commercial concerné, sans communiquer de mot de passe ni de jeton.
 
 ## Écran concerné
 
-Menu **Commandes**, écran **Liste des commandes**.
+Menu **Commandes** (groupe **RÉSEAU**), écran **Commandes**.
 
 ## Avec Néo
 
@@ -84,4 +94,4 @@ Pour demander à Néo de consulter les données directement dans le chat, formul
 plutôt une recherche précise : « Retrouve la commande portant le numéro
 commercial [numéro] ». Cette consultation est distincte de la recherche dans
 l'interface décrite ci-dessus. Une recherche par nom de client dans le chat
-utilise un outil métier différent du champ **Rechercher** de cet écran.
+utilise un outil métier différent du champ de recherche de cet écran.

@@ -2,7 +2,7 @@
 
 ## Objectif et prérequis
 
-Ajouter un client professionnel depuis **Clients**, écran **Liste des clients**.
+Ajouter un client professionnel depuis l'écran **Clients**.
 Disposez des droits de gestion des clients et du SIRET à rechercher. Recherchez
 d'abord le client par son nom pour éviter un doublon.
 
@@ -12,22 +12,26 @@ Elle ne certifie donc pas l'existence administrative d'une entreprise.
 
 ## Étapes
 
-1. Dans **Clients**, sous **Ajouter un client**, cliquez sur **+**.
-2. À **Ce client est il un particulier ?**, choisissez **Non**.
+1. Dans **Clients**, cliquez sur le bouton orange **Ajouter un client** en
+   haut à droite.
+2. À **Ce client est-il un particulier ?**, choisissez **Non, une entreprise**.
 3. Dans **Rechercher un SIRET**, renseignez **Entrer le SIRET** : exactement
-   quatorze chiffres. Cliquez sur **Suivant** pour lancer la recherche.
-   **Annuler** ferme cette fenêtre sans ajout.
+   quatorze chiffres (le champ n'accepte que des chiffres, quatorze au plus).
+   Cliquez sur **Suivant** pour lancer la recherche. **Annuler** ferme cette
+   fenêtre sans ajout ; un clic en dehors ne la ferme pas.
 4. La suite dépend du résultat :
-   - Si aucune entité n'est renvoyée par la recherche, **Ajouter un client**
-     s'ouvre avec **Siret du client** prérempli. Renseignez **Nom du client**,
+   - Si aucune entité n'est renvoyée par la recherche, le panneau
+     **Ajouter un client** (mention **Professionnel**) s'ouvre à droite avec
+     **Siret du client** prérempli. Renseignez **Nom du client**,
      **Email du client**, **Téléphone du client** et, si utile, **Code du client**.
-     Cliquez sur **Enregistrer**, ou sur **Annuler** pour abandonner.
+     Cliquez sur **Ajouter le client**, ou sur **Annuler** pour abandonner.
    - Si la fenêtre **Fiche existante** apparaît, avec la question
      **Une fiche utilise déjà ce numéro de SIRET. Souhaitez-vous l'utiliser ?**,
      vérifiez les informations affichées : nom, e-mail, téléphone et SIRET.
-     **Non** annule l'ajout avec
-     **Ajout annulé**. **Oui** déclenche directement l'ajout comme client ; il
-     n'ouvre pas une étape de correction avant enregistrement.
+     **Modifier le SIRET** revient à la saisie du numéro. **Non** annule
+     l'ajout avec **Ajout annulé**. **Oui, utiliser cette fiche** déclenche
+     directement l'ajout comme client ; il n'ouvre pas une étape de correction
+     avant enregistrement.
 5. Après **Ajout du client réussi.** pour le formulaire, ou
    **Client ajouté avec succès !** après acceptation de la fiche trouvée,
    recherchez le client et vérifiez le résultat.
@@ -51,7 +55,7 @@ Elle ne certifie donc pas l'existence administrative d'une entreprise.
   entité par SIRET, sans filtre de rôle ni de réseau. Ce résultat ne prouve ni
   un statut partenaire, ni une appartenance au réseau courant, ni une
   validation par un registre externe. Vérifiez son identité avant de choisir
-  **Oui** ou **Non**.
+  **Oui, utiliser cette fiche** ou **Non**.
 - L'API refuse un SIRET déjà associé au type client dans le réseau demandé
   avec un conflit 409 : `An entity with the same siret and type already exists`.
   Si l'entité existe avec un autre type, l'API peut réutiliser cette entité et

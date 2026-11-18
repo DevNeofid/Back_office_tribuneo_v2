@@ -9,9 +9,11 @@ commun est décrit dans
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Montant total des partenaires**.
-2. Réglez **Date de debut** et **Date de fin**. Choisissez deux dates
-   différentes : avec la même date, le tableau reste vide.
+1. Ouvrez **Statistiques**, puis cliquez sur **Montant total des partenaires**
+   dans le catalogue des rapports (groupe **MONTANTS**).
+2. Réglez la période dans l'en-tête du rapport (**Date de début** et
+   **Date de fin**). Choisissez deux dates différentes : avec la même date,
+   le tableau reste vide.
 3. Lisez le tableau, dix lignes par page, trié du montant le plus élevé au
    plus faible.
 4. Cliquez sur **Exporter en CSV** : fichier `montant_total_partenaires.csv`.
@@ -29,7 +31,7 @@ fin. Fuseau : voir la fiche commune.
 | Écran | En-tête CSV | Définition |
 |---|---|---|
 | **Nom** | `nom` | Nom de l'entité rattachée au fonds qui a reçu les transactions. |
-| **Montant total** | `montant_total` | Somme des paiements reçus par ce fonds, diminuée des annulations dont ce même fonds est destinataire, deux décimales, sans symbole €. |
+| **Montant total** | `montant_total` | Somme des paiements reçus par ce fonds, diminuée des annulations dont ce même fonds est destinataire, deux décimales ; affichée en euros à l'écran, sans symbole € dans le CSV. |
 
 ## Lecture et limites
 

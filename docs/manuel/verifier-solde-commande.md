@@ -11,11 +11,13 @@ payer, sans enregistrer ni supprimer de paiement.
    commercial : voir [Rechercher une commande](rechercher-commande.md).
 2. Sur sa ligne, lisez **Payé**, le cumul des paiements enregistrés, et
    **Montant total**, le montant total de la commande.
-3. Interprétez la couleur des deux montants :
-   - **vert** : le cumul payé est égal au total, la commande est soldée ;
-   - **rouge** : les deux montants sont différents.
-4. S'il reste un montant à payer, calculez-le : **Montant total** moins **Payé**.
-   La liste n'affiche pas directement de reste à payer.
+3. Lisez la pastille de la colonne **Paiement** :
+   - **Payée** (verte) : le cumul payé est égal au total, la commande est soldée ;
+   - **Non payée** (rouge) : aucun paiement n'est enregistré ;
+   - **Écart −x €** (orange) : il reste x € à payer ;
+   - **Écart +x €** (orange) : le cumul payé dépasse le total de x €.
+4. Pour contrôler le reste à payer, calculez **Montant total** moins **Payé** :
+   le résultat correspond au montant de la pastille **Écart −x €**.
 
 ## Contrôler le détail dans la fenêtre Paiements
 
@@ -29,9 +31,10 @@ payer, sans enregistrer ni supprimer de paiement.
 
 ## Interpréter le résultat
 
-- **Rouge** ne distingue pas une commande sans paiement d'une commande
-  partiellement payée : lisez le montant **Payé**.
-- Si **Payé** dépasse **Montant total**, le total de la commande a pu être diminué
+- **Non payée** signale l'absence de paiement enregistré ; une commande
+  partiellement payée affiche **Écart −x €**. Lisez aussi le montant **Payé**.
+- Si **Payé** dépasse **Montant total** (pastille **Écart +x €**), le total de
+  la commande a pu être diminué
   après l'enregistrement de paiements. Ne corrigez pas l'écart au hasard :
   vérifiez les paiements et les lignes de la commande, puis signalez l'écart à
   la personne qui gère les encaissements.

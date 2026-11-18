@@ -12,8 +12,11 @@ bon ni le commerçant.
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Somme des coupons expirés par client**.
-2. Réglez **Date de debut** et **Date de fin**, avec deux dates différentes.
+1. Ouvrez **Statistiques**, puis cliquez sur
+   **Somme des coupons expirés par client** dans le catalogue des rapports
+   (groupe **MONTANTS**).
+2. Réglez la période dans l'en-tête du rapport (**Date de début** et
+   **Date de fin**), avec deux dates différentes.
 3. Lisez le tableau, dix lignes par page, trié de la somme la plus élevée à la
    plus faible puis par nom.
 4. Cliquez sur **Exporter en CSV** : fichier `somme_coupons_expires.csv`.
@@ -32,7 +35,7 @@ fin. L'expiration est comparée à l'instant de la lecture.
 |---|---|---|
 | **Nom** | `nom` | Nom du client de la commande. |
 | **Nombre de coupons** | `nombre_bon_expiré` | Nombre de bons retenus pour ce client. |
-| **Somme non dépensée** | `montant_total_non_remboursé` | Somme de leurs montants restants, arrondie à deux décimales, sans symbole €. |
+| **Somme non dépensée** | `montant_total_non_remboursé` | Somme de leurs montants restants, arrondie à deux décimales ; affichée en euros à l'écran (par exemple 1 234,50 €), sans symbole € dans le CSV. |
 
 Sont retenus les bons non supprimés, hors donation, de commandes non
 supprimées, dont la date d'expiration est passée et dont le montant restant

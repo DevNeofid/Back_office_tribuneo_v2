@@ -9,7 +9,8 @@ parcours commun est décrit dans
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Toutes les infos clients**.
+1. Ouvrez **Statistiques**, puis cliquez sur **Toutes les infos clients**
+   dans le catalogue des rapports (groupe **CLIENTS ET SUPPORT**).
 2. Faites défiler horizontalement : le tableau compte douze colonnes. Il
    affiche dix lignes par page, trié par nom.
 3. Cliquez sur **Exporter en CSV** : fichier `toutes_les_infos_clients.csv`.
@@ -24,7 +25,7 @@ Ce rapport n'a ni période ni filtre.
 | **Nom** | `nom` | Nom du client. |
 | **Email** | `email` | E-mail de la fiche. |
 | **Siret** | `siret` | SIRET enregistré. |
-| **Téléphone** | `tel` | Téléphone de la fiche. |
+| **Téléphone** | `tel` | Téléphone de la fiche, masqué par défaut à l'écran (**Afficher les numéros**), complet dans le CSV. |
 | **Adresse** | `rue` | Rue de l'adresse enregistrée. |
 | **Code postal** | `code_postal` | Code postal. |
 | **Ville** | `ville` | Ville. |

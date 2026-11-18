@@ -3,7 +3,7 @@
 ## Objectif et prérequis
 
 Ajouter le rôle client à une entité déjà partenaire du réseau courant, depuis
-**Partenaires**, écran **Liste des magasins partenaires**, par exemple pour
+**Partenaires**, écran **Magasins partenaires**, par exemple pour
 qu'elle puisse passer commande. Vérifiez d'abord dans **Clients** qu'elle n'y
 figure pas déjà.
 
@@ -16,7 +16,8 @@ une modification faite d'un côté s'applique à l'autre.
 
 1. Retrouvez le partenaire avec
    [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md).
-2. Sur sa carte, ouvrez le menu à trois points (**Afficher le Menu**).
+2. Sur sa ligne, ouvrez le bouton **…** **Plus d'actions** (anciennement
+   **Afficher le Menu**).
 3. Choisissez **Dupliquer ce Partenaire en Client**.
 4. La boîte **Ajouter ce Partenaire comme Client** indique :
    **Vous allez ajouter ce Partenaire comme Client. Êtes-vous sûr de vouloir continuer ?**

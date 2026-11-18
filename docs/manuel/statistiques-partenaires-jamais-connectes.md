@@ -8,7 +8,8 @@ Lister les partenaires du réseau dont l'accès de première connexion n'a pas
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Partenaires jamais connectés**.
+1. Ouvrez **Statistiques**, puis cliquez sur **Partenaires jamais connectés**
+   dans le catalogue des rapports (groupe **PARTENAIRES**).
 2. Lisez le tableau, dix lignes par page, trié par nom.
 3. Cliquez sur **Exporter en CSV** : fichier `partenaires_jamais_connectes.csv`.
 
@@ -20,7 +21,7 @@ Ce rapport n'a ni période ni filtre.
 |---|---|---|
 | **Nom** | `nom` | Nom du partenaire. |
 | **Email** | `email` | E-mail enregistré sur la fiche partenaire. |
-| **Téléphone** | `tel` | Téléphone enregistré sur la fiche partenaire. |
+| **Téléphone** | `tel` | Téléphone enregistré sur la fiche partenaire, masqué par défaut à l'écran (**Afficher les numéros**), complet dans le CSV. |
 | **Avec QR Code** | `avec_qr_code_première_connexion` | **Oui** : un accès de première connexion est enregistré mais n'a pas été utilisé. **Non** : aucun accès de première connexion n'est enregistré. |
 
 ## Définition retenue

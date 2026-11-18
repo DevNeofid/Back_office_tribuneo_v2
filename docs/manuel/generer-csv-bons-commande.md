@@ -13,8 +13,10 @@ Pour savoir quel export choisir, précisez le contenu attendu.
 
 ## Étapes
 
-1. Ouvrez **Commandes**, écran **Liste des commandes**, puis retrouvez la
-   commande et vérifiez son numéro.
+1. Ouvrez **Commandes** (anciennement **Liste des commandes**), puis
+   retrouvez la commande avec la recherche
+   **Rechercher par numéro de commande, offert par, etc.** et vérifiez son
+   numéro.
 2. Sur sa ligne, ouvrez l'icône de la colonne **Gestion** et choisissez
    **Générer le CSV**. La sélection lance directement le téléchargement,
    sans formulaire ni confirmation.

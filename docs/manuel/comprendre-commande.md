@@ -8,8 +8,9 @@ montant payé de son statut de paiement.
 
 ## Où lire une commande
 
-Ouvrez **Commandes** dans le menu latéral : l'écran **Liste des commandes**
-présente une ligne par commande. Pour retrouver une commande précise, suivez la
+Ouvrez **Commandes** dans le menu latéral (groupe **RÉSEAU**) : l'écran
+**Commandes** (anciennement **Liste des commandes**) présente une ligne par
+commande. Pour retrouver une commande précise, suivez la
 fiche [Rechercher une commande](rechercher-commande.md).
 
 La liste est chargée de la commande la plus récente à la plus ancienne. Elle ne
@@ -20,31 +21,34 @@ apparaître, sans que cela prouve qu'elle n'existe pas.
 
 | Colonne | Ce qu'elle indique |
 |---|---|
-| **N°** | Numéro commercial de la commande. C'est le numéro à communiquer et à rechercher ; il peut être sélectionné pour être copié. |
+| **N°** | Numéro commercial de la commande. C'est le numéro à communiquer et à rechercher ; il peut être sélectionné pour être copié. Un cadenas à côté du numéro signale une commande réservée à une liste de commerçants : son infobulle donne le nom de la liste et un clic ouvre la modification sur la section **Commerçants acceptés**. |
 | **Offert par** | Texte « Offert par » enregistré sur la commande. Il reprend en général le nom du client, mais il a pu être remplacé à la création par **Personnalisation offert par (optionnel)**. Il ne désigne donc pas toujours le nom de la fiche client. |
 | **Occasion** | Occasion de la commande, choisie dans **Pour l'occasion de**. Au survol, l'infobulle affiche les messages personnalisés des lignes. |
 | **Qté** | Nombre total de chèques (bons) de la commande. |
 | **Payé** | Cumul des paiements enregistrés sur la commande. |
 | **Montant total** | Montant total de la commande. Cette colonne n'indique ni le montant d'une facture ni l'existence d'une facture. |
+| **Paiement** | Pastille d'état du paiement : **Payée**, **Non payée** ou **Écart** suivi de l'écart signé entre le payé et le total. |
 | **Création** | Date de création de la commande. |
-| **Expiration** | Date de validité de la commande. |
+| **Expiration** | Date de validité de la commande, affichée en rouge lorsqu'elle est passée. |
 | **Gestion** | Menu des actions de gestion : **Paiements**, **Générer les QR Code**, **Générer le CSV**, **Générer le bon de livraison**, **Générer la Facture**, **Générer le récapitulatif**, **Gestion des bons**, **Bénéficiaires (commande importée)**. |
-| **Edition** | Menu **Modifier**, **Changer la date de validité** et **Supprimer**. |
+| **Edition** | Menu **Modifier**, **Changer la date de validité**, **Commerçants acceptés** et **Supprimer**. |
 
-Les montants **Payé** et **Montant total** sont verts lorsque le cumul payé est égal
-au total de la commande, rouges dans tous les autres cas. La lecture du solde
-est détaillée dans [Vérifier le solde d'une commande](verifier-solde-commande.md).
+La pastille **Paiement** est verte (**Payée**) lorsque le cumul payé est égal au
+total de la commande, rouge (**Non payée**) lorsque rien n'est payé et orange
+(**Écart −x €** ou **Écart +x €**) dans les autres cas. La lecture du solde est
+détaillée dans [Vérifier le solde d'une commande](verifier-solde-commande.md).
 
 ## Numéro commercial et identifiant interne
 
-- Le **numéro commercial** est celui de la colonne **N°**. On le retrouve dans
-  le titre **Modifier la commande** suivi du numéro, dans le titre de la
-  fenêtre **Gestion des bons** et dans le nom des fichiers générés.
+- Le **numéro commercial** est celui de la colonne **N°**. On le retrouve en
+  orange au-dessus du titre des panneaux **Modifier la commande** et
+  **Bons de la commande** (ouvert par **Gestion des bons**), ainsi que dans le
+  nom des fichiers générés.
 - L'**identifiant interne** est un numéro technique attribué par le système.
   Il n'est pas affiché dans la liste des commandes et ne remplace pas le
   numéro commercial. Ne saisissez pas l'un à la place de l'autre.
-- Dans **Gestion des bons**, la colonne **ID** identifie chaque bon. Ce n'est
-  pas le numéro commercial de la commande.
+- Dans **Gestion des bons**, la colonne **Bon** identifie chaque bon par un
+  code. Ce n'est pas le numéro commercial de la commande.
 
 ## Lignes, chèques et total
 
@@ -57,11 +61,12 @@ personnalisé** ; sans message, le nom de l'occasion est utilisé.
 - Le total affiché dans **Montant total** est la somme, pour chaque ligne, du montant
   par chèque multiplié par le nombre de chèques.
 
-Les lignes se lisent dans **Edition → Modifier**. Pour une simple lecture,
-quittez ce formulaire avec **Fermer**, sans cliquer sur **Enregistrer**. La
-liste des bons, avec leur montant, leur montant restant et leur date
-d'expiration, se lit dans **Gestion → Gestion des bons**, que l'on quitte avec
-**Fermer**.
+Les lignes se lisent dans **Edition → Modifier**, section **Bons**. Pour une
+simple lecture, quittez ce panneau avec **Fermer**, sans cliquer sur
+**Enregistrer**. La liste des bons, avec leur **Montant**, leur montant
+**Restant**, leur **Expiration** et leur **État**, se lit dans
+**Gestion → Gestion des bons** : le panneau **Bons de la commande** se quitte
+avec le bouton ✕ **Fermer**, en haut à droite.
 
 ## Date de validité de la commande et des bons
 
@@ -79,10 +84,10 @@ date pour toute la commande est décrit dans la fiche
 - Une commande peut être entièrement payée sans être facturée, et facturée sans
   être payée.
 - La liste n'a pas de colonne indiquant qu'une facture existe. Lorsque
-  la commande est facturée, le formulaire **Edition → Modifier** affiche le
-  bandeau **Cette commande est facturée : seule la date de validité peut encore
-  être modifiée** suivi d'une précision sur les commandes importées. Fermez-le
-  ensuite avec **Fermer**.
+  la commande est facturée, le panneau **Edition → Modifier** affiche en haut
+  un encart orange à cadenas : **Cette commande est facturée : seule la date de
+  validité peut encore être modifiée** suivi d'une précision sur les commandes
+  importées. Fermez-le ensuite avec **Fermer**.
 - **Générer la Facture** n'est pas une action de consultation. Pour récupérer
   le PDF d'une facture déjà créée, suivez
   [Retélécharger une facture existante](retelecharger-facture-existante.md).
@@ -91,8 +96,9 @@ date pour toute la commande est décrit dans la fiche
 
 Une commande peut avoir été saisie à la main, importée par fichier ou passée
 sur la boutique en ligne. La liste ne l'indique pas. Lorsque son état a pu être
-lu, le formulaire **Modifier** affiche un bandeau pour une commande importée par
-fichier ou issue de la boutique en ligne : ses lignes n'y sont pas modifiables.
+lu, le panneau **Modifier** affiche un encart d'information pour une commande
+importée par fichier ou issue de la boutique en ligne : ses lignes n'y sont pas
+modifiables.
 
 ## Bons attribués
 
@@ -103,8 +109,10 @@ particulier après avoir été scanné ou utilisé. Un bon attribué :
 - ne peut pas voir sa date de validité avancée, seulement prolongée ;
 - empêche la suppression de la commande.
 
-Dans **Gestion des bons**, l'infobulle de l'icône de désactivation d'un tel bon
-indique **Bon associé à un utilisateur, désactivation impossible**.
+Dans **Gestion des bons**, un tel bon porte la pastille
+**Associé à un utilisateur** dans la colonne **État**. Dans son menu **…**
+(**Actions du bon**), **Désactiver le bon** est grisé avec la mention
+**Bon associé à un utilisateur, désactivation impossible**.
 
 ## Avec Néo
 

@@ -13,8 +13,11 @@ ni un commerçant.
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Support technique - commandes**.
-2. Réglez **Date de debut** et **Date de fin**, avec deux dates différentes.
+1. Ouvrez **Statistiques**, puis cliquez sur
+   **Support technique - commandes** dans le catalogue des rapports (groupe
+   **CLIENTS ET SUPPORT**).
+2. Réglez la période dans l'en-tête du rapport (**Date de début** et
+   **Date de fin**), avec deux dates différentes.
 3. Lisez le tableau, dix lignes par page. L'ordre des lignes n'est pas imposé.
 4. Cliquez sur **Exporter en CSV** : fichier `support_technique_commandes.csv`.
 
@@ -33,7 +36,7 @@ d'octobre, choisissez 30/09 en début et 31/10 en fin.
 | **Nom** | `entité_emettrice` | Client de la commande. |
 | **Montant total** | `montant_total_par_commande` | Somme des **montants restants** des bons de cette commande rattachés au compte support technique. |
 | **Nombre de QR codes** | `nombre_qrcode` | Nombre de ces bons. |
-| **Date de création** | absent du CSV | Date et heure de création de la commande, au format brut de la base. |
+| **Date de création** | absent du CSV | Date et heure de création de la commande, affichées au format jj/mm/aaaa hh:mm (date seule pour une heure 00:00). |
 
 ## Lecture et limites
 

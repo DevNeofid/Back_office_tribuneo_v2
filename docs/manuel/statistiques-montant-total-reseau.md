@@ -9,8 +9,10 @@ est décrit dans
 
 ## Étapes
 
-1. Ouvrez **Statistiques**, puis choisissez **Montant total du réseau**.
-2. Réglez **Date de debut** et **Date de fin**, avec deux dates différentes.
+1. Ouvrez **Statistiques**, puis cliquez sur **Montant total du réseau**
+   dans le catalogue des rapports (groupe **MONTANTS**).
+2. Réglez la période dans l'en-tête du rapport (**Date de début** et
+   **Date de fin**), avec deux dates différentes.
 3. Lisez l'unique ligne du tableau. Survolez l'icône d'information de
    **Gain expiré total** pour afficher sa définition.
 4. Cliquez sur **Exporter en CSV** : fichier `montant_total_reseau.csv`, une
@@ -47,8 +49,9 @@ est repris tel que fourni par le serveur.
 - **Gain expiré total** inclut les bons de donation et dépend du montant
   restant au moment de la lecture. Une expiration modifiée après coup change
   le résultat. Ce total n'est pas un produit comptable établi.
-- Un tableau réduit à ses en-têtes ou un message commençant par **Error:**
-  indique un refus ou un échec de lecture, pas des totaux nuls.
+- Un tableau qui affiche **Aucune donnée pour cette période.** ou un message
+  commençant par **Erreur :** indique un refus ou un échec de lecture, pas des
+  totaux nuls.
 
 ## Avec Néo
 

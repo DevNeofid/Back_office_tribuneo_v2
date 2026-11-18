@@ -7,18 +7,19 @@ réseau qui nécessitent votre interlocuteur habituel chez Neofid.
 
 ## Repères dans le back-office
 
-1. Vérifiez le nom du réseau affiché en haut de page. Il est chargé à la
-   connexion ou repris de la session locale ; ce n'est pas un sélecteur de
-   réseau ni une preuve que tous les paramètres sont correctement configurés.
+1. Vérifiez le nom du réseau affiché dans la carte en bas du menu latéral et
+   dans « Bonjour … » à l'accueil. Il est chargé à la connexion ou repris de
+   la session locale ; ce n'est pas un sélecteur de réseau ni une preuve que
+   tous les paramètres sont correctement configurés.
 2. Utilisez les menus métier décrits dans
    [Naviguer dans le back-office](naviguer-back-office.md).
 3. Pour un réglage absent de ces menus, faites préciser le besoin à votre
    interlocuteur habituel, en indiquant le réseau et le message éventuel.
 
 La version lue ne comporte pas de menu général **Configuration** ou
-**Comptes bancaires du réseau**. Le clic sur le nom du réseau ouvre seulement
-le choix **Déconnexion**. Il ne permet pas de modifier l'identité, les droits
-d'accès ou les réglages du réseau.
+**Comptes bancaires du réseau**. Un clic sur la carte du réseau, en bas du
+menu, déconnecte immédiatement (infobulle **Se déconnecter**). Elle ne permet
+pas de modifier l'identité, les droits d'accès ou les réglages du réseau.
 
 ## Comptes bancaires du réseau
 
@@ -30,7 +31,7 @@ pas chercher un formulaire de création à partir de cette liste.
 - Le **compte encaisseur** peut être proposé lors de l'enregistrement d'un
   paiement de commande : voir
   [Enregistrer un paiement](enregistrer-paiement-commande.md).
-- Le **Compte payeur :** se consulte et, lorsque le réseau le permet, se choisit
+- Le **COMPTE PAYEUR** se consulte et, lorsque le réseau le permet, se choisit
   dans **Prochain virement** : voir
   [Choisir le compte payeur](choisir-compte-payeur-virement.md).
 - Les journaux et comptes comptables relèvent de

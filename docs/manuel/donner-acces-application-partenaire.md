@@ -5,10 +5,12 @@
 Transmettre au commerçant de quoi faire la première connexion à son compte
 d'application : un QR code à imprimer ou un lien, à copier ou à envoyer par
 e-mail. Ces actions se trouvent dans **Partenaires**, écran
-**Liste des magasins partenaires**.
+**Magasins partenaires**, sous l'icône QR de chaque ligne.
 
-Le compte d'application est créé à l'ajout du partenaire. Son
-**Nom d'utilisateur** est visible dans l'onglet **Informations générales**.
+Le compte d'application est créé à l'ajout du partenaire. Son nom
+d'utilisateur est visible dans la fiche dépliée, rubrique
+**INFORMATIONS GÉNÉRALES**, ligne **Utilisateur** ; sans nom d'utilisateur, la
+ligne du partenaire affiche la pastille orange **Aucun compte utilisateur**.
 Tant que la première connexion n'est pas faite, ce compte n'a qu'un mot de passe
 par défaut et n'est pas utilisable ; ce mot de passe n'est pas à communiquer.
 
@@ -22,7 +24,8 @@ l'accès s'il n'existait pas encore. Ne l'utilisez pas pour une simple vérifica
 
 ## QR code de première connexion
 
-1. Sur la carte du partenaire, ouvrez l'icône QR (**Menu Qrcode**).
+1. Sur la ligne du partenaire, ouvrez l'icône QR **QR code du magasin**
+   (anciennement **Menu Qrcode**).
 2. Choisissez **Générer le QR Code de première connexion**.
 3. **Génération du QR Code...** s'affiche, puis un PDF est téléchargé sous le
    nom du partenaire, espaces remplacés par `_`, suivi de `_qr_code.pdf`.
@@ -35,11 +38,13 @@ codes des bons d'une commande relèvent d'un autre parcours : voir
 
 ## Lien de première connexion
 
-1. Ouvrez **Menu Qrcode**, puis **Générer le lien de première connexion**.
-2. La boîte **Votre lien pour** suivi du nom du partenaire affiche le lien.
-3. Pour le copier, cliquez sur l'icône de copie : **Lien copié !** s'affiche.
-4. Pour l'envoyer par e-mail, cochez **Envoyé par mail** : le bouton **Envoyer**
-   devient actif. Cliquez dessus pour envoyer le lien à l'adresse e-mail de la
+1. Ouvrez **QR code du magasin**, puis **Générer le lien de première connexion**.
+2. La boîte **Votre lien pour** suivi du nom du partenaire affiche « Lien de
+   première connexion du magasin. » et le lien.
+3. Pour le copier, cliquez sur l'icône **Copier le lien** : **Lien copié !**
+   s'affiche.
+4. Pour l'envoyer par e-mail, cochez **Envoyer par mail** (anciennement
+   **Envoyé par mail**) : le bouton **Envoyer** devient actif. Cliquez dessus pour envoyer le lien à l'adresse e-mail de la
    fiche partenaire.
 5. **Lien envoyé par mail avec succès !** signifie que le service d'envoi a
    accepté le message, pas qu'il a été reçu. **Fermer** ferme sans envoyer.

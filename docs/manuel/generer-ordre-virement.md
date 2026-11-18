@@ -9,15 +9,17 @@ virement et télécharge un ZIP. Elle ne s'annule pas depuis le back-office.
 
 ## Avant de générer
 
-- Relisez l'en-tête : période, **Compte payeur**, **Demandes à payer**,
-  **Commerçants**, **Montant à virer**, **Demandes écartées**.
+- Relisez la carte du haut : **PÉRIMÈTRE**, **COMPTE PAYEUR**,
+  **Demandes à payer**, **Commerçants**, **Montant à virer**,
+  **Demandes écartées**.
 - Traitez si possible les demandes **Écartées** : voir
   [Traiter les demandes de remboursement écartées](traiter-demandes-remboursement-bloquees.md).
 - Choisissez le compte si le réseau le permet : voir
   [Choisir le compte payeur](choisir-compte-payeur-virement.md).
 
-Le bouton **Générer l'ordre de virement** est inactif sans demande à payer
-ou pendant un chargement.
+Le bouton orange **Générer l'ordre de virement**, en haut à droite de
+l'écran, est inactif sans demande à payer, pendant un chargement ou pendant
+une génération.
 
 ## Étapes
 
@@ -32,8 +34,8 @@ ou pendant un chargement.
 5. Le ZIP est téléchargé par le navigateur et la fenêtre
    **Ordre de virement généré** indique le nombre de demandes payées et
    **Transmettez le fichier .SCT à votre banque.** S'il y a des écartées, elle
-   renvoie au fichier `REMBOURSEMENTS_ECARTES.csv` du ZIP. Cliquez sur
-   **Fermer**.
+   renvoie au fichier `REMBOURSEMENTS_ECARTES.csv` du ZIP. Le nom du ZIP est
+   affiché en dessous quand il est connu. Cliquez sur **Fermer**.
 6. L'aperçu est rechargé : les demandes payées n'y figurent plus.
 
 Le serveur refait la sélection au moment de la génération, avec la même
@@ -89,7 +91,9 @@ incertain. Le code lu enregistre l'ordre avant d'écrire les fichiers : même
 avec le dernier message, un ordre peut exister. Avant de recommencer :
 
 1. Rechargez **Prochain virement** et notez si les demandes ont disparu.
-2. Ouvrez **Virements** et cherchez un ordre créé à cette heure-là.
+2. Ouvrez **Virements** et cherchez un ordre créé ce jour-là (colonne
+   **Créé le**) ; l'heure figure à la fin du nom du ZIP, affiché sous la
+   période.
 3. S'il existe, retéléchargez-le plutôt que de générer à nouveau.
 
 ## Portée de l'aide Néo

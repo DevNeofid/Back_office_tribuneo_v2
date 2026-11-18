@@ -4,8 +4,8 @@
 
 Savoir depuis quel compte bancaire du réseau l'ordre de virement paiera les
 partenaires, et le changer quand le réseau le permet. Le compte se lit et se
-choisit dans le menu **Prochain virement**, sur la ligne **Compte payeur :**
-de l'en-tête.
+choisit dans le menu **Prochain virement**, sous le libellé **COMPTE PAYEUR**
+de la carte du haut (anciennement **Compte payeur :**).
 
 Les comptes bancaires du réseau ne se créent ni ne se modifient dans le
 back-office : voir [Comprendre la configuration du réseau](comprendre-configuration-reseau.md).
@@ -26,10 +26,12 @@ présélectionné est le compte de remboursement du réseau.
 ## Changer de compte
 
 1. Ouvrez **Prochain virement**.
-2. Dans **Compte payeur :**, choisissez un autre compte. La liste est
-   inactive pendant un chargement ou une génération.
-3. L'aperçu est rechargé avec ce compte. Vérifiez à nouveau l'en-tête.
-4. La fenêtre de confirmation de **Générer l'ordre de virement** reprend le
+2. Sous **COMPTE PAYEUR**, choisissez un autre compte dans la liste. Elle
+   est inactive pendant un chargement ou une génération.
+3. L'aperçu est rechargé avec ce compte. Vérifiez à nouveau la carte du haut
+   et ses tuiles.
+4. La fenêtre de confirmation du bouton **Générer l'ordre de virement**, en
+   haut à droite, reprend le
    **Compte payeur** : contrôlez-le avant de cliquer sur **Générer**.
 
 Le compte envoyé à la génération est celui de l'aperçu affiché. Le choix
@@ -41,7 +43,8 @@ de nouveau présélectionné.
 - Son titulaire, son IBAN et son BIC forment le bloc du donneur d'ordre du
   fichier de virement.
 - Son code est enregistré sur l'ordre de virement. Le menu **Virements**
-  l'affiche dans la colonne **Compte** quand le réseau a plusieurs comptes.
+  (écran **Ordres de virement**) l'affiche dans la colonne **Compte** quand le
+  réseau a plusieurs comptes.
 - Les écritures comptables des remboursements utilisent ce compte. Voir
   [Faire configurer les écritures comptables](configurer-ecritures-comptables.md)
   et [Générer les écritures comptables](generer-ecritures-comptables.md).

@@ -4,7 +4,8 @@
 
 Retrouver les ordres de virement déjà générés et récupérer de nouveau leur
 ZIP, par exemple si le téléchargement initial a été perdu. L'écran est le
-menu **Virements**, titré **Historique d'ordres de virement bancaire**.
+menu **Virements** (groupe **FINANCE**), titré **Ordres de virement**
+(anciennement **Historique d'ordres de virement bancaire**).
 
 ## Lire l'historique
 
@@ -12,28 +13,35 @@ Le tableau affiche dix ordres par page, le plus récent en premier :
 
 | Colonne | Contenu |
 | --- | --- |
-| **Nom du fichier** | Nom du ZIP de l'ordre |
+| **Période** | Dates des demandes payées, lues dans le nom du ZIP (par exemple « 13 oct. → 15 oct. 2026 »), avec le nom du ZIP en dessous. Si aucun nom de la page ne suit ce format, la colonne s'appelle **Nom du fichier** et montre seulement le nom |
+| **Compte** | Compte payeur, en pastille (pleine pour le compte par défaut) ; colonne présente seulement si le réseau a plusieurs comptes |
 | **Frais de gestion** | Total des frais de gestion TTC retenus par cet ordre |
 | **Montant remboursé** | Total net viré aux commerçants par cet ordre |
-| **Compte** | Compte payeur ; colonne présente seulement si le réseau a plusieurs comptes |
-| **Date de création** | Date de génération |
-| **Actions** | Deux icônes : ordre de virement et documents |
+| **Créé le** | Date de génération (anciennement **Date de création**) |
+| **Fichiers** | Deux icônes : ordre de virement et documents |
+
+Au-dessus du tableau, **Sur cette page :** donne le total remboursé et le
+total des frais des ordres affichés. Si le réseau a plusieurs comptes, les
+boutons **Tous les comptes** et le libellé de chaque compte filtrent
+seulement la page affichée, pas tout l'historique.
 
 Pour un ordre ancien sans compte enregistré, la colonne **Compte** affiche le
 compte par défaut du réseau ; pour un compte supprimé, son code brut.
 
 Le tableau ne montre ni le détail des demandes payées, ni la transmission du
-fichier à la banque, ni l'exécution du virement. Un tableau vide peut venir
-d'une erreur de lecture : il ne prouve pas l'absence d'ordre.
+fichier à la banque, ni l'exécution du virement. Un tableau vide
+(**Aucun ordre de virement**) peut venir d'une erreur de lecture : il ne
+prouve pas l'absence d'ordre. Si **Impossible de charger les ordres de
+virement.** s'affiche, cliquez sur **Réessayer**.
 
 ## Retélécharger le ZIP de l'ordre
 
-1. Ouvrez **Virements** et repérez la ligne par sa date et son nom.
-2. Cliquez sur l'icône de téléchargement, info-bulle
+1. Ouvrez **Virements** et repérez la ligne par sa période, son nom et sa
+   date **Créé le**.
+2. Dans la colonne **Fichiers**, cliquez sur la première icône, info-bulle
    **Télécharger l'ordre de virement**.
 3. Patientez pendant **Téléchargement de l'ordre de virement...**. Le
-   navigateur enregistre le ZIP sous le nom de la colonne
-   **Nom du fichier**.
+   navigateur enregistre le ZIP sous le nom affiché sur la ligne.
 
 Le ZIP est celui conservé sur le serveur lors de la génération : même
 fichier `.TXT.SCT`, même récapitulatif `.xlsx` et, le cas échéant, même

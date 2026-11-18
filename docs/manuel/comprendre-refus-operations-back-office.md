@@ -49,7 +49,7 @@ enregistrer un paiement.
 
 | Message ou signe | Cause vérifiée | Origine | Fiche |
 | --- | --- | --- | --- |
-| Infobulle **Bon associé à un utilisateur, désactivation impossible** | Contacts affichés pour le compte associé | Formulaire | [Désactiver un bon](desactiver-bon.md) |
+| Choix **Désactiver le bon** grisé avec **Bon associé à un utilisateur, désactivation impossible** | Contacts affichés pour le compte associé | Formulaire | [Désactiver un bon](desactiver-bon.md) |
 | **Impossible de désactiver ce bon : il est associé à un utilisateur.** | Bon attribué, même si le bouton semblait actif | Serveur | [Désactiver un bon](desactiver-bon.md) |
 | **Ces bons sont déjà attribués à des consommateurs : …** | Renvoi d'e-mail demandé pour un bon attribué | Serveur ; texte commun à plusieurs refus | [Renvoyer l'e-mail cadeau](renvoyer-cadeau-beneficiaire.md) |
 | **Ce bénéficiaire n'a pas d'adresse e-mail.** | Aucun e-mail enregistré ; un mobile ne suffit pas | Serveur | [Renvoyer l'e-mail cadeau](renvoyer-cadeau-beneficiaire.md) |
@@ -66,7 +66,7 @@ enregistrer un paiement.
 | **Erreur lors de la désactivation du partenaire.** | Solde Tribuneo non nul, compte d'application absent ou rôle déjà désactivé | Serveur, message générique | [Désactiver un partenaire](desactiver-partenaire.md) |
 | **Erreur lors de la modification du partenaire** | Champ vide, SIRET invalide ou déjà utilisé, entre autres | Serveur, message générique | [Modifier un partenaire](modifier-partenaire.md) |
 | Fenêtre **Ajouter ce Partenaire comme Client** restée ouverte, sans message | Rôle client déjà présent ou entité introuvable | Serveur, sans message | [Dupliquer en client](dupliquer-partenaire-en-client.md) |
-| **Erreur lors de la suppression du secteur d’activité** | Secteur lié à une entité, tous réseaux confondus ; ou échec du rechargement | Serveur, message générique | [Supprimer un secteur](supprimer-secteur-activite.md) |
+| **Erreur lors de la suppression du secteur d’activité** | Secteur lié à une entité, tous réseaux confondus, entre autres. Un échec du seul rechargement affiche plutôt **Impossible de charger les secteurs d'activité.** | Serveur, message générique | [Supprimer un secteur](supprimer-secteur-activite.md) |
 | **Erreur lors de l’ajout du secteur d’activité** | Nom déjà existant, entre autres ; l'unicité vient de la base | Base de données, message générique | [Créer un secteur](creer-secteur-activite.md) |
 
 ## Remboursements et virements
@@ -86,7 +86,7 @@ enregistrer un paiement.
 | --- | --- | --- | --- |
 | Fenêtre **Aucune écriture comptable générée** | Paramètres manquants, détaillés ligne par ligne | Serveur | [Configurer les écritures](configurer-ecritures-comptables.md) |
 | **Erreur lors de la génération des écritures comptables.** | Écritures non activées, aucune nouvelle période, paramètre réseau manquant, entre autres | Serveur, message générique | [Générer les écritures](generer-ecritures-comptables.md) |
-| Tableau vide et **Erreur: Exception: Aucune donnée CSV reçue** | Même date en début et en fin, droits insuffisants, aucune ligne ou échec de lecture | Serveur, message générique | [Statistiques](consulter-exporter-statistiques.md) |
+| Tableau **Aucune donnée pour ce rapport.** puis, à l'export, **Erreur: Exception: Aucune donnée CSV reçue** | Même date en début et en fin, droits insuffisants, aucune ligne ou échec de lecture | Serveur, message générique | [Statistiques](consulter-exporter-statistiques.md) |
 | **Accès refusé : votre compte n'est pas un compte administrateur.** | Compte autre qu'administrateur du réseau | Contrôle à la connexion | [Problème de connexion](resoudre-probleme-connexion.md) |
 | **Trop de tentatives de connexion. Veuillez réessayer dans …** | Délai imposé après plusieurs échecs | Contrôle à la connexion | [Problème de connexion](resoudre-probleme-connexion.md) |
 
@@ -98,8 +98,8 @@ Ces points ne sont pas des refus garantis. Ne les présentez pas comme tels.
   énoncée comme interdite pour le réseau, mais le serveur lu contrôle seulement
   les bons attribués ou utilisés. Vérifiez la facture avant de confirmer. Aucune
   règle n'est établie pour une commande payée mais non facturée.
-- **Bouton actif, refus possible** : la corbeille d'un paiement, le bouton de
-  désactivation d'un bon et **Renvoyer l'e-mail** dans **Gestion des bons**
+- **Bouton actif, refus possible** : la corbeille d'un paiement, le choix
+  **Désactiver le bon** et **Renvoyer l'e-mail** dans **Gestion des bons**
   peuvent être proposés alors que le serveur refusera.
 - **Libérer la demande** annonce une inclusion au prochain virement, même si
   un autre motif l'écarte encore.

@@ -3,34 +3,40 @@
 ## Objectif et prérequis
 
 Choisir les secteurs d'activité affichés pour un partenaire depuis
-**Partenaires**, écran **Liste des magasins partenaires**. Identifiez d'abord
-la fiche et vérifiez ses secteurs actuels dans l'onglet
-**Informations générales**, rubrique **Secteurs d'activité**.
+**Partenaires**, écran **Magasins partenaires**. Identifiez d'abord la fiche et
+vérifiez ses secteurs actuels : ils s'affichent en étiquettes sur sa ligne,
+sous son nom (**Pas de secteur d'activité** s'il n'en a aucun).
 
 Les secteurs sont rattachés à l'entité, pas au seul réseau courant : si elle
 est partenaire dans un autre réseau, elle y garde les mêmes secteurs.
 
 ## Étapes
 
-1. Sur la carte, ouvrez l'icône d'édition (**Menu Edition**), puis
+1. Sur la ligne du partenaire, cliquez sur le crayon **Modifier le partenaire**
+   (anciennement **Menu Edition**), puis sur
    **Editer secteurs d'activité**.
-2. La boîte affiche **Sélectionnez les options qui s'appliquent:** et la liste
-   de tous les secteurs. Les secteurs actuels du partenaire sont déjà cochés.
-3. Cochez ou décochez les secteurs voulus.
+2. Un panneau s'ouvre à droite, avec la rubrique **SECTEURS D'ACTIVITÉ** et le
+   nom du partenaire en titre. La section **Secteurs d'activité** affiche
+   « Sélectionnez les options qui s'appliquent. » et tous les secteurs sous
+   forme de pastilles. Les secteurs actuels du partenaire sont déjà
+   sélectionnés (pastille foncée avec une coche).
+3. Cliquez sur une pastille pour la sélectionner ou la désélectionner.
 4. Cliquez sur **Enregistrer**. La sélection remplace intégralement la
-   précédente : un secteur décoché est retiré, et tout décocher retire tous les
-   secteurs du partenaire.
-5. Après **Modification des secteurs d'activité réussie**, contrôlez la rubrique
-   **Secteurs d'activité** de la carte.
+   précédente : un secteur désélectionné est retiré, et tout désélectionner
+   retire tous les secteurs du partenaire.
+5. Après **Modification des secteurs d'activité réussie**, contrôlez les
+   étiquettes de secteurs sur la ligne du partenaire.
 
-La boîte n'a pas de bouton **Annuler** ; fermez-la par un clic à l'extérieur
-pour abandonner. Ce mode de fermeture n'a pas été vérifié en session.
+Pour abandonner, cliquez sur **Annuler** ou sur le bouton ✕ **Fermer** ; un
+clic en dehors du panneau le ferme aussi sans enregistrer. Ce mode de
+fermeture n'a pas été vérifié en session.
 
 ## Créer un secteur depuis cette boîte
 
-Le champ **Nouveau secteur d'activité** et le bouton **Créer** ajoutent
-immédiatement un secteur au catalogue commun, avant même **Enregistrer** et
-même si vous fermez ensuite la boîte. Le nouveau secteur n'est pas coché
+Dans la section **Secteur absent de la liste**, le champ
+**Nouveau secteur d'activité** et le bouton **Créer** ajoutent immédiatement
+un secteur au catalogue commun, avant même **Enregistrer** et même si vous
+fermez ensuite le panneau. Le nouveau secteur n'est pas sélectionné
 automatiquement. Les messages sont **Le secteur d’activité a été ajouté** ou
 **Erreur lors de l’ajout du secteur d’activité** ; un nom déjà existant est
 refusé. Le catalogue n'a pas de séparation par réseau dans les sources lues.
@@ -47,9 +53,10 @@ l'entité puis ajoute ceux sélectionnés, sans transaction. Une erreur peut don
 laisser le partenaire sans une partie de ses secteurs. Contrôlez la carte avant
 de recommencer.
 
-Si la liste des secteurs reste vide à l'ouverture, le catalogue n'a pas pu
-être chargé et aucun message ne le signale. Fermez la boîte sans enregistrer
-et réessayez plus tard ; la carte continue d'afficher les secteurs actuels.
+Si l'indicateur de chargement ne disparaît pas ou si la liste des secteurs
+reste vide à l'ouverture, le catalogue n'a pas pu être chargé et aucun message
+ne le signale. Fermez le panneau sans enregistrer et réessayez plus tard ; la
+carte continue d'afficher les secteurs actuels.
 
 ## Portée de l'aide Néo
 

@@ -11,11 +11,12 @@ elle l'écarte des virements tant qu'elle n'est pas libérée.
 
 ## Mettre en attente
 
-1. Dans **Prochain virement**, section **À payer**, dépliez la ligne du
-   commerçant.
-2. Sur la ligne de la demande, cliquez sur **Mettre en attente**.
-3. La fenêtre **Mettre en attente** rappelle la demande et le commerçant et
-   indique **Cette demande ne sera pas payée tant qu'elle n'aura pas été
+1. Dans **Prochain virement**, section **À payer**, cliquez sur la carte du
+   commerçant pour la déplier.
+2. Sur la ligne de la demande, colonne **Action**, cliquez sur
+   **Mettre en attente** (icône pause).
+3. La fenêtre **Mettre en attente** rappelle le commerçant, le numéro, la
+   date et le montant de la demande et indique **Cette demande ne sera pas payée tant qu'elle n'aura pas été
    libérée.**
 4. Saisissez si besoin un **Motif (facultatif)**, 255 caractères au plus.
    Ce motif est visible par les administrateurs du réseau ; n'y mettez pas de
@@ -23,8 +24,8 @@ elle l'écarte des virements tant qu'elle n'est pas libérée.
 5. Cliquez sur **Mettre en attente**. Pour renoncer, cliquez sur **Annuler** :
    rien n'est envoyé.
 6. Le message **Demande … mise en attente.** s'affiche et l'aperçu est
-   rechargé : la demande passe dans **Écartées** avec le motif
-   **Mise en attente** et votre motif entre guillemets.
+   rechargé : la demande passe dans **Écartées** avec la pastille orange
+   **Mise en attente** et votre motif en italique, entre guillemets.
 
 Le bouton n'existe que dans **À payer**. Une demande déjà écartée pour un
 autre motif ne peut pas être mise en attente depuis l'écran.
@@ -32,7 +33,7 @@ autre motif ne peut pas être mise en attente depuis l'écran.
 ## Libérer
 
 1. Dans **Écartées**, sur une demande **Mise en attente**, cliquez sur
-   **Libérer**.
+   **Libérer** dans la colonne **Actions**.
 2. La fenêtre **Libérer la demande …** indique
    **Cette demande sera incluse dans le prochain virement.**
 3. Cliquez sur **Libérer**, ou sur **Annuler** pour renoncer.

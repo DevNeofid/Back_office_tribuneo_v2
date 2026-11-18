@@ -13,23 +13,32 @@ commande, aucun bon ni aucun compte.
 
 ## Étapes
 
-1. Ouvrez **Statistiques** dans le menu latéral.
-2. Dans la liste déroulante en haut de l'écran, choisissez le rapport. À
-   l'ouverture, **Comptes utilisateurs** est sélectionné. Après un changement,
-   **Exporter en CSV** reste brièvement indisponible pendant le chargement.
-3. Si le rapport a une période, réglez **Date de debut** et **Date de fin**
-   avec l'icône calendrier (voir ci-dessous).
-4. Pour **Statut des QR codes par client**, renseignez les filtres puis cliquez
+1. Ouvrez **Statistiques** dans le menu latéral (groupe **ANALYSE**).
+   Depuis l'accueil, le raccourci **Exporter une statistique** ouvre le même
+   écran.
+2. Dans le catalogue des rapports à gauche, cliquez sur le rapport voulu. Les
+   rapports sont classés en quatre groupes : **UTILISATEURS**, **MONTANTS**,
+   **PARTENAIRES** et **CLIENTS ET SUPPORT**. À l'ouverture,
+   **Comptes utilisateurs** est sélectionné. Sur un écran étroit, le catalogue
+   s'affiche au-dessus du rapport. Il remplace l'ancienne liste déroulante.
+3. L'en-tête du rapport affiche son groupe et son titre, puis à droite la
+   période éventuelle et le bouton orange **Exporter en CSV**. Après un
+   changement de rapport, ce bouton reste brièvement indisponible pendant le
+   chargement.
+4. Si le rapport a une période, cliquez sur la date de début ou de fin, à
+   côté de l'icône calendrier (voir ci-dessous).
+5. Pour **Statut des QR codes par client**, renseignez les filtres puis cliquez
    sur **Rechercher** : voir [la fiche de ce rapport](statistiques-statut-qr-codes-client.md).
-5. Lisez le tableau. Il affiche dix lignes par page ; utilisez les flèches de
-   pagination sous le tableau. **Montant total du réseau** affiche une seule
-   ligne, sans pagination.
-6. Cliquez sur **Exporter en CSV**, attendez la fin de l'indicateur de
+6. Lisez le tableau, sous une courte description du rapport. Il affiche dix
+   lignes par page ; le pied du tableau indique par exemple « 1–10 sur 937 »
+   et propose les flèches **Page précédente** et **Page suivante**.
+   **Montant total du réseau** affiche une seule ligne, sans pagination.
+7. Cliquez sur **Exporter en CSV**, attendez la fin de l'indicateur de
    chargement dans le bouton, puis vérifiez les téléchargements du navigateur.
 
 ## Les onze rapports
 
-| Choix dans la liste | Période | Fiche |
+| Rapport du catalogue | Période | Fiche |
 |---|---|---|
 | **Comptes utilisateurs** | Non | [Comptes utilisateurs](statistiques-comptes-utilisateurs.md) |
 | **Montant total des partenaires** | Oui | [Montant total des partenaires](statistiques-montant-total-partenaires.md) |
@@ -47,8 +56,13 @@ Les rapports sans période donnent l'état des données au moment de la lecture.
 
 ## Période
 
-- Valeurs par défaut à l'ouverture de l'écran : **Date de debut** au
-  01/01/2023, **Date de fin** à la date du jour.
+- La période s'affiche dans l'en-tête du rapport, sous la forme
+  « 01/01/2023 → 18/11/2026 ». Cliquez sur une date pour ouvrir le calendrier
+  **Date de début** ou **Date de fin**, puis cliquez sur **Valider** (ou
+  **Annuler**). Le calendrier permet aussi une saisie au clavier, au format
+  JJ/MM/AAAA.
+- Valeurs par défaut à l'ouverture de l'écran : début au 01/01/2023, fin à
+  la date du jour.
 - Si vous choisissez un début postérieur à la fin, la fin est alignée sur le
   début ; si vous choisissez une fin antérieure au début, le début est aligné
   sur la fin.
@@ -115,21 +129,30 @@ fuseau de la base pour les dates enregistrées et pour « maintenant » n'est pa
 L'export affiche alors **Erreur: Exception: Aucune donnée CSV reçue**. Ce
 message apparaît dans plusieurs cas que l'écran ne distingue pas : aucune
 ligne pour ce rapport, période refusée, droits insuffisants ou échec de
-lecture. De même, un tableau vide ou réduit à ses en-têtes ne prouve pas
-l'absence de données.
+lecture. De même, un tableau qui affiche **Aucune donnée pour ce rapport.** (pied
+« Aucun résultat ») ne prouve pas l'absence de données : un refus ou un
+échec de lecture produit en général le même affichage. Le message
+**Impossible de charger ce rapport.**, avec **Réessayer**, signale un échec
+de chargement.
 
 Vérifiez le rapport choisi, la période et les filtres, puis rechargez l'écran.
-Après un changement de rapport, de période ou de filtre, le tableau peut
-rester positionné sur la page consultée auparavant : revenez aux premières
-pages avant de conclure. Si le doute persiste, faites vérifier les droits et
+Un changement de rapport repart de la première page. Après un changement
+de période ou de filtre, en revanche, le tableau peut rester positionné sur
+la page consultée auparavant : revenez aux premières pages avant de
+conclure. Si le doute persiste, faites vérifier les droits et
 les données.
 
 ## Données personnelles et usage des chiffres
 
 Plusieurs exports contiennent des coordonnées personnelles (téléphone, e-mail,
-nom) et, pour les partenaires, l'IBAN et le BIC complets. Aucun masquage n'est
-appliqué par le back-office ni par l'export. Conservez et transmettez ces
-fichiers selon les règles de confidentialité du réseau.
+nom) et, pour les partenaires, l'IBAN et le BIC complets. À l'écran, les
+numéros de téléphone sont masqués par défaut (par exemple
+« +33 6 49 •• •• 95 ») : cliquez sur **Afficher les numéros**, au-dessus du
+tableau, pour les voir en entier, puis sur **Masquer les numéros** pour les
+masquer de nouveau. Ce masquage ne concerne que l'affichage des téléphones :
+l'export reste toujours complet, et les e-mails, noms, IBAN et BIC ne sont
+jamais masqués. Conservez et transmettez ces fichiers selon les règles de
+confidentialité du réseau.
 
 Chaque montant suit une définition technique précisée dans la fiche du
 rapport. Un total, un solde ou une ligne absente ne prouve pas à lui seul une

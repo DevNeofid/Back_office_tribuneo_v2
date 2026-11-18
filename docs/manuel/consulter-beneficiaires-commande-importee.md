@@ -10,20 +10,24 @@ La création par import relève d'une
 
 ## Étapes de consultation
 
-1. Dans **Commandes**, écran **Liste des commandes**, retrouvez la commande.
+1. Dans **Commandes**, retrouvez la commande avec la recherche
+   **Rechercher par numéro de commande, offert par, etc.**
 2. Sur sa ligne, ouvrez l'icône de la colonne **Gestion**, puis
    **Bénéficiaires (commande importée)**.
-3. Vérifiez le numéro dans **Bénéficiaires - Commande …** et attendez le
+3. La fenêtre **Bénéficiaires** s'ouvre (anciennement
+   **Bénéficiaires - Commande …**). Vérifiez le numéro de commande affiché
+   au-dessus du titre, suivi de l'offrant et de l'occasion, puis attendez le
    chargement de la liste.
 4. Consultez **Prénom**, **Nom**, **E-mail**, **Mobile**, **Montant**, **Reste**,
    **Statut** et **Actions**. Faites défiler le tableau horizontalement si
    nécessaire. Une ligne correspond à un bon : le même bénéficiaire peut
    apparaître sur plusieurs lignes.
 5. **En attente** signifie que le bon n'est pas attribué à un compte consommateur.
-   **Attribué à …** indique son attribution ; ce statut ne confirme ni la
-   réception de l'e-mail ni la consommation totale du bon.
-6. Utilisez **Recharger** pour relire la liste, sans modification en cours,
-   puis **Fermer** pour quitter.
+   **Attribué** indique son attribution ; l'infobulle de la ligne précise le
+   compte (« Ce bon est déjà attribué au compte de … »). Ce statut ne confirme
+   ni la réception de l'e-mail ni la consommation totale du bon.
+6. Utilisez **Recharger**, en haut à droite, pour relire la liste, sans
+   modification en cours, puis **Fermer**, en bas à droite, pour quitter.
 
 ## Lire la bonne liste
 

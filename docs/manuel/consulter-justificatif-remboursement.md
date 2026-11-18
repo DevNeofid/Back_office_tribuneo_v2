@@ -13,15 +13,15 @@ créés automatiquement lors de la génération de l'ordre de virement, pour
 chaque demande payée qui n'en a pas encore. Ils sont datés de leur jour de
 création, donc en général du jour du virement.
 
-Dans **Prochain virement**, l'icône de document à l'info-bulle
-**Documents déjà émis** indique qu'une demande **À payer** a déjà son
-justificatif, avec son numéro entre parenthèses. Ce justificatif sera
+Dans **Prochain virement**, la pastille **Déjà émis** de la colonne
+**Justificatifs** indique qu'une demande **À payer** a déjà son justificatif ;
+son info-bulle **Documents déjà émis** donne son numéro entre parenthèses. Ce justificatif sera
 réutilisé, jamais dupliqué.
 
 ## Depuis l'historique des virements
 
-1. Ouvrez **Virements**.
-2. Sur la ligne de l'ordre, cliquez sur l'icône
+1. Ouvrez **Virements** (écran **Ordres de virement**).
+2. Sur la ligne de l'ordre, colonne **Fichiers**, cliquez sur l'icône
    **Documents (justificatifs et factures)**.
 3. Patientez pendant **Préparation des documents du virement...**. Les
    documents sont produits à la demande, ce qui peut prendre du temps.
@@ -42,10 +42,10 @@ support.
 
 ## Depuis Documents, par demande
 
-Le menu **Documents**, bouton **Frais de gestion**, liste les factures de
-frais déjà émises avec leur **Numéro de transaction**, c'est-à-dire le numéro
-de la demande. Son bouton **Télécharger** enregistre un fichier `.zip` au nom
-du destinataire ; d'après le code lu, il contient la facture de frais et le
+Le menu **Documents**, onglet **Frais de gestion** en haut à droite, liste les
+factures de frais déjà émises avec leur **N° de transaction**, c'est-à-dire le
+numéro de la demande. L'icône **Télécharger** de la colonne **PDF** enregistre
+un fichier `.zip` au nom du commerçant ; d'après le code lu, il contient la facture de frais et le
 justificatif de réception. Ce parcours est décrit dans la fiche
 [Consulter et télécharger les factures de frais de gestion](consulter-telecharger-factures-frais-gestion.md).
 Une ligne dans cette liste ne prouve pas que la demande a été payée.

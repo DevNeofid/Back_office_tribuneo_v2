@@ -72,7 +72,7 @@ texte ou séparateur de milliers.
 
 - **Offert par** sélectionne le client auquel la commande est rattachée.
   L'API exige un identifiant d'entité existant et un texte « Offert par » non vide.
-- **Personnalisation offert par (optionnel)** remplace ce texte sur le chèque,
+- **Personnalisation « offert par » (optionnel)** remplace ce texte sur le chèque,
   sans changer le client. Les barres obliques sont remplacées par des tirets.
 - **Pour l'occasion de** fournit l'identifiant et le nom de l'occasion.
   L'occasion est obligatoire dans ce formulaire, en import comme en saisie

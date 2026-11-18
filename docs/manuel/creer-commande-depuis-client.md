@@ -13,26 +13,32 @@ Le client doit déjà exister dans **Clients**. Pour le créer, voir
 
 ## Étapes
 
-1. Dans le menu latéral, ouvrez **Clients**. L'écran porte le titre
-   **Liste des clients**.
-2. Retrouvez le client : saisissez son nom dans le champ **Rechercher...** ou
-   cliquez sur la lettre correspondante. Chaque client est présenté dans un
-   cadre dont l'en-tête affiche son nom. Voir aussi
+1. Dans le menu latéral, ouvrez **Clients** (groupe **RÉSEAU**). L'écran
+   porte le titre **Clients** (anciennement **Liste des clients**).
+2. Retrouvez le client : saisissez son nom dans le champ **Nom du client…** ou
+   cliquez sur la lettre correspondante. Chaque client occupe une ligne du
+   tableau ; un clic sur la ligne affiche sa fiche à droite. Voir aussi
    [Rechercher et filtrer un client](rechercher-client.md).
-3. Dans l'en-tête du cadre de ce client, à droite, cliquez sur la **première
-   icône**, en forme de liste. Elle se trouve avant l'icône du menu d'édition
-   du client. Cette icône n'a ni libellé ni infobulle.
-4. Le formulaire **Ajouter une commande** s'ouvre. À l'emplacement du choix
-   **Offert par**, vérifiez que le nom affiché est bien celui du client ; ce
+3. Sur la ligne de ce client, à droite, cliquez sur l'icône
+   **Créer une commande** (c'est son infobulle), placée avant le menu **…**.
+   Autre accès : dans la fiche du client sélectionné, cliquez sur le bouton
+   **Nouvelle commande**.
+4. Le panneau **Ajouter une commande** (rubrique **NOUVELLE COMMANDE**)
+   s'ouvre à droite. Dans le champ **Offert par**, vérifiez que le nom affiché est bien celui du client ; ce
    champ n'est pas modifiable. S'il ne s'agit pas du bon client, quittez le
    formulaire sans enregistrer (voir plus bas).
-5. Conservez **Saisie manuelle**, puis remplissez la commande comme indiqué
-   dans [Créer une commande en saisie manuelle](creer-commande-manuelle.md) :
-   **Date d'expiration**, lignes **Montant par chèque** / **Nombre de chèque**,
-   **Message personnalisé** si besoin, **Différents fonds ?** pour plusieurs
-   lignes, **Pour l'occasion de**, et éventuellement **Personnalisation offert
-   par (optionnel)**. Vous n'avez pas à sélectionner le client.
-6. Relisez le client, les lignes, l'occasion et la date, puis cliquez sur
+5. Dans **Bons cadeaux**, conservez **Saisie manuelle**, puis remplissez la
+   commande comme indiqué dans
+   [Créer une commande en saisie manuelle](creer-commande-manuelle.md) :
+   **Pour l'occasion de**, **Date d'expiration**, lignes **Montant par chèque** /
+   **Nombre de chèque**, **Message personnalisé** si besoin,
+   **Ajouter un autre montant** pour plusieurs lignes, et éventuellement
+   **Personnalisation « offert par »** (optionnel). La section
+   **Où les chèques sont acceptés** reste par défaut sur
+   **Chez tous les commerçants du réseau**. Vous n'avez pas à sélectionner
+   le client.
+6. Relisez le client, les lignes, l'occasion et la date (le pied du panneau
+   affiche le nombre de bons et le total de la commande), puis cliquez sur
    **Enregistrer**. Le message **Ajout de la commande réussi** confirme
    l'enregistrement ; le formulaire se ferme et la liste des clients se
    recharge.
@@ -43,9 +49,9 @@ Le client doit déjà exister dans **Clients**. Pour le créer, voir
 
 ## Quitter sans enregistrer
 
-Ce formulaire ne comporte ni bouton **Fermer** ni bouton **Annuler**. Pour le
-quitter sans créer de commande, cliquez en dehors de la fenêtre, sans cliquer
-sur **Enregistrer**. Aucune commande n'est envoyée tant que **Enregistrer** n'a
+Pour quitter le panneau sans créer de commande, cliquez sur **Annuler** (en
+bas), sur ✕ **Fermer** (en haut) ou cliquez en dehors de la fenêtre, sans
+cliquer sur **Enregistrer**. Aucune commande n'est envoyée tant que **Enregistrer** n'a
 pas été cliqué. Les informations saisies sont alors perdues.
 
 ## Différences avec la création depuis Commandes
@@ -53,7 +59,7 @@ pas été cliqué. Les informations saisies sont alors perdues.
 - Le client est fixé par la fiche d'où le formulaire a été ouvert : le message
   **Veuillez sélectionner une entité ("Offert par")** ne s'applique pas.
 - Par défaut, le texte « Offert par » de la commande est le nom du client.
-  **Personnalisation offert par (optionnel)** remplace ce texte sur les chèques
+  **Personnalisation « offert par »** (optionnel) remplace ce texte sur les chèques
   sans changer le client rattaché. Les caractères `/` et `\` y sont remplacés
   par un tiret.
 - Le même formulaire propose **Importer un fichier**. Pour ce mode, suivez
@@ -70,7 +76,7 @@ pas été cliqué. Les informations saisies sont alors perdues.
 | « Veuillez sélectionner l'occasion (URSSAF) » | Choisissez une valeur dans **Pour l'occasion de**. |
 | « L'enregistrement précédent est encore en cours. Patientez quelques secondes. » | Le formulaire se ferme après quelques secondes : vérifiez la liste des commandes avant toute nouvelle tentative. |
 | « Erreur lors de l’ajout de la commande » ou autre erreur | Lisez le message, vérifiez les champs puis la liste des commandes avant de recommencer. |
-| L'icône en forme de liste ne réagit pas | Vérifiez que vous cliquez dans l'en-tête du cadre du client, sur la première icône à droite du nom. |
+| L'icône **Créer une commande** ne réagit pas | Vérifiez que vous cliquez sur la ligne du bon client, sur l'icône placée avant le menu **…**, ou utilisez le bouton **Nouvelle commande** de sa fiche. |
 
 Pendant l'enregistrement, un indicateur d'attente remplace le bouton. Après un
 message d'erreur ou une fermeture inattendue, contrôlez d'abord la liste des

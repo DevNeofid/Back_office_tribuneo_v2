@@ -2,26 +2,29 @@
 
 ## Objectif et prérequis
 
-Corriger les informations générales d'un client existant dans **Clients**,
-écran **Liste des clients**. Retrouvez d'abord la bonne fiche et vérifiez son
+Corriger les informations générales d'un client existant dans l'écran
+**Clients**. Retrouvez d'abord la bonne fiche et vérifiez son
 identité. Vous devez disposer des droits de modification des clients.
 
 ## Étapes
 
-1. Dans **Clients**, retrouvez le client avec **Rechercher...** ou son initiale.
-2. Dans l'en-tête de sa fiche, ouvrez le menu d'édition, représenté par une
-   icône de rectangle, puis choisissez **Editer informations générales**.
-   Ce menu est distinct de celui proposant duplication et désactivation.
-3. Dans **Modifier le client**, vérifiez les valeurs préremplies de
+1. Dans **Clients**, retrouvez le client avec la recherche **Nom du client…**
+   ou l'index alphabétique.
+2. Sur la ligne du client, ouvrez le menu **…** (**Plus d'actions**) et
+   choisissez **Editer informations générales**. Autre accès : sélectionnez
+   le client, puis dans sa fiche à droite cliquez sur le crayon
+   **Modifier le client** ou, dans l'onglet **Général**, sur **Modifier**.
+3. Le panneau s'ouvre à droite (rubrique **MODIFIER LE CLIENT**, titre : nom
+   du client, section **1 Identité**). Vérifiez les valeurs préremplies de
    **Nom du client**, **Email du client**, **Siret du client**,
    **Téléphone du client** et **Code du client**. Le code est en lecture
    seule, avec la mention « Le code du client est attribué à la création et
    n'est pas modifiable depuis cet écran. »
 4. Corrigez le nom, l'e-mail, le SIRET ou le téléphone selon le besoin.
    Le code ne peut pas être modifié depuis cet écran.
-5. Cliquez sur **Enregistrer** pour envoyer la modification. Pour abandonner,
-   fermez la fenêtre sans enregistrer, notamment par clic à l'extérieur de la
-   boîte de dialogue ; aucun bouton **Annuler** n'est prévu dans ce formulaire.
+5. Cliquez sur le bouton orange **Enregistrer** pour envoyer la modification.
+   Pour abandonner sans enregistrer, cliquez sur **Annuler**, sur ✕ **Fermer**
+   ou en dehors du panneau.
 6. Après **Modification du client réussie**, vérifiez la fiche actualisée.
 
 ## Contrôles et différences avec la création
@@ -32,7 +35,7 @@ identité. Vous devez disposer des droits de modification des clients.
   commençant par 01 à 09 : **🚩 Numéro de mobile non valide**.
 - Contrairement à l'ajout d'un particulier, le champ **Siret du client** est
   visible même pour un client sans SIRET. Aucun choix particulier/professionnel
-  ni recherche SIRET n'est proposé dans cette fenêtre.
+  ni recherche SIRET n'est proposé dans ce panneau.
 - Le champ SIRET limite la saisie aux chiffres et à quatorze caractères, sans
   validateur local de longueur minimale. L'API refuse un SIRET non vide qui ne
   comporte pas exactement quatorze chiffres :

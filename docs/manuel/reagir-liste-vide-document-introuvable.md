@@ -29,22 +29,22 @@ n'apparaît pas, avant de recréer, de régénérer ou de conclure à une absenc
 
 | Écran ou élément | Pourquoi il peut sembler absent | Que vérifier | Fiche |
 | --- | --- | --- | --- |
-| **Liste des commandes** | Nombre limité de commandes chargées ; recherche sur les seules commandes chargées, par numéro, **Offert par** ou occasion | Le numéro commercial ; la première page ; le rechargement | [Rechercher une commande](rechercher-commande.md) |
+| **Commandes** | Nombre limité de commandes chargées ; recherche sur les seules commandes chargées, par numéro, **Offert par** ou occasion ; 50 lignes par page | Le numéro commercial ; la première page ; le rechargement | [Rechercher une commande](rechercher-commande.md) |
 | Fenêtre **Paiements** | Chargement en cours ou en échec ; colonne **Compte** masquée si les comptes ne sont pas chargés | Attendre, fermer et rouvrir | [Consulter les paiements](consulter-paiements-commande.md) |
 | **Gestion des bons** | **Aucun bon associé à cette commande.** peut suivre un échec de lecture | Le numéro de commande ; rouvrir la fenêtre | [Consulter les bons](consulter-bons-commande.md) |
 | **Bénéficiaires (commande importée)** | Donations et bons annulés exclus ; commande non importée | Distinguer **Aucun bénéficiaire pour cette commande.** et **Impossible de charger les bénéficiaires.** | [Bénéficiaires](consulter-beneficiaires-commande-importee.md) |
 | Coordonnées vides dans **Gestion des bons** | Elles viennent du compte associé, pas de l'import | La fenêtre **Bénéficiaires** | [Consulter les bons](consulter-bons-commande.md) |
-| **Liste des clients** | Recherche sur le nom seulement ; initiale choisie ; lecture en erreur | Le nom saisi ; la lettre affichée | [Rechercher un client](rechercher-client.md) |
-| **Liste des magasins partenaires** | Recherche sur le nom seulement ; initiale accentuée ; partenaire désactivé absent | **Rechercher...** ; rouvrir **Partenaires** | [Rechercher un partenaire](rechercher-consulter-partenaire.md) |
-| **Documents → Factures** | Dix lignes par page, sans recherche ; mauvais onglet ; lecture en erreur | La pagination ; l'onglet **Factures** | [Retélécharger une facture](retelecharger-facture-existante.md) |
+| **Clients** | Recherche **Nom du client…** sur le nom seulement ; lettre de l'index choisie ; lecture en erreur | Le nom saisi ; la lettre affichée | [Rechercher un client](rechercher-client.md) |
+| **Magasins partenaires** | Recherche sur le nom seulement ; initiale accentuée ; secteur choisi ou bascule **Dématérialisés** / **Papier seul** active ; partenaire désactivé absent | **Nom du partenaire…** ; **Tous les secteurs** et **Tous** ; rouvrir **Partenaires** | [Rechercher un partenaire](rechercher-consulter-partenaire.md) |
+| **Documents → Factures** | Dix lignes par page ; recherche en cours ; mauvais onglet ; lecture en erreur (**Impossible de charger les documents.**) | La pagination ; la recherche **N° de facture ou de commande, client, montant…** ; l'onglet **Factures** | [Retélécharger une facture](retelecharger-facture-existante.md) |
 | Bon de livraison | Il n'apparaît jamais dans **Documents** | **Commandes → Gestion → Générer le bon de livraison** | [Bon de livraison](generer-bon-livraison-commande.md) |
 | **Documents → Frais de gestion** | Pagination ; lecture refusée ou en échec | La pagination ; rouvrir l'onglet | [Factures de frais](consulter-telecharger-factures-frais-gestion.md) |
 | **Prochain virement** | Demande faite aujourd'hui, visible demain ; demande antérieure à la date de bascule ; demande déjà payée par un ordre | Distinguer **Aucune demande de remboursement en attente.** et **Impossible de charger l'aperçu du prochain virement.** | [Demandes de remboursement](consulter-demandes-remboursement.md) |
-| **Virements** | Lecture en erreur | Rouvrir l'écran | [Ordres de virement](consulter-retelecharger-ordre-virement.md) |
-| **Écritures comptables** | Lecture en erreur ; historique non rafraîchi après une génération | Quitter puis rouvrir **Écritures** ; la pagination | [Retélécharger les écritures](retelecharger-ecritures-comptables.md) |
+| **Virements** | Lecture en erreur : **Impossible de charger les ordres de virement.** | **Réessayer** ou rouvrir l'écran | [Ordres de virement](consulter-retelecharger-ordre-virement.md) |
+| **Écritures comptables** | Lecture en erreur ; recherche en cours ; tableau **Fichiers générés** non rafraîchi après une génération | Effacer la recherche ; quitter puis rouvrir **Écritures** ; la pagination | [Retélécharger les écritures](retelecharger-ecritures-comptables.md) |
 | **Statistiques** | Même date en début et en fin ; droits insuffisants ; pagination restée sur une page avancée ; recherche non validée | Les dates ; **Rechercher** ; les premières pages | [Statistiques](consulter-exporter-statistiques.md) |
 | **Toutes les infos clients** ou **partenaires** | Une fiche sans adresse, coordonnées bancaires, informations comptables ou code n'y figure pas | La fiche dans **Clients** ou **Partenaires** | [Infos clients](statistiques-informations-clients.md), [infos partenaires](statistiques-informations-partenaires.md) |
-| **Secteurs d'activité** | Échec de chargement sans message | Rouvrir l'écran avant d'ajouter | [Créer un secteur](creer-secteur-activite.md) |
+| **Secteurs d'activité** | Échec de chargement : **Impossible de charger les secteurs d'activité.** | **Réessayer** ou rouvrir l'écran avant d'ajouter | [Créer un secteur](creer-secteur-activite.md) |
 | Fichier téléchargé | Téléchargement bloqué ou enregistré ailleurs par le navigateur | Les téléchargements du navigateur | [QR codes](generer-qr-codes-commande.md) |
 
 ## Cas qui demandent une prudence particulière

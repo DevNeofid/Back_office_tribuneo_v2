@@ -13,8 +13,9 @@ et, lorsqu'ils sont renseignés, les coordonnées des bénéficiaires.
 
 ## Étapes
 
-1. Dans le menu latéral, ouvrez **Commandes**, puis retrouvez la commande avec
-   le champ **Rechercher** et la colonne **N°**.
+1. Dans le menu latéral (groupe **RÉSEAU**), ouvrez **Commandes**, puis
+   retrouvez la commande avec le champ de recherche
+   **Rechercher par numéro de commande, offert par, etc.** et la colonne **N°**.
 2. Sur la ligne de la commande, cliquez sur l'icône de la colonne **Gestion**.
 3. Choisissez **Générer le récapitulatif**. Aucune fenêtre de saisie ni
    confirmation ne s'affiche.
@@ -59,7 +60,8 @@ aucun bon.
 
 ## Écran concerné
 
-Menu **Commandes**, écran **Liste des commandes**, colonne **Gestion**, entrée
+Menu **Commandes**, écran **Commandes** (anciennement **Liste des commandes**),
+colonne **Gestion**, entrée
 **Générer le récapitulatif**.
 
 ## Avec Néo

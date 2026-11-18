@@ -10,13 +10,15 @@ l'historique et télécharger un ancien fichier.
 ## Étapes
 
 1. Ouvrez **Écritures**, qui affiche **Écritures comptables**.
-2. Dans l'historique, identifiez le lot à partir de **Nom du fichier** et
-   **Date de création**. Le nom enregistré est normalement
-   `ECRITURES_<début>_<fin>.zip`. La date de création affichée est celle du lot,
-   pas la fin de sa période. Le tableau présente dix lignes par page ; utilisez
-   sa pagination pour parcourir les lots précédents.
-3. Dans **Actions**, cliquez sur l'icône dont l'infobulle est **Télécharger**
-   sur la bonne ligne. N'utilisez pas **Déclencher les écritures comptables**
+2. Dans le tableau **Fichiers générés**, identifiez le lot à partir de
+   **Période couverte**, **Fichier** et **Généré le**. Le nom enregistré est
+   normalement `ECRITURES_<début>_<fin>.zip` ; **Période couverte** en reprend
+   les deux dates. La date **Généré le** est celle du lot, pas la fin de sa
+   période. Le tableau présente dix lignes par page ; utilisez sa pagination
+   pour parcourir les lots précédents, ou la recherche
+   **Fichier, période, date…**.
+3. Dans la colonne **Télécharger**, cliquez sur l'icône dont l'infobulle est
+   **Télécharger** sur la bonne ligne. N'utilisez pas **Déclencher les écritures comptables**
    pour récupérer un fichier existant.
 4. Attendez le fichier portant le nom de la ligne. Le texte d'attente est
    **Génération des écritures comptables...**, même pour ce retéléchargement.
@@ -38,13 +40,13 @@ les deux bornes. Cette différence ne suffit pas à conclure à un lot différen
 
 | Situation | Vérification utile |
 |---|---|
-| Tableau vide ou ligne non visible | Attendez le chargement et vérifiez les pages. Le repository peut rendre une liste vide en cas d'erreur : cela ne prouve pas qu'aucun lot n'existe. |
+| Tableau vide (« Aucune écriture comptable générée ») ou ligne non visible | Attendez le chargement et vérifiez les pages. Le repository peut rendre une liste vide en cas d'erreur : cela ne prouve pas qu'aucun lot n'existe. Si **Impossible de charger les écritures comptables.** s'affiche, cliquez sur **Réessayer**. |
 | **Aucune écritures comptables disponibles.** | Message générique du BO en cas d'échec de téléchargement, y compris si un lot existe. Notez son nom et sa date et signalez le problème à Neofid si le fichier reste inaccessible. |
 | Fichier supprimé ou inaccessible sur le serveur | L'API peut répondre `Accounting entry file not found.` ou `Unable to open accounting entry file.` ; ces détails ne sont pas nécessairement visibles dans le BO. Aucun bouton de reconstruction d'un ancien ZIP n'est établi. |
 | Pas de ZIP après une tentative de génération | Relisez l'historique avant tout nouveau déclenchement ; la génération peut avoir été enregistrée malgré l'échec du téléchargement. |
 
-L'historique n'offre ici ni filtre de dates, ni sélection de période à
-recalculer, ni suppression de lot. Les bornes précises et la seconde incluse
+L'historique n'offre ici ni filtre de dates (seulement une recherche texte),
+ni sélection de période à recalculer, ni suppression de lot. Les bornes précises et la seconde incluse
 avant le début annoncé sont détaillées dans
 [Générer les écritures comptables](generer-ecritures-comptables.md).
 

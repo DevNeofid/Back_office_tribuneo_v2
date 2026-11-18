@@ -21,16 +21,18 @@ virements le même jour sont possibles.
 | **Montant net nul après frais de gestion** | Frais égaux ou supérieurs au montant | Aucune ; contactez le support |
 | **Commerçant introuvable, contactez le support** | Commerçant de la demande non retrouvé | Aucune |
 
-Une demande peut cumuler plusieurs motifs ; tous doivent disparaître. Un code
-inconnu du back-office est affiché tel quel.
+Dans la colonne **Motifs**, chaque motif est une pastille : orange avec une
+icône pause pour **Mise en attente**, rouge pour les autres. Les boutons sont
+dans la colonne **Actions**. Une demande peut cumuler plusieurs motifs ; tous
+doivent disparaître. Un code inconnu du back-office est affiché tel quel.
 
 ## Compléter la fiche du commerçant
 
 1. Dans **Écartées**, sur la ligne de la demande, cliquez sur
    **Compléter la fiche**.
 2. Le BO affiche **Chargement de la fiche du commerçant...**, puis ouvre
-   directement le formulaire manquant : adresse, coordonnées bancaires, ou
-   les deux l'un après l'autre.
+   directement, dans un panneau à droite, le formulaire manquant : adresse,
+   coordonnées bancaires, ou les deux l'un après l'autre.
 3. Renseignez le formulaire comme décrit dans
    [Renseigner l'adresse d'un partenaire](renseigner-adresse-partenaire.md)
    ou [Renseigner les coordonnées bancaires d'un partenaire](renseigner-coordonnees-bancaires-partenaire.md),
@@ -40,7 +42,7 @@ inconnu du back-office est affiché tel quel.
 
 Si la fiche n'est pas retrouvée, le message est
 **Fiche du commerçant introuvable. Complétez-la depuis le menu Partenaires.**
-Passez alors par **Partenaires**.
+Passez alors par **Partenaires** (écran **Magasins partenaires**).
 
 L'adresse et les coordonnées bancaires sont rattachées à l'entité du
 commerçant : la correction vaut aussi pour ses autres rôles et réseaux. Seul

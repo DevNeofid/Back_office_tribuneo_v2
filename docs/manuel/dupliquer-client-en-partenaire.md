@@ -2,8 +2,8 @@
 
 ## Objectif et prérequis
 
-Ajouter le rôle partenaire à une entité déjà cliente depuis **Clients**, écran
-**Liste des clients**. Disposez des droits de gestion des clients et vérifiez
+Ajouter le rôle partenaire à une entité déjà cliente depuis l'écran
+**Clients**. Disposez des droits de gestion des clients et vérifiez
 l'identité de la fiche ainsi que son éventuelle présence dans **Partenaires**.
 
 Le terme **Dupliquer** de l'écran correspond à l'ajout du type partenaire à la
@@ -12,9 +12,11 @@ ses informations générales.
 
 ## Étapes
 
-1. Dans **Clients**, retrouvez le client avec **Rechercher...** ou son initiale.
-2. Dans l'en-tête de sa fiche, ouvrez le menu d'actions à trois points, distinct
-   du menu d'édition des informations.
+1. Dans **Clients**, retrouvez le client avec la recherche **Nom du client…**
+   ou l'index alphabétique.
+2. Sur la ligne du client, à droite, ouvrez le menu **…** (**Plus d'actions**).
+   Ce menu contient aussi les entrées d'édition ; l'action de duplication se
+   trouve sous le trait de séparation.
 3. Choisissez **Dupliquer ce Client en Partenaire**.
 4. La confirmation **Ajouter ce client comme Partenaire** indique :
    **Vous allez ajouter ce client comme partenaire. Êtes-vous sûr de vouloir continuer ?**

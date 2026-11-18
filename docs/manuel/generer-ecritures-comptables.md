@@ -13,11 +13,13 @@ utilisez [le retéléchargement](retelecharger-ecritures-comptables.md).
 ## Étapes
 
 1. Ouvrez **Écritures**. L'écran porte le titre **Écritures comptables**.
-2. Consultez d'abord les lignes **Nom du fichier** et **Date de création** de
-   l'historique pour vérifier qu'un lot répondant au besoin n'existe pas déjà.
-   Aucun sélecteur de période n'est proposé.
+2. Consultez d'abord le tableau **Fichiers générés** (colonnes
+   **Période couverte**, **Durée**, **Fichier**, **Généré le**) pour vérifier
+   qu'un lot répondant au besoin n'existe pas déjà. Aucun sélecteur de période
+   n'est proposé ; la recherche **Fichier, période, date…** filtre seulement
+   l'historique.
 3. Si vous souhaitez réellement créer le lot suivant, cliquez une seule fois
-   sur **Déclencher les écritures comptables**. Il n'y a pas de confirmation
+   sur **Déclencher les écritures comptables**, en haut à droite. Il n'y a pas de confirmation
    intermédiaire. La fenêtre **Génération des écritures comptables...** s'ouvre.
 4. Attendez le téléchargement du ZIP. Après l'opération, vérifiez le fichier
    reçu et l'historique. Le code ne rafraîchit pas explicitement le tableau après
@@ -57,8 +59,10 @@ concurrence entre deux déclenchements simultanés.
 
 ## ZIP et fichiers produits
 
-- Le nom enregistré par l'API et visible dans l'historique est
-  `ECRITURES_<début>_<fin>.zip`, avec des dates `AAAA-MM-JJ`.
+- Le nom enregistré par l'API et visible dans la colonne **Fichier** de
+  l'historique est `ECRITURES_<début>_<fin>.zip`, avec des dates `AAAA-MM-JJ`.
+  **Période couverte** reprend ces deux dates et **Durée** le nombre de jours,
+  bornes incluses.
 - Lors du téléchargement initial, le BO impose plutôt
   `ECRITURES_<veille>.zip`. Cette veille est calculée à l'ouverture de l'écran
   selon l'horloge locale du navigateur. Le nom initial ne prouve donc pas la

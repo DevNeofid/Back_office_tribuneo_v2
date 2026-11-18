@@ -4,7 +4,7 @@
 
 Obtenir, sous forme de PDF à remettre au commerçant, le QR code de réception
 propre à un partenaire du réseau courant, depuis **Partenaires**, écran
-**Liste des magasins partenaires**.
+**Magasins partenaires**.
 
 Ce QR désigne le compte d'application du partenaire et son solde Tribuneo dans
 le réseau courant, sans montant fixé. Il est distinct :
@@ -22,7 +22,8 @@ courant ; c'est le cas après un ajout complet.
 
 1. Retrouvez le partenaire avec
    [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md).
-2. Sur sa carte, ouvrez l'icône QR (**Menu Qrcode**).
+2. Sur sa ligne, ouvrez l'icône QR **QR code du magasin** (anciennement
+   **Menu Qrcode**).
 3. Choisissez **Générer le QR Code de réception**. La génération démarre
    immédiatement : aucune confirmation n'est demandée.
 4. **Génération du QR Code...** s'affiche, puis un PDF est téléchargé sous le

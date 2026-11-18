@@ -10,9 +10,11 @@ la lecture. Le parcours commun (menu, pagination, export) est décrit dans
 ## Étapes
 
 1. Ouvrez **Statistiques** ; **Comptes utilisateurs** est le rapport affiché
-   par défaut. Sinon, choisissez-le dans la liste déroulante.
+   par défaut. Sinon, cliquez dessus dans le catalogue des rapports à gauche,
+   groupe **UTILISATEURS**.
 2. Lisez le tableau, dix lignes par page, trié du montant le plus élevé au
-   plus faible.
+   plus faible. Les téléphones sont masqués par défaut : cliquez sur
+   **Afficher les numéros** pour les voir en entier.
 3. Pour obtenir toutes les lignes, cliquez sur **Exporter en CSV** : fichier
    `comptes_utilisateurs.csv`.
 
@@ -22,9 +24,13 @@ Ce rapport n'a ni période ni filtre.
 
 | Écran | En-tête CSV | Définition |
 |---|---|---|
-| **Téléphone** | `mobile` | Mobile enregistré sur le compte utilisateur. |
-| **Initiales** | `initials` | Première lettre du prénom puis du nom, en majuscules. |
-| **Montant coupon (€)** | `montant` | Montant actuel du porte-monnaie consommateur du compte dans ce réseau, deux décimales. |
+| **Téléphone** | `mobile` | Mobile enregistré sur le compte utilisateur, masqué par défaut à l'écran (**Afficher les numéros**), complet dans le CSV. |
+| **Initiales** | `initials` | Première lettre du prénom puis du nom, en majuscules, dans un petit carré. |
+| **Montant coupon** | absent du CSV | Barre de valeur : sa longueur est proportionnelle au plus gros montant de la page affichée, dont la barre est orange. |
+| **€** | `montant` | Montant actuel du porte-monnaie consommateur du compte dans ce réseau, deux décimales, sans symbole (par exemple 2 300,00). |
+
+L'ancienne colonne **Montant coupon (€)** est désormais séparée en deux : la
+barre **Montant coupon** et le montant chiffré dans la colonne **€**.
 
 ## Lecture et limites
 

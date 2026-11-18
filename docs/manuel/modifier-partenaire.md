@@ -4,7 +4,7 @@
 
 Corriger le nom, l'e-mail, le SIRET, le téléphone ou la préférence de
 dématérialisation d'un partenaire depuis **Partenaires**, écran
-**Liste des magasins partenaires**. Identifiez d'abord la bonne fiche avec
+**Magasins partenaires**. Identifiez d'abord la bonne fiche avec
 [Rechercher et consulter un partenaire](rechercher-consulter-partenaire.md).
 
 Ces informations appartiennent à l'entité commune : si elle est aussi cliente
@@ -12,20 +12,23 @@ ou partenaire d'un autre réseau, la modification s'applique aussi à ces rôles
 
 ## Étapes
 
-1. Sur la carte du partenaire, ouvrez l'icône d'édition (**Menu Edition**).
+1. Sur la ligne du partenaire, cliquez sur le crayon **Modifier le partenaire**
+   (anciennement **Menu Edition**).
 2. Choisissez **Editer informations générales**.
-3. Le formulaire **Modifier un partenaire** s'ouvre prérempli : **Nom du partenaire**,
-   **Email du partenaire**, **Siret du partenaire**, **Téléphone du partenaire**,
-   **Code du partenaire** et la case **Accepte la dématérialisation**, cochée
-   selon la valeur actuelle. **Code du partenaire** est en lecture seule, sous
+3. Un panneau s'ouvre à droite, avec la rubrique **MODIFIER LE PARTENAIRE** et
+   le nom du partenaire en titre (anciennement **Modifier un partenaire**). La
+   section **Informations du partenaire** est préremplie : **Nom du partenaire**,
+   **Code du partenaire**, **Siret du partenaire**, **Email du partenaire**,
+   **Téléphone du partenaire** et l'interrupteur **Accepte la dématérialisation**,
+   activé selon la valeur actuelle. **Code du partenaire** est en lecture seule, sous
    la mention « Le code du partenaire est attribué à la création et n'est pas
    modifiable depuis cet écran. »
 4. Modifiez les champs utiles, puis cliquez sur **Enregistrer**.
 5. Après **Modification du partenaire réussie**, la liste se recharge.
-   Contrôlez l'onglet **Informations générales**.
+   Dépliez la fiche et contrôlez la rubrique **INFORMATIONS GÉNÉRALES**.
 
-Ce formulaire n'a pas de bouton **Annuler**. Pour abandonner sans enregistrer,
-fermez-le par un clic à l'extérieur de la boîte de dialogue ; ce mode de
+Pour abandonner, cliquez sur **Annuler** ou sur le bouton ✕ **Fermer** ; un
+clic en dehors du panneau le ferme aussi sans enregistrer. Ce mode de
 fermeture n'a pas été vérifié en session.
 
 ## Contrôles
@@ -49,7 +52,8 @@ Vérifiez la fiche avant de recommencer.
   l'action de mise à jour lue ne le reprend pas. Une fiche sans code s'affiche
   avec un champ vide : cela ne bloque plus l'enregistrement des autres champs,
   et aucun code n'est créé.
-- Le **Nom d'utilisateur** de l'application n'est pas modifié par ce formulaire.
+- Le nom d'utilisateur de l'application (ligne **Utilisateur** de la fiche)
+  n'est pas modifié par ce formulaire.
 - Changer l'e-mail change l'adresse utilisée pour l'envoi du lien de première
   connexion ; cela ne modifie pas, dans l'action lue, l'e-mail du compte
   d'application.

@@ -2,21 +2,28 @@
 
 ## Objectif
 
-Retrouver une fiche dans **Clients**, écran **Liste des clients**, puis consulter
-ses informations. Ce parcours porte sur les clients du réseau courant.
+Retrouver une fiche dans l'écran **Clients** (anciennement **Liste des clients**),
+puis consulter ses informations. Ce parcours porte sur les clients du réseau courant.
 
 ## Étapes
 
 1. Ouvrez **Clients** dans le menu latéral et attendez la fin du chargement.
-2. Saisissez tout ou partie du nom dans **Rechercher...**. La liste se met à
+2. Saisissez tout ou partie du nom dans le champ de recherche
+   **Nom du client…** (anciennement **Rechercher...**). Le tableau se met à
    jour après une courte pause de saisie, d'environ une demi-seconde.
-3. Repérez le nom dans l'en-tête de la fiche et vérifiez les informations
-   affichées pour distinguer les homonymes.
+3. Repérez le client dans le tableau : la colonne **Client** affiche le nom
+   et, s'il existe, le SIRET ; la colonne **Contact** affiche l'e-mail et le
+   téléphone. Cliquez sur la ligne pour afficher sa fiche à droite (sous le
+   tableau sur une fenêtre étroite) et vérifiez les informations affichées
+   pour distinguer les homonymes. Sans clic, la fiche affiche le premier
+   client de la liste.
 4. Pour parcourir la liste par initiale, cliquez sur l'une des lettres ou
-   l'un des chiffres proposés au-dessus des fiches. Ce clic efface la recherche
-   et affiche le groupe choisi. Seuls les groupes reçus non vides sont proposés.
-5. Sur une fiche, consultez **Informations générales**, **Adresse** ou
-   **Informations bancaires**.
+   l'un des chiffres de l'index placé à côté de la recherche (infobulle
+   **Lettre A**, **Lettre B**…). Ce clic efface la recherche et affiche le
+   groupe choisi. Seuls les groupes reçus non vides sont proposés. Le pied du
+   tableau rappelle la lettre ou la recherche en cours et le nombre de clients.
+5. Dans la fiche, consultez les onglets **Général**, **Adresse** ou
+   **Banque**.
 
 ## Fonctionnement des filtres et du tri
 
@@ -29,20 +36,23 @@ ses informations. Ce parcours porte sur les clients du réseau courant.
   des groupes par l'API. Aucun bouton de tri ascendant ou descendant n'est
   établi dans cet écran ; le classement des accents n'est pas garanti comme
   un tri linguistique français.
-- Sous **Filtres :**, les trois icônes personnes, cible et argent choisissent
-  respectivement l'onglet **Informations générales**, **Adresse** ou
-  **Informations bancaires** à afficher sur les fiches. Elles ne filtrent pas
+- Les anciens boutons ronds **Filtres :** ont disparu. Les onglets
+  **Général**, **Adresse** et **Banque** de la fiche choisissent seulement les
+  informations affichées pour le client sélectionné. Ils ne filtrent pas
   les clients selon la présence d'une adresse, d'un compte ou leur statut.
 - **Aucune adresse enregistrée pour le moment** et
   **Aucune information bancaire enregistrée pour le moment** décrivent les
   informations reçues pour la fiche, sans établir l'absence dans toute la base.
 
-Si vous ne trouvez pas le client, vérifiez le nom saisi et l'initiale affichée.
+Si vous ne trouvez pas le client (**Aucun client**, ou
+**Aucun client ne correspond à « … ».** après une recherche), vérifiez le nom
+saisi et l'initiale affichée.
 Une liste vide, un problème de chargement ou une lecture en erreur ne prouvent
 pas l'absence du client : n'en créez pas un nouveau sur ce seul constat.
 
-Depuis la fiche trouvée, la première icône de l'en-tête, en forme de liste,
-ouvre **Ajouter une commande** pour ce client : voir
+Sur la ligne du client, l'icône **Créer une commande**, ou le bouton
+**Nouvelle commande** de sa fiche, ouvre **Ajouter une commande** pour ce
+client : voir
 [Créer une commande depuis la fiche d'un client](creer-commande-depuis-client.md).
 
 ## Portée de l'aide Néo

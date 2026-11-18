@@ -13,9 +13,11 @@ puis vérifier son apparition dans le tableau des paiements.
    **Montant payé:**, qui présente le cumul et le total de la commande. Si les
    données paraissent incomplètes ou incohérentes, vérifiez-les avant de saisir
    un nouveau règlement.
-3. Dans la zone d'ajout, vérifiez la date affichée, initialement celle du jour.
-   Pour la changer, cliquez sur le bouton portant cette date et choisissez la
-   date du règlement dans le calendrier ou sa saisie **Jour/Mois/Année**.
+3. Dans la zone d'ajout, vérifiez la date affichée sur le bouton bleu marine,
+   initialement celle du jour. Pour la changer, cliquez sur ce bouton : la
+   fenêtre **Date du paiement** s'ouvre sur une saisie au format **JJ/MM/AAAA**
+   (l'icône calendrier permet aussi de choisir dans un calendrier). Cliquez
+   ensuite sur **Valider**.
 4. Sélectionnez la **Méthode** : **Espèces**, **Chèque**, **Virement**,
    **Paiement en ligne**, **Carte bancaire** ou **Mandat administratif**.
 5. Si le sélecteur **Compte encaisseur** est présent, vérifiez le compte

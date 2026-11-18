@@ -23,14 +23,14 @@ consommateur, et comprendre pourquoi une suppression est refusée.
 1. Ouvrez **Commandes** et retrouvez la commande : voir
    [Rechercher une commande](rechercher-commande.md).
 2. Vérifiez qu'elle n'est pas facturée : dans la colonne **Edition**, choisissez
-   **Modifier**. Si le bandeau **Cette commande est facturée** s'affiche, ne la
-   supprimez pas. Dans tous les cas, cliquez sur **Fermer** sans enregistrer.
+   **Modifier**. Si l'encart orange **Cette commande est facturée** s'affiche,
+   ne la supprimez pas. Dans tous les cas, cliquez sur **Fermer** sans enregistrer.
 3. Dans la colonne **Edition**, ouvrez de nouveau le menu de sa ligne et
    choisissez **Supprimer**.
 4. La fenêtre **Supprimer une commande** demande : « Êtes-vous sûr de vouloir
    supprimer cette commande ? ». **Annuler** ferme la fenêtre sans rien
    supprimer.
-5. Cliquez sur **Supprimer** uniquement pour confirmer réellement la
+5. Cliquez sur le bouton rouge **Supprimer** uniquement pour confirmer réellement la
    suppression, puis attendez le résultat : aucun indicateur d'attente n'est
    affiché pendant l'envoi.
 6. En cas de succès, le message **Commande supprimée avec succès.** s'affiche,
@@ -43,9 +43,9 @@ En cas d'échec, le message est toujours :
 scanné son bon sur cette commande.**
 
 - La cause habituelle est un bon attribué ou utilisé. Pour le vérifier, ouvrez
-  **Gestion → Gestion des bons** : l'infobulle de l'icône de désactivation d'un
-  bon attribué indique **Bon associé à un utilisateur, désactivation
-  impossible**. Fermez ensuite avec **Fermer**.
+  **Gestion → Gestion des bons** : dans le panneau **Bons de la commande**, un
+  bon attribué porte la pastille **Associé à un utilisateur** dans la colonne
+  **État**. Fermez ensuite avec le bouton ✕ **Fermer**.
 - Le même message s'affiche aussi pour d'autres échecs, par exemple une
   commande introuvable ou une erreur du serveur. Il ne prouve donc pas, à lui
   seul, qu'un bon a été scanné.

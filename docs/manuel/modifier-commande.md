@@ -16,7 +16,9 @@ déjà attribués.
 | Facturée | Lecture seule ; seule la date de validité peut être changée, via **Changer la date de validité**. |
 
 Dans tous les cas, le champ **Offert par** est en lecture seule : le client et
-le texte « Offert par » ne se modifient pas ici. Un bon attribué à un
+le texte « Offert par » ne se modifient pas ici. La section
+**Commerçants acceptés** du panneau s'enregistre à part, même pour une commande
+facturée ; elle n'est pas décrite dans cette fiche. Un bon attribué à un
 consommateur, par exemple scanné ou utilisé, n'est jamais retiré.
 
 ## Étapes
@@ -26,29 +28,35 @@ consommateur, par exemple scanné ou utilisé, n'est jamais retiré.
 2. Dans la colonne **Edition**, ouvrez le menu de sa ligne et choisissez
    **Modifier**. Le message **Chargement de la commande...** s'affiche pendant
    la lecture de son état.
-3. La fenêtre **Modifier la commande** suivie du numéro commercial s'ouvre.
-   Lisez l'éventuel bandeau orange en haut du formulaire (voir plus bas).
-4. Pour changer la date de validité, cliquez sur **Choisir une date** ou sur le
-   champ **Date d'expiration**, puis choisissez la date dans le calendrier. La
-   date la plus proche possible est celle de demain. Les règles de date sont
-   détaillées dans [Changer la date de validité d'une commande](changer-validite-commande.md).
-5. Si les lignes sont modifiables, ajustez **Montant par chèque**, **Nombre de
-   chèque** et **Message personnalisé**. Le montant doit être strictement
-   positif, avec un point et au plus deux décimales ; la quantité est un entier
-   d'au moins un. Cochez **Différents fonds ?** pour gérer plusieurs lignes,
-   puis utilisez **+** pour ajouter une ligne et **−** pour retirer la dernière.
+3. Le panneau **Modifier la commande** s'ouvre à droite ; le numéro
+   commercial et la date de création sont rappelés en orange au-dessus du
+   titre. Lisez l'éventuel encart en haut du panneau (voir plus bas) ; le
+   champ **Paiement** rappelle l'état du paiement.
+4. Pour changer la date de validité, cliquez sur le champ **Date d'expiration**,
+   choisissez la date dans le calendrier **Date de validité**, puis cliquez sur
+   **Valider**. La date la plus proche possible est celle de demain. Les règles
+   de date sont détaillées dans [Changer la date de validité d'une commande](changer-validite-commande.md).
+5. Si les lignes sont modifiables, ajustez dans la section **Bons** les champs
+   **Montant par chèque**, **Nombre de chèque** et **Message personnalisé**. Le
+   montant doit être strictement positif, avec un point et au plus deux
+   décimales ; la quantité est un entier d'au moins un. Le bouton
+   **Ajouter un autre montant** ajoute une ligne ; l'icône corbeille
+   **Retirer la ligne** retire la ligne concernée. Sous les lignes, un rappel
+   indique le nombre actuel de bons et combien seront retirés.
 6. Si nécessaire, changez **Pour l'occasion de**.
-7. Cliquez sur **Enregistrer**. Si la modification retire des chèques d'un
-   montant, la fenêtre **Retrait de bons** s'affiche : « Les bons retirés
+7. Cliquez sur **Enregistrer**, en pied de panneau. Si la modification retire
+   des chèques d'un montant, la fenêtre **Retrait de N bon(s)** (anciennement
+   **Retrait de bons**) s'affiche : « Les bons retirés
    seront les derniers créés parmi ceux qui ne sont pas encore attribués. Si
    leurs QR ont déjà été imprimés et distribués, ils ne seront plus valables.
    Continuer ? ». **Annuler** revient au formulaire sans enregistrer ;
    **Continuer** envoie la modification.
-8. En cas de succès, le formulaire se ferme et le message **Commande modifiée :**
+8. En cas de succès, le panneau se ferme et le message **Commande modifiée :**
    indique le nombre de bons créés et retirés. La liste se recharge : contrôlez
    **Qté**, **Montant total**, **Occasion** et **Expiration**.
 
-Pour quitter sans enregistrer, cliquez sur **Fermer** : les changements non
+Pour quitter sans enregistrer, cliquez sur **Fermer** (en pied de panneau ou
+bouton ✕ en haut à droite) ou en dehors du panneau : les changements non
 enregistrés sont perdus.
 
 ## Effets d'une modification
@@ -59,8 +67,8 @@ enregistrés sont perdus.
   refusée en entier.
 - **Montant d'une ligne changé** : la modification est traitée montant par
   montant. Passer une ligne d'un montant à un autre retire les bons de l'ancien
-  montant et crée ceux du nouveau ; la fenêtre **Retrait de bons** s'affiche
-  donc aussi dans ce cas.
+  montant et crée ceux du nouveau ; la fenêtre **Retrait de N bon(s)**
+  s'affiche donc aussi dans ce cas.
 - **Total** : il est recalculé à partir des lignes. Les paiements déjà
   enregistrés ne sont pas contrôlés par la modification : après un changement
   de total, vérifiez le solde avec
@@ -73,11 +81,11 @@ enregistrés sont perdus.
 
 | Bandeau | Signification |
 |---|---|
-| « Cette commande est facturée : seule la date de validité peut encore être modifiée (et, pour une commande importée, le contact des bénéficiaires non attribués). » | Le formulaire est en lecture seule, sans **Enregistrer**. Le bouton **Changer la date de validité** ouvre le changement de date pour toute la commande. |
-| « Commande importée par fichier : les montants et les quantités se modifient depuis l'écran Bénéficiaires. » | Les lignes sont en lecture seule. Le bouton **Bénéficiaires** ouvre un autre écran, non décrit dans cette fiche. |
-| « Commande de la boutique en ligne : les lignes ne sont pas modifiables. » | Les lignes sont en lecture seule. |
+| « Cette commande est facturée : seule la date de validité peut encore être modifiée (et, pour une commande importée, le contact des bénéficiaires non attribués). » | Encart orange à cadenas. Le panneau est en lecture seule, sans **Enregistrer**. Le bouton **Changer la date de validité** de l'encart ouvre le changement de date pour toute la commande. |
+| « Commande importée par fichier : les montants et les quantités se modifient depuis l'écran Bénéficiaires. » | Encart d'information bleu. Les lignes sont en lecture seule (« Lignes non modifiables ici. »). Le bouton **Bénéficiaires** ouvre un autre écran, non décrit dans cette fiche. |
+| « Commande de la boutique en ligne : les lignes ne sont pas modifiables. » | Encart d'information bleu. Les lignes sont en lecture seule. |
 
-Si l'état de la commande n'a pas pu être lu, le formulaire s'ouvre sans bandeau
+Si l'état de la commande n'a pas pu être lu, le formulaire s'ouvre sans encart
 et reste modifiable ; un éventuel refus est alors signalé à l'enregistrement et
 le formulaire s'aligne sur ce refus.
 

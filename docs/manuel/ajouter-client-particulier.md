@@ -2,22 +2,27 @@
 
 ## Objectif et prérequis
 
-Créer une fiche client sans SIRET depuis **Clients**, écran **Liste des clients**.
+Créer une fiche client sans SIRET depuis l'écran **Clients** (anciennement
+**Liste des clients**).
 Vous devez disposer des droits de gestion des clients et connaître le nom,
 l'adresse e-mail et le téléphone à renseigner. Recherchez d'abord le client
 pour éviter de créer une seconde fiche.
 
 ## Étapes
 
-1. Ouvrez **Clients** dans le menu latéral.
-2. Sous **Ajouter un client**, cliquez sur le bouton **+**.
-3. À la question **Ce client est il un particulier ?**, choisissez **Oui**.
-4. Dans **Ajouter un client**, renseignez **Nom du client**, **Email du client**
-   et **Téléphone du client**. Le champ SIRET n'est pas affiché dans ce parcours.
+1. Ouvrez **Clients** dans le menu latéral (groupe **RÉSEAU**).
+2. En haut à droite de l'écran, cliquez sur le bouton orange **Ajouter un client**.
+3. Dans la fenêtre **Ajouter un client**, à la question
+   **Ce client est-il un particulier ?**, choisissez **Oui, un particulier**.
+4. Le panneau **Ajouter un client** s'ouvre à droite (rubrique
+   **NOUVEAU CLIENT**, mention **Particulier**). Dans la section **1 Identité**,
+   renseignez **Nom du client**, **Email du client** et **Téléphone du client**.
+   Le champ SIRET n'est pas affiché dans ce parcours.
 5. Renseignez éventuellement **Code du client**. Le formulaire précise que ce
    code est optionnel et peut servir d'identifiant dans vos systèmes internes.
-6. Cliquez sur **Enregistrer** pour créer le client, ou sur **Annuler** pour
-   fermer sans enregistrer.
+6. Cliquez sur le bouton orange **Ajouter le client** pour créer le client.
+   Pour fermer sans enregistrer, cliquez sur **Annuler**, sur ✕ **Fermer** ou
+   en dehors du panneau.
 7. Après le message **Ajout du client réussi.**, retrouvez sa fiche dans la
    liste et vérifiez ses informations.
 
